@@ -1,0 +1,11 @@
+[ignore]
+./build
+[include]
+./packages
+[libs]
+./typeings
+[lints]
+
+[options]
+
+[strict]

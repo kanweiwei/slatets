@@ -1,0 +1,41 @@
+{
+  "name": "@zykj/slate-schema-violations",
+  "version": "0.1.39",
+  "description": "",
+  "license": "MIT",
+  "repository": "git://github.com/kanweiwei/slatets.git",
+  "main": "lib/index.js",
+  "module": "es/index.js",
+  "jsnext:main": "es/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "files": [
+    "dist/",
+    "lib/",
+    "es/"
+  ],
+  "author": "",
+  "devDependencies": {
+    "babel": "^6.23.0",
+    "babel-core": "^6.26.3",
+    "babel-plugin-add-module-exports": "^0.2.1",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-plugin-transform-es3-member-expression-literals": "^6.22.0",
+    "babel-plugin-transform-es3-property-literals": "^6.22.0",
+    "babel-plugin-transform-object-assign": "^6.22.0",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-react": "^6.24.1",
+    "gulp": "^3.9.1",
+    "gulp-babel": "^7.0.1",
+    "gulp-strip-code": "^0.1.4",
+    "gulp-typescript": "^3.2.4",
+    "merge2": "^1.2.2",
+    "object-assign": "^4.1.1",
+    "rimraf": "^2.6.2",
+    "through2": "^2.0.3",
+    "typescript": "^2.6.2"
+  }
+}

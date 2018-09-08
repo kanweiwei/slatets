@@ -1,0 +1,55 @@
+{
+  "name": "slatets",
+  "version": "1.0.0",
+  "description": "学习slate框架",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "compile": "gulp compile"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kanweiwei/slatets.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kanweiwei/slatets/issues"
+  },
+  "homepage": "https://github.com/kanweiwei/slatets#readme",
+  "dependencies": {
+    "@zykj/slate-schema-violations": "^0.1.39",
+    "direction": "^1.0.2",
+    "esrever": "^0.2.0",
+    "immutable": "^3.8.2",
+    "is-empty": "^1.2.0",
+    "is-plain-object": "^2.0.4",
+    "slate-dev-logger": "^0.1.39"
+  },
+  "devDependencies": {
+    "@types/immutable": "^3.8.7",
+    "babel": "^6.23.0",
+    "babel-core": "^6.26.3",
+    "babel-plugin-add-module-exports": "^0.2.1",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-plugin-transform-es3-member-expression-literals": "^6.22.0",
+    "babel-plugin-transform-es3-property-literals": "^6.22.0",
+    "babel-plugin-transform-object-assign": "^6.22.0",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-flow": "^6.23.0",
+    "babel-preset-react": "^6.24.1",
+    "flow-bin": "^0.77.0",
+    "gulp": "^3.9.1",
+    "gulp-babel": "^7.0.1",
+    "gulp-strip-code": "^0.1.4",
+    "gulp-typescript": "^3.2.4",
+    "merge2": "^1.2.2",
+    "object-assign": "^4.1.1",
+    "rimraf": "^2.6.2",
+    "through2": "^2.0.3",
+    "tslint": "^5.11.0",
+    "typescript": "^2.6.2"
+  }
+}
