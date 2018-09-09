@@ -128,7 +128,7 @@ class Node {
      * create a Node from a JSON value
      * @param value
      */
-    static fromJSON(value: any): Block | Inline | Document | Text {
+    static fromJSON(value: any, options: any = {}): Block | Inline | Document | Text {
         let { object, kind } = value;
 
         if (!object && kind) {
