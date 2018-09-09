@@ -18,7 +18,8 @@ const rootDir = "packages"
 
 const entrys = [
     "slate",
-    "slate-schema-violations"
+    "slate-schema-violations",
+    "slate-hotkeys"
 ]
 
 function compileTs(stream) {
