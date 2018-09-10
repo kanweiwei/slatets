@@ -5,7 +5,6 @@ import { atob, btoa } from 'isomorphic-base64'
  * Encode a JSON `object` as base-64 `string`.
  *
  * @param {Object} object
- * @return {String}
  */
 
 function encode(object) {
@@ -18,7 +17,6 @@ function encode(object) {
  * Decode a base-64 `string` to a JSON `object`.
  *
  * @param {String} string
- * @return {Object}
  */
 
 function decode(string) {
@@ -31,7 +29,6 @@ function decode(string) {
  * Deserialize a Value `string`.
  *
  * @param {String} string
- * @return {Value}
  */
 
 function deserialize(string, options) {
@@ -44,7 +41,6 @@ function deserialize(string, options) {
  * Deserialize a Node `string`.
  *
  * @param {String} string
- * @return {Node}
  */
 
 function deserializeNode(string, options) {
@@ -57,7 +53,6 @@ function deserializeNode(string, options) {
  * Serialize a `value`.
  *
  * @param {Value} value
- * @return {String}
  */
 
 function serialize(value, options) {
@@ -70,7 +65,6 @@ function serialize(value, options) {
  * Serialize a `node`.
  *
  * @param {Node} node
- * @return {String}
  */
 
 function serializeNode(node, options) {

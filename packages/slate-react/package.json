@@ -22,11 +22,11 @@
       "react-immutable-proptypes": "^2.1.0",
       "react-portal": "^3.1.0",
       "selection-is-backward": "^1.0.0",
-      "slate-base64-serializer": "^0.2.47",
+      "@zykj/slate-base64-serializer": "^0.2.47",
       "slate-dev-environment": "^0.1.4",
       "slate-dev-logger": "^0.1.42",
       "@zykj/slate-hotkeys": "^0.1.4",
-      "slate-plain-serializer": "^0.5.28",
+      "@zykj/slate-plain-serializer": "^0.5.28",
       "slate-prop-types": "^0.4.45"
     },
     "peerDependencies": {

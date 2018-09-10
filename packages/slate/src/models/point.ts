@@ -20,19 +20,19 @@ class Point extends Record(DEFAULTS) {
     public offset: number | null;
     public path: List<number> | null;
 
-    get object() {
+    get object(): "point" {
         return "point";
     }
 
-    get isSet() {
+    get isSet(): boolean {
         return this.key != null && this.offset != null && this.path != null;
     }
 
-    get isUnset() {
+    get isUnset(): boolean {
         return !this.isSet;
     }
 
-    static create(attrs: any = {}) {
+    static create(attrs: any = {}): Point {
         if (Point.isPoint(attrs)) {
             return attrs;
         }
@@ -46,7 +46,9 @@ class Point extends Record(DEFAULTS) {
         );
     }
 
-    static createProperties(a: any = {}) {
+    static createProperties(
+        a: any = {}
+    ): { key: string; offset: string; path: any } {
         if (Point.isPoint(a)) {
             return {
                 key: a.key,
@@ -75,7 +77,7 @@ class Point extends Record(DEFAULTS) {
         );
     }
 
-    static fromJSON(object) {
+    static fromJSON(object): Point {
         const { key = null, offset = null, path = null } = object;
 
         const point = new Point({
@@ -89,18 +91,18 @@ class Point extends Record(DEFAULTS) {
 
     static fromJS = Point.fromJSON;
 
-    static isPoint(obj) {
+    static isPoint(obj): boolean {
         return !!(obj && obj[MODEL_TYPES.POINT]);
     }
 
-    isAtEndOfNode(node: any) {
+    isAtEndOfNode(node: any): boolean {
         if (this.isUnset) return false;
         const last = node.getLastText();
         const is = this.key === last.key && this.offset === last.text.length;
         return is;
     }
 
-    isAtStartOfNode(node: any) {
+    isAtStartOfNode(node: any): boolean {
         if (this.isUnset) return false;
 
         // PERF: Do a check for a `0` offset first since it's quickest.
@@ -111,28 +113,28 @@ class Point extends Record(DEFAULTS) {
         return is;
     }
 
-    isInNode(node: any) {
+    isInNode(node: any): boolean {
         if (this.isUnset) return false;
         if (node.object === "text" && node.key === this.key) return true;
         if (node.hasNode(this.key)) return true;
         return false;
     }
 
-    moveBackward(n = 1) {
+    moveBackward(n = 1): Point {
         if (n === 0) return this;
         if (n < 0) return this.moveForward(-n);
         const point = this.setOffset((this.offset as number) - n);
         return point;
     }
 
-    moveForward(n = 1) {
+    moveForward(n = 1): Point {
         if (n === 0) return this;
         if (n < 0) return this.moveBackward(-n);
         const point = this.setOffset((this.offset as number) + n);
         return point;
     }
 
-    moveTo(path: number | string | List<number> | null, offset = 0) {
+    moveTo(path: number | string | List<number> | null, offset = 0): Point {
         let key = this.key;
 
         if (typeof path === "number") {
@@ -145,27 +147,27 @@ class Point extends Record(DEFAULTS) {
             key = this.path && path && path.equals(this.path) ? this.key : null;
         }
 
-        const point = this.merge({ key, path, offset });
+        const point = this.merge({ key, path, offset }) as Point;
         return point;
     }
 
-    moveToStartOfNode(node) {
+    moveToStartOfNode(node): Point {
         const first = node.getFirstText();
         const point = this.moveTo(first.key, 0);
         return point;
     }
 
-    moveToEndOfNode(node) {
+    moveToEndOfNode(node): Point {
         const last = node.getLastText();
         const point = this.moveTo(last.key, last.text.length);
         return point;
     }
 
-    normalize(node) {
+    normalize(node): Point {
         // If both the key and path are null, there's no reference to a node, so
         // make sure it is entirely unset.
         if (this.key == null && this.path == null) {
-            return this.setOffset(null);
+            return this.setOffset(null) as Point;
         }
 
         const { key, offset, path } = this;
@@ -180,11 +182,11 @@ class Point extends Record(DEFAULTS) {
             const text = node.getFirstText();
             if (!text) return Point.create();
 
-            const point = this.merge({
+            const point: Point = this.merge({
                 key: text.key,
                 offset: 0,
                 path: node.getPath(text.key)
-            });
+            }) as Point;
 
             return point;
         }
@@ -197,11 +199,11 @@ class Point extends Record(DEFAULTS) {
 
             const text = target.getTextAtOffset(offset);
             const before = target.getOffset(text.key);
-            const point = this.merge({
+            const point: Point = this.merge({
                 offset: (offset as number) - before,
                 key: text.key,
                 path: node.getPath(text.key)
-            });
+            }) as Point;
 
             return point;
         }
@@ -214,39 +216,46 @@ class Point extends Record(DEFAULTS) {
             );
         }
 
-        const point = this.merge({
+        const point: Point = this.merge({
             key: target.key,
             path: path == null ? node.getPath(target.key) : path,
             offset: offset == null ? 0 : Math.min(offset, target.text.length)
-        });
+        }) as Point;
 
         return point;
     }
 
-    setKey(key) {
+    setKey(key: string | null): Point {
         if (key !== null) {
             key = KeyUtils.create(key);
         }
 
-        const point = this.set("key", key);
+        const point: Point = this.set("key", key) as Point;
         return point;
     }
 
-    setOffset(offset) {
-        const point = this.set("offset", offset);
+    setOffset(offset: number | null): Point {
+        const point = this.set("offset", offset) as Point;
         return point;
     }
 
-    setPath(path) {
+    setPath(path: List<number>): Point {
         if (path !== null) {
             path = PathUtils.create(path);
         }
 
-        const point = this.set("path", path);
+        const point = this.set("path", path) as Point;
         return point;
     }
 
-    toJSON(options: any = {}) {
+    toJSON(
+        options: any = {}
+    ): {
+        object: "point";
+        key: string;
+        offset: number;
+        path: List<number>;
+    } {
         const object: any = {
             object: this.object,
             key: this.key,
@@ -264,7 +273,14 @@ class Point extends Record(DEFAULTS) {
     /**
      * Alias `toJS`.
      */
-    toJS(options: any = {}) {
+    toJS(
+        options: any = {}
+    ): {
+        object: "point";
+        key: string;
+        offset: number;
+        path: List<number>;
+    } {
         return this.toJSON(options);
     }
 }

@@ -277,7 +277,6 @@ class Content extends React.Component<any, any> {
      * children, such as void nodes and other nested Slate editors.
      *
      * @param {Element} target
-     * @return {Boolean}
      */
 
     isInEditor = target => {
@@ -470,7 +469,6 @@ class Content extends React.Component<any, any> {
     /**
      * Render the editor content.
      *
-     * @return {Element}
      */
 
     render() {
@@ -567,7 +565,6 @@ class Content extends React.Component<any, any> {
      *
      * @param {Node} child
      * @param {Boolean} isSelected
-     * @return {Element}
      */
 
     renderNode = (child, isSelected, decorations) => {

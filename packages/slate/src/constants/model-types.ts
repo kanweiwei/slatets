@@ -9,6 +9,7 @@ const MODEL_TYPES: any = {
     CHANGE: "@@__SLATE_CHANGE__@@",
     CHARACTER: "@@__SLATE_CHARACTER__@@",
     DOCUMENT: "@@__SLATE_DOCUMENT__@@",
+    DATA: "@@__SLATE_DATA__@@",
     HISTORY: "@@__SLATE_HISTORY__@@",
     INLINE: "@@__SLATE_INLINE__@@",
     LEAF: "@@__SLATE_LEAF__@@",

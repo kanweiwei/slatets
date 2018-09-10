@@ -135,17 +135,23 @@ class Range extends Record(DEFAULTS) {
 
     static fromJS = Range.fromJSON;
 
-    static isRange: (item: any) => boolean = isType.bind(null, "RANGE");
+    static isRange = (item: any): boolean => isType.bind(null, "RANGE");
+
+    static isRangeList(item: any) {
+        return (
+            List.isList(item) && item.every((item: any) => Range.isRange(item))
+        );
+    }
     /**
      * Object.
      *
      * @return {String}
      */
-    get object() {
+    get object(): "range" {
         return "range";
     }
 
-    get kind() {
+    get kind(): "range" {
         logger.deprecate(
             "slate@0.32.0",
             "The `kind` property of Slate objects has been renamed to `object`."
@@ -155,21 +161,15 @@ class Range extends Record(DEFAULTS) {
 
     /**
      * Check whether the range is blurred.
-     *
-     * @return {Boolean}
      */
-
-    get isBlurred() {
+    get isBlurred(): boolean {
         return !this.isFocused;
     }
 
     /**
      * Check whether the range is collapsed.
-     *
-     * @return {Boolean}
      */
-
-    get isCollapsed() {
+    get isCollapsed(): boolean {
         return (
             this.anchor.key === this.focus.key &&
             this.anchor.offset === this.focus.offset
@@ -178,21 +178,15 @@ class Range extends Record(DEFAULTS) {
 
     /**
      * Check whether the range is expanded.
-     *
-     * @return {Boolean}
      */
-
-    get isExpanded() {
+    get isExpanded(): boolean {
         return !this.isCollapsed;
     }
 
     /**
      * Check whether the range is backward.
-     *
-     * @return {Boolean}
      */
-
-    get isBackward() {
+    get isBackward(): boolean | null {
         const { isUnset, anchor, focus } = this;
 
         if (isUnset) {
@@ -209,11 +203,8 @@ class Range extends Record(DEFAULTS) {
 
     /**
      * Check whether the range is forward.
-     *
-     * @return {Boolean}
      */
-
-    get isForward() {
+    get isForward(): boolean | null {
         const { isBackward } = this;
         const isForward = isBackward == null ? null : !isBackward;
         return isForward;
@@ -221,11 +212,8 @@ class Range extends Record(DEFAULTS) {
 
     /**
      * Check whether the range isn't set.
-     *
-     * @return {Boolean}
      */
-
-    get isUnset() {
+    get isUnset(): boolean {
         const { anchor, focus } = this;
         const isUnset = anchor.isUnset || focus.isUnset;
         return isUnset;
@@ -233,82 +221,62 @@ class Range extends Record(DEFAULTS) {
 
     /**
      * Check whether the range is set.
-     *
-     * @return {Boolean}
      */
-
-    get isSet() {
+    get isSet(): boolean {
         return !this.isUnset;
     }
 
     /**
      * Get the start point.
-     *
-     * @return {String}
      */
-
-    get start() {
+    get start(): Point {
         return this.isBackward ? this.focus : this.anchor;
     }
 
     /**
      * Get the end point.
-     *
-     * @return {String}
      */
-
-    get end() {
+    get end(): Point {
         return this.isBackward ? this.anchor : this.focus;
     }
 
     /**
      * Flip the range.
-     *
-     * @return {Range}
      */
-    flip() {
-        const range = this.setPoints([this.focus, this.anchor]);
+    flip(): Range {
+        const range = this.setPoints([this.focus, this.anchor]) as any;
         return range;
     }
 
     /**
      * Move the anchor and focus offsets forward `n` characters.
-     *
-     * @param {Number} n
-     * @return {Range}
      */
-    moveForward(n: number) {
+    moveForward(n: number): Range {
         const range = this.setPoints([
             this.anchor.moveForward(n),
             this.focus.moveForward(n)
-        ]);
+        ]) as Range;
 
         return range;
     }
 
     /**
      * Move the anchor and focus offsets backward `n` characters.
-     *
-     * @param {Number} n
-     * @return {Range}
      */
-    moveBackward(n: number) {
+    moveBackward(n: number): Range {
         const range = this.setPoints([
             this.anchor.moveBackward(n),
             this.focus.moveBackward(n)
-        ]);
+        ]) as Range;
 
         return range;
     }
 
     /**
      * Move the anchor offset backward `n` characters.
-     *
-     * @param {Number} n
-     * @return {Range}
      */
-    moveAnchorBackward(n: number) {
-        const range = this.setAnchor(this.anchor.moveBackward(n));
+    moveAnchorBackward(n: number): Range {
+        const range = this.setAnchor(this.anchor.moveBackward(n)) as Range;
         return range;
     }
 
@@ -318,8 +286,8 @@ class Range extends Record(DEFAULTS) {
      * @param {Number} n
      * @return {Range}
      */
-    moveAnchorForward(n: number) {
-        const range = this.setAnchor(this.anchor.moveForward(n));
+    moveAnchorForward(n: number): Range {
+        const range = this.setAnchor(this.anchor.moveForward(n)) as Range;
         return range;
     }
 
@@ -328,24 +296,19 @@ class Range extends Record(DEFAULTS) {
      *
      * Optionally, the `path` can be a key string, or omitted entirely in which
      * case it would be the offset number.
-     *
-     * @param {List|String} path
-     * @param {Number} offset
-     * @return {Range}
      */
-    moveAnchorTo(path, offset = 0) {
-        const range = this.setAnchor(this.anchor.moveTo(path, offset));
+    moveAnchorTo(path: List<number> | string, offset = 0): Range {
+        const range = this.setAnchor(this.anchor.moveTo(path, offset)) as Range;
         return range;
     }
 
     /**
      * Move the range's anchor point to the start of a `node`.
-     *
-     * @param {Node} node
-     * @return {Range}
      */
-    moveAnchorToStartOfNode(node) {
-        const range = this.setAnchor(this.anchor.moveToStartOfNode(node));
+    moveAnchorToStartOfNode(node: any): Range {
+        const range = this.setAnchor(
+            this.anchor.moveToStartOfNode(node)
+        ) as Range;
         return range;
     }
 
@@ -625,15 +588,12 @@ class Range extends Record(DEFAULTS) {
 
     /**
      * Move the range's points to the start of a `node`.
-     *
-     * @param {Node} node
-     * @return {Range}
      */
-    moveToStartOfNode(node) {
+    moveToStartOfNode(node): Range {
         const range = this.setPoints([
             this.anchor.moveToStartOfNode(node),
             this.focus.moveToStartOfNode(node)
-        ]);
+        ]) as Range;
 
         return range;
     }
@@ -641,108 +601,81 @@ class Range extends Record(DEFAULTS) {
     /**
      * Normalize the range, relative to a `node`, ensuring that the anchor
      * and focus nodes of the range always refer to leaf text nodes.
-     *
-     * @param {Node} node
-     * @return {Range}
      */
-    normalize(node) {
+    normalize(node: any): Range {
         const range = this.setPoints([
             this.anchor.normalize(node),
             this.focus.normalize(node)
-        ]) as this;
+        ]) as Range;
 
         return range;
     }
 
     /**
      * Set the anchor point to a new `anchor`.
-     *
-     * @param {Point} anchor
-     * @return {Range}
      */
-    setAnchor(anchor) {
-        const range = this.set("anchor", anchor);
+    setAnchor(anchor: Point): Range {
+        const range = this.set("anchor", anchor) as Range;
         return range;
     }
 
     /**
      * Set the end point to a new `point`.
-     *
-     * @param {Point} point
-     * @return {Range}
      */
-    setEnd(point) {
+    setEnd(point: Point): Range {
         const range = this.isBackward
-            ? this.setAnchor(point)
-            : this.setFocus(point);
+            ? (this.setAnchor(point) as Range)
+            : (this.setFocus(point) as Range);
         return range;
     }
 
     /**
      * Set the focus point to a new `focus`.
-     *
-     * @param {Point} focus
-     * @return {Range}
      */
-    setFocus(focus) {
-        const range = this.set("focus", focus);
+    setFocus(focus: Point): Range {
+        const range = this.set("focus", focus) as Range;
         return range;
     }
 
     /**
      * Set the `isAtomic` property to a new `value`.
-     *
-     * @param {Boolean} value
-     * @return {Range}
      */
-    setIsAtomic(value) {
-        const range = this.set("isAtomic", value);
+    setIsAtomic(value: boolean): Range {
+        const range = this.set("isAtomic", value) as Range;
         return range;
     }
 
     /**
      * Set the `isFocused` property to a new `value`.
-     *
-     * @param {Boolean} value
-     * @return {Range}
      */
-    setIsFocused(value) {
-        const range = this.set("isFocused", value);
+    setIsFocused(value: boolean): Range {
+        const range = this.set("isFocused", value) as Range;
         return range;
     }
 
     /**
      * Set the anchor and focus points to new `values`.
-     *
-     * @param {Array<Point>} values
-     * @return {Range}
      */
-    setPoints(values) {
+    setPoints(values: Point[]): Range {
         const [anchor, focus] = values;
-        const range = this.set("anchor", anchor).set("focus", focus);
+        const range = this.set("anchor", anchor).set("focus", focus) as Range;
         return range;
     }
 
     /**
      * Set the start point to a new `point`.
-     *
-     * @param {Point} point
-     * @return {Range}
      */
-    setStart(point) {
+    setStart(point: Point): Range {
         const range = this.isBackward
-            ? this.setFocus(point)
-            : this.setAnchor(point);
+            ? (this.setFocus(point) as Range)
+            : (this.setAnchor(point) as Range);
         return range;
     }
 
     /**
      * Set new `properties` on the range.
-     *
-     * @param {Object|Range} properties
-     * @return {Range}
      */
-    setProperties(properties) {
+    setProperties(properties: any): Range {
         properties = Range.createProperties(properties);
         const { anchor, focus, ...props } = properties;
 
@@ -754,18 +687,15 @@ class Range extends Record(DEFAULTS) {
             props.focus = Point.create(focus);
         }
 
-        const range = this.merge(props);
+        const range = this.merge(props) as Range;
         return range;
     }
 
     /**
      * Return a JSON representation of the range.
-     *
-     * @param {Object} options
-     * @return {Object}
      */
-    toJSON(options = {}) {
-        const object = {
+    toJSON(options: any = {}): any {
+        const object: any = {
             object: this.object,
             anchor: this.anchor.toJSON(options),
             focus: this.focus.toJSON(options),
@@ -783,7 +713,7 @@ class Range extends Record(DEFAULTS) {
     /**
      * Alias `toJS`.
      */
-    toJS() {
+    toJS(): any {
         return this.toJSON();
     }
 
@@ -1131,7 +1061,7 @@ class Range extends Record(DEFAULTS) {
             "The `Range.blur` method is deprecated, please use `Range.merge` directly instead."
         );
 
-        return this.merge({ isFocused: false });
+        return this.merge({ isFocused: false }) as Range;
     }
 
     deselect() {
@@ -1140,7 +1070,7 @@ class Range extends Record(DEFAULTS) {
             "The `Range.deselect` method is deprecated, please use `Range.create` to create a new unset range instead."
         );
 
-        return Range.create();
+        return Range.create() as Range;
     }
 
     moveAnchorOffsetTo(o) {

@@ -22,7 +22,8 @@ const entrys = [
     "slate-hotkeys",
     "slate-react",
     "slate-base64-serializer",
-    "slate-html-serializer"
+    "slate-html-serializer",
+    "slate-plain-serializer"
 ]
 
 function compileTs(stream) {

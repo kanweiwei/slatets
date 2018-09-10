@@ -468,9 +468,12 @@ class Text extends Record(DEFAULTS) {
      * @return {Text}
      */
 
-    insertText(offset, text, marks) {
+    insertText(offset, text, marks): Text {
         if (this.text === "") {
-            return this.set("leaves", List.of(Leaf.create({ text, marks })));
+            return this.set(
+                "leaves",
+                List.of(Leaf.create({ text, marks }))
+            ) as Text;
         }
 
         if (text.length === 0) return this;
@@ -489,7 +492,7 @@ class Text extends Record(DEFAULTS) {
                     "text",
                     beforeText + text + afterText
                 ) as Leaf)
-            );
+            ) as Text;
         }
 
         const nextLeaves = leaves.splice(
@@ -505,31 +508,24 @@ class Text extends Record(DEFAULTS) {
 
     /**
      * Regenerate the node's key.
-     *
-     * @return {Text}
      */
 
-    regenerateKey() {
+    regenerateKey(): Text {
         const key = KeyUtils.create();
-        return this.set("key", key);
+        return this.set("key", key) as Text;
     }
 
     /**
      * Remove a `mark` at `index` and `length`.
-     *
-     * @param {Number} index
-     * @param {Number} length
-     * @param {Mark} mark
-     * @return {Text}
      */
 
-    removeMark(index, length, mark) {
+    removeMark(index: number, length: number, mark: Mark): Text {
         if (this.text === "" && index === 0 && length === 0) {
             const first = this.leaves.first();
             if (!first) return this;
             const newFirst = first.removeMark(mark);
             if (newFirst === first) return this;
-            return this.set("leaves", List.of(newFirst));
+            return this.set("leaves", List.of(newFirst)) as Text;
         }
 
         if (length <= 0) return this;
@@ -545,13 +541,9 @@ class Text extends Record(DEFAULTS) {
 
     /**
      * Remove text from the text node at `start` for `length`.
-     *
-     * @param {Number} start
-     * @param {Number} length
-     * @return {Text}
      */
 
-    removeText(start, length) {
+    removeText(start: number, length: number): Text {
         if (length <= 0) return this;
         if (start >= this.text.length) return this;
 
@@ -576,7 +568,7 @@ class Text extends Record(DEFAULTS) {
                     return this.set(
                         "leaves",
                         this.leaves.set(index, leaf.set("text", text) as Leaf)
-                    );
+                    ) as Text;
                 }
             }
         }
@@ -592,11 +584,11 @@ class Text extends Record(DEFAULTS) {
                 return this.set(
                     "leaves",
                     List.of(first.set("marks", this.getActiveMarks()))
-                );
+                ) as Text;
             }
         }
 
-        return this.set("leaves", leaves);
+        return this.set("leaves", leaves) as Text;
     }
 
     /**
@@ -606,7 +598,12 @@ class Text extends Record(DEFAULTS) {
      * @return {Object}
      */
 
-    toJSON(options: any = {}) {
+    toJSON(
+        options: any = {}
+    ): {
+        object: "text";
+        leaves: any;
+    } {
         const object: any = {
             object: this.object,
             leaves: this.getLeaves()
@@ -625,22 +622,26 @@ class Text extends Record(DEFAULTS) {
      * Alias `toJS`.
      */
 
-    toJS(options: any = {}) {
+    toJS(
+        options: any = {}
+    ): {
+        object: "text";
+        leaves: any;
+    } {
         return this.toJSON(options);
     }
 
     /**
      * Update a `mark` at `index` and `length` with `properties`.
-     *
-     * @param {Number} index
-     * @param {Number} length
-     * @param {Mark} mark
-     * @param {Object} properties
-     * @return {Text}
      */
 
-    updateMark(index, length, mark, properties) {
-        const newMark = mark.merge(properties);
+    updateMark(
+        index: number,
+        length: number,
+        mark: Mark,
+        properties: any
+    ): Text {
+        const newMark = mark.merge(properties) as Mark;
 
         if (this.text === "" && length === 0 && index === 0) {
             const { leaves } = this;
@@ -648,7 +649,7 @@ class Text extends Record(DEFAULTS) {
             if (!first) return this;
             const newFirst = first.updateMark(mark, newMark);
             if (newFirst === first) return this;
-            return this.set("leaves", List.of(newFirst));
+            return this.set("leaves", List.of(newFirst)) as Text;
         }
 
         if (length <= 0) return this;
@@ -667,24 +668,23 @@ class Text extends Record(DEFAULTS) {
 
     /**
      * Split this text and return two different texts
-     * @param {Number} position
-     * @returns {Array<Text>}
      */
 
-    splitText(offset) {
+    splitText(offset: number): Text[] {
         const splitted = Leaf.splitLeaves(this.leaves, offset);
-        const one = this.set("leaves", splitted[0]);
-        const two = (this.set("leaves", splitted[1]) as Text).regenerateKey();
+        const one = this.set("leaves", splitted[0]) as Text;
+        const two = (this.set(
+            "leaves",
+            splitted[1]
+        ) as Text).regenerateKey() as Text;
         return [one, two];
     }
 
     /**
      * merge this text and another text at the end
-     * @param {Text} text
-     * @returns {Text}
      */
 
-    mergeText(text) {
+    mergeText(text): Text {
         const leaves = this.leaves.concat(text.leaves);
         return this.setLeaves(leaves);
     }
@@ -717,17 +717,14 @@ class Text extends Record(DEFAULTS) {
      * @returns {Text|Null}
      */
 
-    getFirstInvalidDescendant(schema) {
+    getFirstInvalidDescendant(schema): Text | null {
         return this.validate(schema) ? this : null;
     }
 
     /**
      * Set leaves with normalized `leaves`
-     *
-     * @param {Schema} schema
-     * @returns {Text|Null}
      */
-    setLeaves(leaves) {
+    setLeaves(leaves): Text {
         const result = Leaf.createLeaves(leaves);
 
         if (result.size === 1) {
@@ -735,12 +732,12 @@ class Text extends Record(DEFAULTS) {
 
             if (!first.marks || first.marks.size === 0) {
                 if (first.text === "") {
-                    return this.set("leaves", List());
+                    return this.set("leaves", List()) as Text;
                 }
             }
         }
 
-        return this.set("leaves", Leaf.createLeaves(leaves));
+        return this.set("leaves", Leaf.createLeaves(leaves)) as Text;
     }
 }
 
