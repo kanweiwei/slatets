@@ -17,8 +17,8 @@ import Mark from "./mark";
 import PathUtils from "../utils/path-utils";
 import KeyUtils from "../utils/key-utils";
 import memoize from "../utils/memoize";
-import Schema from "Packages/slate/src/models/schema";
-import Point from "Packages/slate/src/models/point";
+import Schema from "./schema";
+import Point from "./point";
 
 
 export type TNode = Block & Inline & Text;
