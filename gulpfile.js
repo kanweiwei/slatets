@@ -19,7 +19,8 @@ const rootDir = "packages"
 const entrys = [
     "slate",
     "slate-schema-violations",
-    "slate-hotkeys"
+    "slate-hotkeys",
+    "slate-react"
 ]
 
 function compileTs(stream) {
@@ -59,7 +60,7 @@ gulp.task('tsc', ["copyOtherFiles", "clean"], () => {
             `${rootDir}/${entry}/src/**/*.ts`,
             `${rootDir}/${entry}/src/**/*.tsx`,
             '!node_modules/**/*.*',
-            `!${rootDir}/${entry}/**/node_modules/**/*.ts`,
+            `!${rootDir}/${entry}/node_modules/**/*.*`,
             'typings/**/*.d.ts',
         ];
         return merge2(compileTs(gulp.src(source)).pipe(gulp.dest(`dist/${entry}/dist`)));
@@ -101,7 +102,7 @@ function compile(modules) {
             `${rootDir}/${entry}/src/**/*.ts`,
             `${rootDir}/${entry}/src/**/*.tsx`,
             '!node_modules/**/*.*',
-            `!${rootDir}/${entry}/**/node_modules/**/*.ts`,
+            `!${rootDir}/${entry}/node_modules/**/*.*`,
             'typings/**/*.d.ts',
         ]
         const tsResult = gulp.src(source).pipe(ts(tsConfig, {
