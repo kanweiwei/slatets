@@ -20,7 +20,9 @@ const entrys = [
     "slate",
     "slate-schema-violations",
     "slate-hotkeys",
-    "slate-react"
+    "slate-react",
+    "slate-base64-serializer",
+    
 ]
 
 function compileTs(stream) {

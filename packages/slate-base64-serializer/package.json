@@ -25,9 +25,6 @@
     "scripts": {
         "clean": "rm -rf ./dist ./lib ./node_modules"
     },
-    "umdGlobals": {
-        "slate": "Slate"
-    },
     "keywords": [
         "deserialize",
         "base64",
