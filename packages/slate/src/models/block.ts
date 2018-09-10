@@ -9,8 +9,8 @@ import Text from "./text";
 
 import Node from "./node";
 import { TNode } from "./node";
-import applyMixins from "Packages/slate/src/utils/applyMixins";
-import Mark from "Packages/slate/src/models/mark";
+import applyMixins from "../utils/applyMixins";
+import Mark from "./mark";
 
 /**
  * 默认属性

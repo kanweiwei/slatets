@@ -6,7 +6,7 @@ import Leaf from "./leaf";
 import MODEL_TYPES, { isType } from "../constants/model-types";
 import KeyUtils from "../utils/key-utils";
 import memoize from "../utils/memoize";
-import Mark from "Packages/slate/src/models/mark";
+import Mark from "./mark";
 
 const DEFAULTS = {
     leaves: List(),
