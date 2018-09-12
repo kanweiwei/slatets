@@ -3,11 +3,11 @@ import logger from "slate-dev-logger";
 import { List, Map, Record } from "immutable";
 
 import MODEL_TYPES from "../constants/model-types";
-import generateKey from "../utils/generate-key";
+import KeyUtils from "../utils/key-utils";
 import Inline from "./inline";
 import Text from "./text";
 
-import Mark from "./mark";
+// import Mark from "./mark";
 
 /**
  * 默认属性
@@ -67,7 +67,7 @@ class Block extends Record(DEFAULTS) {
         const {
             data = {},
             isVoid = false,
-            key = generateKey(),
+            key = KeyUtils.create(),
             nodes = [],
             type
         } = obj;
@@ -131,7 +131,7 @@ class Block extends Record(DEFAULTS) {
             nodes: this.nodes.toArray().map(n => n.toJSON(options))
         };
 
-        if (options.hasOwnProperty("preserveKeys")) {
+        if (options.preserveKeys) {
             object.key = this.key;
         }
 
@@ -148,12 +148,14 @@ class Block extends Record(DEFAULTS) {
         );
     }
 
-    addMark: (
-        path: List<number> | string,
-        offset: number,
-        length: number,
-        mark: Mark
-    ) => any;
+    // addMark: (
+    //     path: List<number> | string,
+    //     offset: number,
+    //     length: number,
+    //     mark: Mark
+    // ) => any;
+
+    //
     createPoint;
     createRange;
     filterDescendants;

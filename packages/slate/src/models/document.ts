@@ -93,10 +93,10 @@ class Document extends Record(DEFAULTS) {
             nodes: this.nodes.toArray().map(n => n.toJSON(options))
         };
 
-        if (options.hasOwnProperty("preserveKeys")) {
+        if (options.preserveKeys) {
             object.key = this.key;
         }
-
+        
         return object;
     }
 

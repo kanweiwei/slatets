@@ -73,10 +73,6 @@ class Range extends Record(DEFAULTS) {
         throw new Error(
             `\`Range.createProperties\` only accepts objects or ranges, but you passed it: ${a}`
         );
-
-        throw new Error(
-            `\`Range.createProperties\` only accepts objects or ranges, but you passed it: ${a}`
-        );
     }
 
     static fromJSON(object: any): Range {
@@ -605,10 +601,10 @@ class Range extends Record(DEFAULTS) {
      * and focus nodes of the range always refer to leaf text nodes.
      */
     normalize(node: any): Range {
-        const range = this.setPoints([
+        const range: Range = this.setPoints([
             this.anchor.normalize(node),
             this.focus.normalize(node)
-        ]) as Range;
+        ]);
 
         return range;
     }

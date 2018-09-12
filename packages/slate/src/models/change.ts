@@ -28,13 +28,10 @@ class Change {
     public value: Value;
     public operations: List<Operation>;
     public flags: any;
+
     /**
      * Check if `any` is a `Change`.
-     *
-     * @param {Any} any
-     * @return {Boolean}
      */
-
     static isChange(obj) {
         return !!(obj && obj[MODEL_TYPES.CHANGE]);
     }
@@ -59,10 +56,7 @@ class Change {
 
     /**
      * Object.
-     *
-     * @return {String}
      */
-
     get object() {
         return "change";
     }
@@ -129,8 +123,7 @@ class Change {
      * @param {Object} options
      * @return {Change}
      */
-
-    applyOperations(operations, options) {
+    applyOperations(operations: any, options: any) {
         operations.forEach(op => this.applyOperation(op, options));
         return this;
     }
@@ -142,7 +135,6 @@ class Change {
      * @param {Mixed} ...args
      * @return {Change}
      */
-
     call(fn, ...args) {
         fn(this, ...args);
         return this;
@@ -154,7 +146,6 @@ class Change {
      * @param {Function} fn
      * @return {Change}
      */
-
     withoutNormalization(fn) {
         const original = this.flags.normalize;
         this.setOperationFlag("normalize", false);
@@ -171,8 +162,7 @@ class Change {
      * @param {Any} value
      * @return {Change}
      */
-
-    setOperationFlag(key, value) {
+    setOperationFlag(key: string, value: any) {
         this.flags[key] = value;
         return this;
     }
@@ -185,8 +175,7 @@ class Change {
      * @param {Object} options
      * @return {Change}
      */
-
-    getFlag(key, options = {}) {
+    getFlag(key: string, options: any = {}): Change {
         return options[key] !== undefined ? options[key] : this.flags[key];
     }
 
@@ -197,7 +186,7 @@ class Change {
      * @return {Change}
      */
 
-    unsetOperationFlag(key) {
+    unsetOperationFlag(key: string): Change {
         delete this.flags[key];
         return this;
     }

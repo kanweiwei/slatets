@@ -111,6 +111,10 @@ class Inline extends Record(DEFAULTS) {
         return this.object;
     }
 
+    isEmpty() {
+        return !this.isVoid && !this.nodes.some(child => !child.isEmpty());
+    }
+
     // 所有子节点的text拼接后的结果
     get text(): string {
         return this.getText();

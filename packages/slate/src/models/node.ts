@@ -257,13 +257,18 @@ class Node {
             nodes: List<any>
         ) => boolean | void
     ): List<any> {
-        const matches: any[] = [];
+        let found: any = null;
 
-        this.forEachDescendant((node, i, nodes) => {
-            if (iterator(node, i, nodes)) matches.push(node);
-        });
+        this.forEachDescendant(
+            (node, i, nodes): any => {
+                if (iterator(node, i, nodes)) {
+                    found = node;
+                    return false;
+                }
+            }
+        );
 
-        return List(matches);
+        return found;
     }
 
     /**
@@ -302,25 +307,27 @@ class Node {
      * @param range
      */
     getActiveMarksAtRange(range: Range): Set<Mark> {
-        range = range.normalize(this);
+        range = this.resolveRange(range);
         if (range.isUnset) return Set();
 
         if (range.isCollapsed) {
-            const { startKey, startOffset } = range;
+            const { start } = range;
             return this.getMarksAtPosition(
-                startKey as string,
-                startOffset as number
-            ).toSet() as Set<Mark>;
+                start.key as string,
+                start.offset as number
+            ).toSet();
         }
 
-        let { startKey, endKey, startOffset, endOffset } = range;
-        let startText = this.getDescendant(startKey as string) as any;
+        const { start, end } = range;
+        let startKey = start.key as string;
+        let startOffset = start.offset as number;
+        let endKey = end.key as string;
+        let endOffset = end.offset as number;
+        let startText = this.getDescendant(startKey);
 
         if (startKey !== endKey) {
             while (startKey !== endKey && endOffset === 0) {
-                const endText: Text = this.getPreviousText(
-                    endKey as string
-                ) as Text;
+                const endText = this.getPreviousText(endKey) as Text;
                 endKey = endText.key;
                 endOffset = endText.text.length;
             }
@@ -329,7 +336,7 @@ class Node {
                 startKey !== endKey &&
                 startOffset === startText.text.length
             ) {
-                startText = this.getNextText(startKey as string);
+                startText = this.getNextText(startKey);
                 startKey = startText.key;
                 startOffset = 0;
             }
@@ -347,16 +354,13 @@ class Node {
             startText.text.length
         );
         if (startMarks.size === 0) return Set();
-        const endText = this.getDescendant(endKey as string);
-        const endMarks = (endText as any).getActiveMarksBetweenOffsets(
-            0,
-            endOffset
-        );
+        const endText = this.getDescendant(endKey);
+        const endMarks = endText.getActiveMarksBetweenOffsets(0, endOffset);
         let marks = startMarks.intersect(endMarks);
         // If marks is already empty, the active marks is empty
         if (marks.size === 0) return marks;
 
-        let text = this.getNextText(startKey as string) as any;
+        let text = this.getNextText(startKey);
 
         while (text.key !== endKey) {
             if (text.text.length !== 0) {
@@ -364,7 +368,7 @@ class Node {
                 if (marks.size === 0) return Set();
             }
 
-            text = this.getNextText(text.key) as any;
+            text = this.getNextText(text.key);
         }
         return marks;
     }
@@ -424,25 +428,21 @@ class Node {
      * @param range
      */
     getBlocksAtRangeAsArray(range: Range): Block[] {
-        range = range.normalize(this);
+        range = this.resolveRange(range);
         if (range.isUnset) return [];
 
-        const { startKey, endKey } = range;
-        const startBlock = this.getClosestBlock(startKey as string);
+        const { start, end } = range;
+        const startBlock = this.getClosestBlock(start.key as string) as Block;
 
         // PERF: the most common case is when the range is in a single block node,
         // where we can avoid a lot of iterating of the tree.
-        if (startKey === endKey) return startBlock ? [startBlock] : [];
+        if (start.key === end.key) return [startBlock];
 
-        const endBlock = this.getClosestBlock(endKey as string);
+        const endBlock = this.getClosestBlock(end.key as string) as Block;
         const blocks = this.getBlocksAsArray();
-        if (startBlock && endBlock) {
-            const start = blocks.indexOf(startBlock);
-            const end = blocks.indexOf(endBlock);
-            return blocks.slice(start, end + 1);
-        } else {
-            return [];
-        }
+        const startIndex = blocks.indexOf(startBlock);
+        const endIndex = blocks.indexOf(endBlock);
+        return blocks.slice(startIndex, endIndex + 1);
     }
 
     /**
@@ -649,16 +649,16 @@ class Node {
      * @return
      */
     getFragmentAtRange(range: Range) {
-        range = range.normalize(this);
+        range = this.resolveRange(range);
 
         if (range.isUnset) {
             return Document.create();
         }
 
-        const { startPath, startOffset, endPath, endOffset } = range;
+        const { start, end } = range;
         let node = this;
-        let targetPath = endPath as List<number>;
-        let targetPosition = endOffset;
+        let targetPath = end.path as List<number>;
+        let targetPosition = end.offset;
         let mode = "end";
 
         while (targetPath.size) {
@@ -668,14 +668,14 @@ class Node {
             targetPath = PathUtils.lift(targetPath);
 
             if (!targetPath.size && mode === "end") {
-                targetPath = startPath as List<number>;
-                targetPosition = startOffset;
+                targetPath = start.path as List<number>;
+                targetPosition = start.offset;
                 mode = "start";
             }
         }
 
-        const startIndex = (startPath as List<number>).first() + 1;
-        const endIndex = (endPath as List<number>).first() + 2;
+        const startIndex = (start.path as List<number>).first() + 1;
+        const endIndex = (end.path as List<number>).first() + 2;
         const nodes = node.nodes.slice(startIndex, endIndex);
         const fragment = Document.create({ nodes });
         return fragment;
@@ -805,7 +805,7 @@ class Node {
      * @return {Array}
      */
     getInlinesAtRangeAsArray(range) {
-        range = range.normalize(this);
+        range = this.resolveRange(range);
         if (range.isUnset) return [];
 
         const array = this.getTextsAtRangeAsArray(range)
@@ -852,20 +852,23 @@ class Node {
      * @param {Range} range
      */
     getInsertMarksAtRange(range: Range) {
-        range = range.normalize(this);
-        if (range.isUnset) return Set();
+        range = this.resolveRange(range);
+        const { start } = range;
+
+        if (range.isUnset) {
+            return Set();
+        }
 
         if (range.isCollapsed) {
             // PERF: range is not cachable, use key and offset as proxies for cache
             return this.getMarksAtPosition(
-                range.startKey as string,
-                range.startOffset as number
+                start.key as string,
+                start.offset as number
             );
         }
 
-        const { startKey, startOffset } = range;
-        const text = this.getDescendant(startKey as string) as Text;
-        const marks = text.getMarksAtIndex((startOffset as number) + 1);
+        const text = this.getDescendant(start.key as string);
+        const marks = text.getMarksAtIndex((start.offset as number) + 1);
         return marks;
     }
 
@@ -899,7 +902,7 @@ class Node {
      *
      */
     getLastText() {
-        let descendant: null | any = null;
+        let descendant: any = null;
 
         const found = this.nodes.findLast((node: any) => {
             if (node.object == "text") return true;
@@ -1112,7 +1115,7 @@ class Node {
      * @param {Range} range
      */
     getOffsetAtRange(range: Range) {
-        range = range.normalize(this);
+        range = this.resolveRange(range);
 
         if (range.isUnset) {
             throw new Error(
@@ -1126,8 +1129,8 @@ class Node {
             );
         }
 
-        const { startKey, startOffset } = range;
-        const offset = this.getOffset(startKey as string) + startOffset;
+        const { start } = range;
+        const offset = this.getOffset(start.key as string) + start.offset;
         return offset;
     }
 
@@ -1147,23 +1150,26 @@ class Node {
      * @param {Range} range
      */
     getOrderedMarksAtRange(range: Range): OrderedSet<Mark> {
-        range = range.normalize(this);
-        if (range.isUnset) return OrderedSet();
+        range = this.resolveRange(range);
+        const { start, end } = range;
+
+        if (range.isUnset) {
+            return OrderedSet();
+        }
 
         if (range.isCollapsed) {
             // PERF: range is not cachable, use key and offset as proxies for cache
             return this.getMarksAtPosition(
-                range.startKey as string,
-                range.startOffset as number
+                start.key as string,
+                start.offset as number
             );
         }
 
-        const { startKey, startOffset, endKey, endOffset } = range;
         const marks = this.getOrderedMarksBetweenPositions(
-            startKey as string,
-            startOffset as number,
-            endKey as string,
-            endOffset as number
+            start.key as string,
+            start.offset as number,
+            end.key as string,
+            end.offset as number
         );
 
         return marks;
@@ -1332,7 +1338,7 @@ class Node {
      * means everything is selected or nothing is.
      */
     getSelectionIndexes(range: Range, isSelected: boolean = true): any {
-        const { startKey, endKey } = range;
+        const { start, end } = range;
 
         // PERF: if we're not selected, we can exit early.
         if (!isSelected) {
@@ -1346,32 +1352,35 @@ class Node {
 
         // PERF: if the start and end keys are the same, just check for the child
         // that contains that single key.
-        if (startKey == endKey) {
-            const child = this.getFurthestAncestor(startKey as string);
-            const index = child ? this.nodes.indexOf(child) : -1;
-            return { start: index, end: index + 1 };
+        if (start.key == end.key) {
+            const child = this.getFurthestAncestor(start.key as string);
+            const index = child ? this.nodes.indexOf(child) : null;
+            return { start: index, end: (index as number) + 1 };
         }
 
         // Otherwise, check all of the children...
-        let start: number = -1;
-        let end: number = -1;
+        let startIndex: any = null;
+        let endIndex: any = null;
 
         this.nodes.forEach((child: any, i: number) => {
             if (child.object == "text") {
-                if (start == null && child.key == startKey) start = i;
-                if (end == null && child.key == endKey) end = i + 1;
+                if (startIndex == null && child.key == start.key)
+                    startIndex = i;
+                if (endIndex == null && child.key == end.key) endIndex = i + 1;
             } else {
-                if (start == null && child.hasDescendant(startKey)) start = i;
-                if (end == null && child.hasDescendant(endKey)) end = i + 1;
+                if (startIndex == null && child.hasDescendant(start.key))
+                    startIndex = i;
+                if (endIndex == null && child.hasDescendant(end.key))
+                    endIndex = i + 1;
             }
 
             // PERF: exit early if both start and end have been found.
-            return start === -1 || end === -1;
+            return startIndex == null || endIndex == null;
         });
 
-        if (isSelected && start == null) start = 0;
-        if (isSelected && end == null) end = this.nodes.size;
-        return start == null ? null : { start, end };
+        if (isSelected && startIndex == null) startIndex = 0;
+        if (isSelected && endIndex == null) endIndex = this.nodes.size;
+        return startIndex == null ? null : { start: startIndex, end: endIndex };
     }
 
     /**
@@ -1451,13 +1460,13 @@ class Node {
      * @param {Range} range
      */
     getTextsAtRange(range: Range) {
-        range = range.normalize(this);
+        range = this.resolveRange(range);
         if (range.isUnset) return List();
-        const { startKey, endKey } = range;
+        const { start, end } = range;
         const list = List(
             this.getTextsBetweenPositionsAsArray(
-                startKey as string,
-                endKey as string
+                start.key as string,
+                end.key as string
             )
         );
 
@@ -1468,13 +1477,13 @@ class Node {
      * Get all of the text nodes in a `range` as an array.
      */
     getTextsAtRangeAsArray(range: Range): Text[] {
-        range = range.normalize(this);
+        range = this.resolveRange(range);
         if (range.isUnset) return [];
-        const { startKey, endKey } = range;
-        const texts: Text[] = this.getTextsBetweenPositionsAsArray(
-            startKey as string,
-            endKey as string
-        ) as Text[];
+        const { start, end } = range;
+        const texts = this.getTextsBetweenPositionsAsArray(
+            start.key as string,
+            end.key as string
+        );
         return texts;
     }
 
@@ -1737,7 +1746,7 @@ class Node {
      *
      * @param {Schema} schema
      */
-    normalize(schema) {
+    normalize(schema: Schema) {
         return schema.normalizeNode(this);
     }
 
@@ -1887,9 +1896,9 @@ class Node {
      *
      * @param {Range|Object} range
      */
-    resolveRange(range: any | Range) {
+    resolveRange(range: any) {
         range = Range.create(range);
-        range = range.normalize(this);
+        range = (range as Range).normalize(this);
         return range;
     }
 
@@ -1961,7 +1970,7 @@ class Node {
      *
      * @param {Schema} schema
      */
-    validate(schema) {
+    validate(schema: Schema) {
         return schema.validateNode(this);
     }
 
