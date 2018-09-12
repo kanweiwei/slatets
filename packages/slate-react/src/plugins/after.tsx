@@ -1,7 +1,7 @@
 import * as React from "react";
-import Base64 from "slate-base64-serializer";
+import Base64 from "@zykj/slate-base64-serializer";
 import Debug from "debug";
-import Plain from "slate-plain-serializer";
+import Plain from "@zykj/slate-plain-serializer";
 import { IS_IOS } from "slate-dev-environment";
 import getWindow from "get-window";
 import { Block, Inline, Text } from "@zykj/slate";

@@ -20,12 +20,9 @@ import memoize from "../utils/memoize";
 import Schema from "./schema";
 import Point from "./point";
 
-
-export type TNode = Block & Inline & Text;
-
 class Node {
     public key: string;
-    public nodes: List<TNode>;
+    public nodes: List<any>;
     public text: string;
 
     public object: "document" | "block" | "inline" | "text";
@@ -128,7 +125,10 @@ class Node {
      * create a Node from a JSON value
      * @param value
      */
-    static fromJSON(value: any, options: any = {}): Block | Inline | Document | Text {
+    static fromJSON(
+        value: any,
+        options: any = {}
+    ): Block | Inline | Document | Text {
         let { object, kind } = value;
 
         if (!object && kind) {
@@ -193,7 +193,7 @@ class Node {
         offset: number,
         length: number,
         mark: Mark
-    ): TNode | Block | Inline {
+    ): any | Block | Inline {
         let node: any = this.assertDescendant(path) as Text;
         if (!Text.isText(node)) {
             throw new Error(
@@ -202,7 +202,7 @@ class Node {
         }
         path = this.resolvePath(path);
         node = node.addMark(offset, length, mark);
-        const ret = this.replaceNode(path, node) as TNode;
+        const ret = this.replaceNode(path, node) as any;
         return ret;
     }
 
@@ -236,8 +236,8 @@ class Node {
             index: number,
             nodes: List<any>
         ) => boolean | void
-    ): List<TNode> {
-        const matches: TNode[] = [];
+    ): List<any> {
+        const matches: any[] = [];
 
         this.forEachDescendant((node, i, nodes) => {
             if (iterator(node, i, nodes)) matches.push(node);
@@ -256,8 +256,8 @@ class Node {
             index: number,
             nodes: List<any>
         ) => boolean | void
-    ): List<TNode> {
-        const matches: TNode[] = [];
+    ): List<any> {
+        const matches: any[] = [];
 
         this.forEachDescendant((node, i, nodes) => {
             if (iterator(node, i, nodes)) matches.push(node);
@@ -277,11 +277,11 @@ class Node {
             index: number,
             nodes: List<any>
         ) => boolean | void
-    ): List<TNode> {
+    ): List<any> {
         let ret;
 
         this.nodes.forEach(
-            (child: TNode, i: number, nodes: List<TNode>): void | boolean => {
+            (child: any, i: number, nodes: List<any>): void | boolean => {
                 if (iterator(child, i, nodes) === false) {
                     ret = false;
                     return false;
@@ -356,7 +356,7 @@ class Node {
         // If marks is already empty, the active marks is empty
         if (marks.size === 0) return marks;
 
-        let text = this.getNextText(startKey as string) as TNode;
+        let text = this.getNextText(startKey as string) as any;
 
         while (text.key !== endKey) {
             if (text.text.length !== 0) {
@@ -364,7 +364,7 @@ class Node {
                 if (marks.size === 0) return Set();
             }
 
-            text = this.getNextText(text.key) as TNode;
+            text = this.getNextText(text.key) as any;
         }
         return marks;
     }
@@ -373,7 +373,7 @@ class Node {
      * Get a list of the ancestors of a descendant.
      * @param path
      */
-    getAncestors(path: List<number> | string): List<TNode> | null {
+    getAncestors(path: List<number> | string): List<any> | null {
         path = this.resolvePath(path);
         if (!path) return null;
 
@@ -400,7 +400,7 @@ class Node {
      * Get the leaf block descendants of the node.
      */
     getBlocksAsArray(): Array<Block> {
-        return this.nodes.reduce((array: Block[], child: TNode) => {
+        return this.nodes.reduce((array: Block[], child: any) => {
             if (child.object != "block") return array;
             if (!child.isLeafBlock())
                 return array.concat(child.getBlocksAsArray());
@@ -459,7 +459,7 @@ class Node {
      * @param type
      */
     getBlocksByTypeAsArray(type: string): Block[] {
-        return this.nodes.reduce((array: Block[], node: TNode) => {
+        return this.nodes.reduce((array: Block[], node: any) => {
             if (node.object != "block") {
                 return array;
             } else if (node.isLeafBlock() && node.type == type) {
@@ -494,9 +494,9 @@ class Node {
         iterator: (
             child: any,
             index?: number,
-            nodes?: Iterable<number, TNode>
+            nodes?: Iterable<number, any>
         ) => boolean
-    ): TNode | null {
+    ): any | null {
         const ancestors = this.getAncestors(path);
         if (!ancestors) return null;
 
@@ -562,7 +562,7 @@ class Node {
      * @return
      */
     getDecorations(stack) {
-        const decorations = stack.find("decorateNode", this);
+        const decorations = stack.$$find("decorateNode", this);
         const list = Range.createList(decorations || []);
         return list;
     }
@@ -589,7 +589,7 @@ class Node {
      */
     getDescendant(
         path: List<number> | string
-    ): null | TNode | Block | Inline | Text {
+    ): null | any | Block | Inline | Text {
         path = this.resolvePath(path);
         if (!path) return null;
 
@@ -599,7 +599,7 @@ class Node {
         for (const index of array) {
             if (!descendant) return null;
             if (!descendant.nodes) return null;
-            descendant = descendant.nodes.get(index) as TNode;
+            descendant = descendant.nodes.get(index) as any;
         }
 
         return descendant;
@@ -612,9 +612,9 @@ class Node {
      * @return
      */
     getFirstInvalidDescendant(schema: Schema) {
-        let result: TNode | null = null;
+        let result: any | null = null;
 
-        this.nodes.find((n: TNode) => {
+        this.nodes.find((n: any) => {
             result = n.validate(schema)
                 ? n
                 : n.getFirstInvalidDescendant(schema);
@@ -631,9 +631,9 @@ class Node {
      * @return
      */
     getFirstText() {
-        let descendant: TNode | null = null;
+        let descendant: any | null = null;
 
-        const found = this.nodes.find((node: TNode) => {
+        const found = this.nodes.find((node: any) => {
             if (node.object === "text") return true;
             descendant = node.getFirstText();
             return !!descendant;
@@ -692,7 +692,7 @@ class Node {
         iterator: (
             child: any,
             index?: number,
-            nodes?: Iterable<number, TNode>
+            nodes?: Iterable<number, any>
         ) => boolean
     ) {
         const ancestors = this.getAncestors(path);
@@ -700,7 +700,7 @@ class Node {
 
         const furthest = ancestors.find((node, ...args) => {
             // We never want to include the top-level node.
-            if ((node as TNode).key === this.key) return false;
+            if ((node as any).key === this.key) return false;
             return iterator(node, ...args);
         });
 
@@ -751,7 +751,7 @@ class Node {
         const furthest = ancestors
             .rest()
             .reverse()
-            .takeUntil((p: TNode) => p.nodes.size > 1)
+            .takeUntil((p: any) => p.nodes.size > 1)
             .last();
 
         return furthest || null;
@@ -773,7 +773,7 @@ class Node {
     getInlinesAsArray(): Inline[] {
         let array: Inline[] = [];
 
-        this.nodes.forEach((child: TNode) => {
+        this.nodes.forEach((child: any) => {
             if (child.object == "text") return;
 
             if (child.isLeafInline()) {
@@ -832,7 +832,7 @@ class Node {
      * @param type
      */
     getInlinesByTypeAsArray(type: string) {
-        const array = this.nodes.reduce((inlines: Inline[], node: TNode) => {
+        const array = this.nodes.reduce((inlines: Inline[], node: any) => {
             if (node.object == "text") {
                 return inlines;
             } else if (node.isLeafInline() && node.type == type) {
@@ -878,7 +878,7 @@ class Node {
             [this.key]: []
         };
 
-        this.nodes.forEach((node: TNode, i: number) => {
+        this.nodes.forEach((node: any, i: number) => {
             ret[node.key] = [i];
 
             if (node.object !== "text") {
@@ -899,11 +899,11 @@ class Node {
      *
      */
     getLastText() {
-        let descendant: null | TNode = null;
+        let descendant: null | any = null;
 
-        const found = this.nodes.findLast((node: TNode) => {
+        const found = this.nodes.findLast((node: any) => {
             if (node.object == "text") return true;
-            descendant = node.getLastText() as TNode;
+            descendant = node.getLastText() as any;
             return !!descendant;
         });
 
@@ -926,7 +926,7 @@ class Node {
     getMarksAsArray() {
         const result: Array<Mark[]> = [];
 
-        this.nodes.forEach((node: TNode) => {
+        this.nodes.forEach((node: any) => {
             result.push(node.getMarksAsArray());
         });
 
@@ -989,7 +989,7 @@ class Node {
      * @param type
      */
     getMarksByTypeAsArray(type: string): Mark[] {
-        const array = this.nodes.reduce((memo: Mark[], node: TNode) => {
+        const array = this.nodes.reduce((memo: Mark[], node: any) => {
             return node.object == "text"
                 ? memo.concat(
                       node.getMarksAsArray().filter(m => m.type == type)
@@ -1006,7 +1006,7 @@ class Node {
      * @param key
      */
     getNextBlock(key: string) {
-        const child = this.assertDescendant(key) as TNode;
+        const child = this.assertDescendant(key) as any;
         let last;
 
         if (child.object == "block") {
@@ -1096,10 +1096,10 @@ class Node {
         this.assertDescendant(key);
 
         // Calculate the offset of the nodes before the highest child.
-        const child = this.getFurthestAncestor(key) as TNode;
+        const child = this.getFurthestAncestor(key) as any;
         const offset = this.nodes
             .takeUntil(n => n == child)
-            .reduce((memo: number, n: TNode) => memo + n.text.length, 0);
+            .reduce((memo: number, n: any) => memo + n.text.length, 0);
 
         // Recurse if need be.
         const ret = this.hasChild(key) ? offset : offset + child.getOffset(key);
@@ -1185,14 +1185,14 @@ class Node {
         endOffset: number
     ): OrderedSet<Mark> {
         if (startKey === endKey) {
-            const startText = this.getDescendant(startKey) as TNode;
+            const startText = this.getDescendant(startKey) as any;
             return startText.getMarksBetweenOffsets(startOffset, endOffset);
         }
 
         const texts = this.getTextsBetweenPositionsAsArray(startKey, endKey);
 
         return OrderedSet().withMutations((result: Set<Mark>) => {
-            texts.forEach((text: TNode) => {
+            texts.forEach((text: any) => {
                 if (text.key === startKey) {
                     result.union(
                         text.getMarksBetweenOffsets(
@@ -1254,7 +1254,7 @@ class Node {
      * @param {String} key
      */
     getPreviousBlock(key: string) {
-        const child = this.assertDescendant(key) as TNode;
+        const child = this.assertDescendant(key) as any;
         let first;
 
         if (child.object == "block") {
@@ -1356,7 +1356,7 @@ class Node {
         let start: number = -1;
         let end: number = -1;
 
-        this.nodes.forEach((child: TNode, i: number) => {
+        this.nodes.forEach((child: any, i: number) => {
             if (child.object == "text") {
                 if (start == null && child.key == startKey) start = i;
                 if (end == null && child.key == endKey) end = i + 1;
@@ -1379,7 +1379,7 @@ class Node {
      *
      */
     getText() {
-        const text = this.nodes.reduce((string: string, node: TNode) => {
+        const text = this.nodes.reduce((string: string, node: any) => {
             return string + node.text;
         }, "");
 
@@ -1434,7 +1434,7 @@ class Node {
     getTextsAsArray() {
         let array: Text[] = [];
 
-        this.nodes.forEach((node: TNode) => {
+        this.nodes.forEach((node: any) => {
             if (node.object == "text") {
                 array.push(node);
             } else {
@@ -1486,13 +1486,13 @@ class Node {
      * @param {string} endKey
      */
     getTextsBetweenPositionsAsArray(startKey: string, endKey: string) {
-        const startText = this.getDescendant(startKey) as TNode;
+        const startText = this.getDescendant(startKey) as any;
 
         // PERF: the most common case is when the range is in a single text node,
         // where we can avoid a lot of iterating of the tree.
         if (startKey == endKey) return [startText];
 
-        const endText = this.getDescendant(endKey) as TNode;
+        const endText = this.getDescendant(endKey) as any;
         const texts = this.getTextsAsArray();
         const start = texts.indexOf(startText);
         const end = texts.indexOf(endText, start);
@@ -1506,7 +1506,7 @@ class Node {
      */
     hasBlockChildren(): boolean {
         return !!(
-            this.nodes && this.nodes.find((n: TNode) => n.object === "block")
+            this.nodes && this.nodes.find((n: any) => n.object === "block")
         );
     }
 
@@ -1528,7 +1528,7 @@ class Node {
         return !!(
             this.nodes &&
             this.nodes.find(
-                (n: TNode) => n.object === "inline" || n.object === "text"
+                (n: any) => n.object === "inline" || n.object === "text"
             )
         );
     }
@@ -1608,7 +1608,7 @@ class Node {
     isLeafBlock() {
         return (
             this.object === "block" &&
-            this.nodes.every((n: TNode) => n.object !== "block")
+            this.nodes.every((n: any) => n.object !== "block")
         );
     }
 
@@ -1619,7 +1619,7 @@ class Node {
     isLeafInline() {
         return (
             this.object === "inline" &&
-            this.nodes.every((n: TNode) => n.object !== "inline")
+            this.nodes.every((n: any) => n.object !== "inline")
         );
     }
 
@@ -1650,7 +1650,7 @@ class Node {
     mapDescendants(iterator) {
         let { nodes } = this;
 
-        nodes.forEach((node: TNode, index: number) => {
+        nodes.forEach((node: any, index: number) => {
             let ret = node;
             if (ret.object !== "text") ret = ret.mapDescendants(iterator);
             ret = iterator(ret, index, this.nodes);
@@ -1669,7 +1669,7 @@ class Node {
      * @param {List|Key} path
      */
     mergeNode(path) {
-        const b = this.assertNode(path) as TNode;
+        const b = this.assertNode(path) as any;
         path = this.resolvePath(path);
 
         if (path.last() === 0) {
@@ -1679,7 +1679,7 @@ class Node {
         }
 
         const withPath = PathUtils.decrement(path);
-        const a = this.assertNode(withPath) as TNode;
+        const a = this.assertNode(withPath) as any;
 
         if (a.object !== b.object) {
             throw new Error(
@@ -1695,7 +1695,7 @@ class Node {
         let ret: any = this;
         ret = ret.removeNode(path);
         ret = ret.removeNode(withPath);
-        ret = ret.insertNode(withPath, newNode as TNode);
+        ret = ret.insertNode(withPath, newNode as any);
         return ret;
     }
 
@@ -1709,7 +1709,7 @@ class Node {
      * @param {List|Key} newPath
      * @param {Number} newIndex
      */
-    moveNode(path, newPath, newIndex = 0): TNode {
+    moveNode(path, newPath, newIndex = 0): any {
         const node = this.assertNode(path);
         path = this.resolvePath(path);
         newPath = this.resolvePath(newPath, newIndex);
@@ -1748,10 +1748,10 @@ class Node {
      * @param {List|String} path
      * @param {String} key
      */
-    refindNode(path: List<number> | string, key: string): TNode | null {
+    refindNode(path: List<number> | string, key: string): any | null {
         const node = this.getDescendant(path);
         const found = node && node.key === key ? node : this.getDescendant(key);
-        return found as TNode;
+        return found as any;
     }
 
     /**
@@ -1819,7 +1819,7 @@ class Node {
         path: List<number> | string,
         offset: number,
         text: string = ""
-    ): TNode {
+    ): any {
         let node: any = this.assertDescendant(path);
         node = node.removeText(offset, text.length);
         const ret: any = this.replaceNode(path, node);
@@ -1831,8 +1831,8 @@ class Node {
      */
     replaceNode(
         path: string | List<number>,
-        node: TNode | Block | Inline | Text
-    ): TNode | Block | Inline | Text {
+        node: any | Block | Inline | Text
+    ): any | Block | Inline | Text {
         path = this.resolvePath(path);
 
         if (!path) {
@@ -1931,7 +1931,7 @@ class Node {
      * @param {Object} properties
      */
     splitNode(path, position, properties?: any) {
-        const child = this.assertNode(path) as TNode;
+        const child = this.assertNode(path) as any;
         path = this.resolvePath(path);
         let a;
         let b;
@@ -1942,7 +1942,7 @@ class Node {
             const befores = child.nodes.take(position);
             const afters = child.nodes.skip(position);
             a = child.set("nodes", befores);
-            b = (child.set("nodes", afters) as TNode).regenerateKey();
+            b = (child.set("nodes", afters) as any).regenerateKey();
         }
 
         if (properties && child.object !== "text") {
@@ -2183,5 +2183,9 @@ Object.getOwnPropertyNames(Node.prototype).forEach(method => {
     Inline.prototype[method] = Node.prototype[method];
     Document.prototype[method] = Node.prototype[method];
 });
+
+Block.createChildren = Node.createList;
+Inline.createChildren = Node.createList;
+Document.createChildren = Node.createList;
 
 export default Node;

@@ -23,7 +23,8 @@ const entrys = [
     "slate-react",
     "slate-base64-serializer",
     "slate-html-serializer",
-    "slate-plain-serializer"
+    "slate-plain-serializer",
+    "slate-prop-types",
 ]
 
 function compileTs(stream) {

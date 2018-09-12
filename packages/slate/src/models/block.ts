@@ -2,14 +2,11 @@ import isPlainObject from "is-plain-object";
 import logger from "slate-dev-logger";
 import { List, Map, Record } from "immutable";
 
-import MODEL_TYPES, { isType } from "../constants/model-types";
+import MODEL_TYPES from "../constants/model-types";
 import generateKey from "../utils/generate-key";
 import Inline from "./inline";
 import Text from "./text";
 
-import Node from "./node";
-import { TNode } from "./node";
-import applyMixins from "../utils/applyMixins";
 import Mark from "./mark";
 
 /**
@@ -27,7 +24,7 @@ const DEFAULTS = {
  * Block
  * @type {Block}
  */
-class Block extends Record(DEFAULTS) implements Node {
+class Block extends Record(DEFAULTS) {
     public key: string;
     public type: string;
     public isVoid: string;
@@ -94,7 +91,9 @@ class Block extends Record(DEFAULTS) implements Node {
      */
     static fromJS = Block.fromJSON;
 
-    static isBlock: (item: any) => boolean = isType.bind(null, "BLOCK");
+    static isBlock(obj) {
+        return !!(obj && obj[MODEL_TYPES.BLOCK]);
+    }
     /**
      * 确认参数any是否是一个block组成的list
      */
@@ -104,7 +103,7 @@ class Block extends Record(DEFAULTS) implements Node {
         );
     }
 
-    static createChildren = Node.createList;
+    static createChildren: (nodes) => List<any>;
 
     get object(): "block" {
         return "block";
@@ -145,7 +144,7 @@ class Block extends Record(DEFAULTS) implements Node {
 
     isEmpty() {
         return (
-            !this.isVoid && !this.nodes.some((child: TNode) => !child.isEmpty())
+            !this.isVoid && !this.nodes.some((child: any) => !child.isEmpty())
         );
     }
 
@@ -154,7 +153,7 @@ class Block extends Record(DEFAULTS) implements Node {
         offset: number,
         length: number,
         mark: Mark
-    ) => TNode | Block | Inline;
+    ) => any;
     createPoint;
     createRange;
     filterDescendants;
@@ -268,8 +267,6 @@ class Block extends Record(DEFAULTS) implements Node {
     assertParent;
     assertPath;
 }
-
-applyMixins(Block, [Node]);
 
 Block.prototype[MODEL_TYPES.BLOCK] = true;
 

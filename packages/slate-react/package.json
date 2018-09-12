@@ -27,7 +27,7 @@
       "slate-dev-logger": "^0.1.42",
       "@zykj/slate-hotkeys": "^0.1.4",
       "@zykj/slate-plain-serializer": "^0.5.28",
-      "slate-prop-types": "^0.4.45"
+      "@zykj/slate-prop-types": "^0.4.45"
     },
     "peerDependencies": {
       "immutable": ">=3.8.1",

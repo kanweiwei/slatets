@@ -2,7 +2,7 @@ import isPlainObject from "is-plain-object";
 import logger from "slate-dev-logger";
 import { List, Record, Set } from "immutable";
 
-import MODEL_TYPES, { isType } from "../constants/model-types";
+import MODEL_TYPES from "../constants/model-types";
 import Mark from "./mark";
 
 import PathUtils from "../utils/path-utils";
@@ -135,7 +135,9 @@ class Range extends Record(DEFAULTS) {
 
     static fromJS = Range.fromJSON;
 
-    static isRange = (item: any): boolean => isType.bind(null, "RANGE");
+    static isRange(obj) {
+        return !!(obj && obj[MODEL_TYPES.RANGE]);
+    }
 
     static isRangeList(item: any) {
         return (

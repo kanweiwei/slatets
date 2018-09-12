@@ -31,7 +31,7 @@ function decode(string) {
  * @param {String} string
  */
 
-function deserialize(string, options) {
+function deserialize(string, options: any = {}) {
   const raw = decode(string)
   const value = Value.fromJSON(raw, options)
   return value
@@ -43,7 +43,7 @@ function deserialize(string, options) {
  * @param {String} string
  */
 
-function deserializeNode(string, options) {
+function deserializeNode(string, options: any = {}) {
   const raw = decode(string)
   const node = Node.fromJSON(raw, options)
   return node
@@ -67,7 +67,7 @@ function serialize(value, options) {
  * @param {Node} node
  */
 
-function serializeNode(node, options) {
+function serializeNode(node, options: any = {}) {
   const raw = node.toJSON(options)
   const encoded = encode(raw)
   return encoded

@@ -1,7 +1,7 @@
 import Debug from "debug";
 import ImmutableTypes from "react-immutable-proptypes";
 import React from "react";
-import SlateTypes from "slate-prop-types";
+import SlateTypes from "@zykj/slate-prop-types";
 import logger from "slate-dev-logger";
 import Types from "prop-types";
 
@@ -65,7 +65,7 @@ class Node extends React.Component<any, any> {
     shouldComponentUpdate(nextProps: any) {
         const { props } = this;
         const { stack } = props.editor;
-        const shouldUpdate = stack.find(
+        const shouldUpdate = stack.$$find(
             "shouldNodeComponentUpdate",
             props,
             nextProps
@@ -169,7 +169,7 @@ class Node extends React.Component<any, any> {
             readOnly
         };
 
-        let placeholder = stack.find("renderPlaceholder", props);
+        let placeholder = stack.$$find("renderPlaceholder", props);
 
         if (placeholder) {
             placeholder = React.cloneElement(placeholder, {
@@ -179,7 +179,7 @@ class Node extends React.Component<any, any> {
             children = [placeholder, ...children];
         }
 
-        const element = stack.find("renderNode", {
+        const element = stack.$$find("renderNode", {
             ...props,
             attributes,
             children

@@ -2,10 +2,8 @@ import isPlainObject from "is-plain-object";
 import logger from "slate-dev-logger";
 import { List, Map, Record } from "immutable";
 
-import MODEL_TYPES, { isType } from "../constants/model-types";
+import MODEL_TYPES from "../constants/model-types";
 import KeyUtils from "../utils/key-utils";
-import Node from "./node";
-import { TNode } from "./node";
 
 /**
  * 默认属性
@@ -27,7 +25,7 @@ class Inline extends Record(DEFAULTS) {
     public type: string;
     public isVoid: string;
     public data: Map<any, any>;
-    public nodes: List<Node>;
+    public nodes: List<any>;
 
     static create(attrs: any = {}): Inline {
         if (Inline.isInline(attrs)) {
@@ -91,13 +89,15 @@ class Inline extends Record(DEFAULTS) {
      */
     static fromJS = Inline.fromJSON;
 
-    static isInline: (item: any) => boolean = isType.bind(null, "BLOCK");
+    static isInline(obj) {
+        return !!(obj && obj[MODEL_TYPES.INLINE]);
+    }
 
     static isInlineList(any) {
         return List.isList(any) && any.every(item => Inline.isInline(item));
     }
 
-    static createChildren = Node.createList;
+    static createChildren: (nodes) => List<any>;
 
     get object(): "inline" {
         return "inline";
@@ -122,7 +122,7 @@ class Inline extends Record(DEFAULTS) {
             type: this.type,
             isVoid: this.isVoid,
             data: (this.data as any).toJSON(),
-            nodes: this.nodes.toArray().map((n: TNode) => n.toJSON(options))
+            nodes: this.nodes.toArray().map((n: any) => n.toJSON(options))
         };
 
         if (options.preserveKeys) {

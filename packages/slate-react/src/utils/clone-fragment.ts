@@ -1,4 +1,4 @@
-import Base64 from 'slate-base64-serializer'
+import Base64 from '@zykj/slate-base64-serializer'
 import TRANSFER_TYPES from '../constants/transfer-types'
 import getWindow from 'get-window'
 import findDOMNode from './find-dom-node'

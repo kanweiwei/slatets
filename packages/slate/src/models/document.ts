@@ -2,14 +2,12 @@ import isPlainObject from "is-plain-object";
 import logger from "slate-dev-logger";
 import { List, Map, Record } from "immutable";
 
-import MODEL_TYPES, { isType } from "../constants/model-types";
+import MODEL_TYPES from "../constants/model-types";
 import KeyUtils from "../utils/key-utils";
 import Block from "./block";
 import Inline from "./inline";
 import Text from "./text";
 import Data from "./data";
-import Node from "./node";
-import { TNode } from "./node";
 
 // 默认值
 const DEFAULTS: any = {
@@ -62,9 +60,11 @@ class Document extends Record(DEFAULTS) {
 
     static fromJS = Document.fromJSON;
 
-    static isDocument = isType.bind(null, "DOCUMENT");
+    static isDocument(obj) {
+        return !!(obj && obj[MODEL_TYPES.DOCUMENT]);
+    }
 
-    static createChildren = Node.createList;
+    static createChildren: (nodes) => List<any>;
 
     get object(): "document" {
         return "document";
@@ -78,8 +78,8 @@ class Document extends Record(DEFAULTS) {
         return this.object;
     }
 
-    isEmpty(){
-        return !this.nodes.some((child: TNode) => !child.isEmpty());
+    isEmpty() {
+        return !this.nodes.some((child: any) => !child.isEmpty());
     }
 
     get text() {

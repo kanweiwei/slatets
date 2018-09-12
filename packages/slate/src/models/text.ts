@@ -3,7 +3,7 @@ import logger from "slate-dev-logger";
 import { List, OrderedSet, Record, Set } from "immutable";
 
 import Leaf from "./leaf";
-import MODEL_TYPES, { isType } from "../constants/model-types";
+import MODEL_TYPES from "../constants/model-types";
 import KeyUtils from "../utils/key-utils";
 import memoize from "../utils/memoize";
 import Mark from "./mark";
@@ -90,7 +90,9 @@ class Text extends Record(DEFAULTS) {
 
     static fromJS = Text.fromJSON;
 
-    static isText: (item: any) => boolean = isType.bind(null, "TEXT");
+    static isText(obj) {
+        return !!(obj && obj[MODEL_TYPES.TEXT]);
+    }
 
     /**
      * Check if `any` is a list of texts.

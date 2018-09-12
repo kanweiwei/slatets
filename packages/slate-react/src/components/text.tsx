@@ -1,7 +1,7 @@
 import Debug from "debug";
 import ImmutableTypes from "react-immutable-proptypes";
 import React from "react";
-import SlateTypes from "slate-prop-types";
+import SlateTypes from "@zykj/slate-prop-types";
 import Types from "prop-types";
 import { PathUtils } from "@zykj/slate";
 

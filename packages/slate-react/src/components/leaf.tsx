@@ -1,7 +1,7 @@
 import Debug from 'debug'
 import React from 'react'
 import Types from 'prop-types'
-import SlateTypes from 'slate-prop-types'
+import SlateTypes from '@zykj/slate-prop-types'
 
 import OffsetKey from '../utils/offset-key'
 
@@ -114,7 +114,7 @@ class Leaf extends React.Component<any, any> {
         children,
         attributes,
       }
-      const element = stack.find('renderMark', props)
+      const element = stack.$$find('renderMark', props)
       return element || children
     }, leaf)
   }

@@ -4,7 +4,7 @@ import isPlainObject from "is-plain-object";
 import logger from "slate-dev-logger";
 import { List, Record, Stack } from "immutable";
 
-import MODEL_TYPES, { isType } from "../constants/model-types";
+import MODEL_TYPES from "../constants/model-types";
 
 const debug = Debug("slate:history");
 
@@ -90,7 +90,9 @@ class History extends Record(DEFAULTS) {
      * @return {Boolean}
      */
 
-    static isHistory = isType.bind(null, "HISTORY");
+    static isHistory(obj) {
+        return !!(obj && obj[MODEL_TYPES.HISTORY]);
+    }
 
     /**
      * Object.

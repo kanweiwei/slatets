@@ -4,18 +4,36 @@ import { Map, Record, Set } from "immutable";
 
 import MODEL_TYPES, { isType } from "../constants/model-types";
 import Data from "./data";
-import memoize from "../utils/memoize";
+// import memoize from "../utils/memoize";
 
-const DEFAULTS: any = {
+/**
+ * Default properties.
+ *
+ * @type {Object}
+ */
+
+const DEFAULTS = {
     data: Map(),
-    type: void 0
+    type: undefined
 };
 
-class Mark extends Record(DEFAULTS) {
-    public type: string;
-    public data: Map<any, any>;
+/**
+ * Mark.
+ *
+ * @type {Mark}
+ */
 
-    static create(attrs: any = {}): Mark {
+class Mark extends Record(DEFAULTS) {
+    public type: any;
+    public data: any;
+    /**
+     * Create a new `Mark` with `attrs`.
+     *
+     * @param {Object|Mark} attrs
+     * @return {Mark}
+     */
+
+    static create(attrs = {}) {
         if (Mark.isMark(attrs)) {
             return attrs;
         }
@@ -33,7 +51,14 @@ class Mark extends Record(DEFAULTS) {
         );
     }
 
-    static createSet(elements: any[]): Set<Mark> {
+    /**
+     * Create a set of marks.
+     *
+     * @param {Array<Object|Mark>} elements
+     * @return {Set<Mark>}
+     */
+
+    static createSet(elements) {
         if (Set.isSet(elements) || Array.isArray(elements)) {
             const marks = Set(elements.map(Mark.create));
             return marks;
@@ -48,7 +73,14 @@ class Mark extends Record(DEFAULTS) {
         );
     }
 
-    static createProperties(attrs: any = {}): { data?: any; type: string } {
+    /**
+     * Create a dictionary of settable mark properties from `attrs`.
+     *
+     * @param {Object|String|Mark} attrs
+     * @return {Object}
+     */
+
+    static createProperties(attrs: any = {}) {
         if (Mark.isMark(attrs)) {
             return {
                 data: attrs.data,
@@ -72,7 +104,10 @@ class Mark extends Record(DEFAULTS) {
         );
     }
 
-    static fromJSON(object: any) {
+    /**
+     * Create a `Mark` from a JSON `object`.
+     */
+    static fromJSON(object: any): Mark {
         const { data = {}, type } = object;
 
         if (typeof type != "string") {
@@ -87,19 +122,38 @@ class Mark extends Record(DEFAULTS) {
         return mark;
     }
 
+    /**
+     * Alias `fromJS`.
+     */
+
     static fromJS = Mark.fromJSON;
 
-    static isMark: (item: any) => boolean = isType.bind(null, "MARK");
+    /**
+     * Check if `any` is a `Mark`.
+     *
+     * @param {Any} any
+     * @return {Boolean}
+     */
 
-    static isMarkSet(any) {
+    static isMark = isType.bind(null, "MARK");
+
+    /**
+     * Check if `any` is a set of marks.
+     */
+
+    static isMarkSet(any: any): boolean {
         return Set.isSet(any) && any.every(item => Mark.isMark(item));
     }
 
-    get object(): "mark" {
+    /**
+     * Object.
+     */
+
+    get object() {
         return "mark";
     }
 
-    get kind(): "mark" {
+    get kind() {
         logger.deprecate(
             "slate@0.32.0",
             "The `kind` property of Slate objects has been renamed to `object`."
@@ -107,23 +161,57 @@ class Mark extends Record(DEFAULTS) {
         return this.object;
     }
 
-    toJSON() {
+    /**
+     * Get the component for the node from a `schema`.
+     *
+     * @param {Schema} schema
+     * @return {Component|Void}
+     */
+    // getComponent(schema: Schema) {
+    //     return schema.__getComponent(this);
+    // }
+
+    /**
+     * Return a JSON representation of the mark.
+     *
+     * @return {Object}
+     */
+
+    toJSON(options: any = {}) {
         const object: any = {
             object: this.object,
             type: this.type,
-            data: (this.data as any).toJSON()
+            data: this.data.toJSON()
         };
 
         return object;
     }
 
-    toJS() {
-        return this.toJSON();
+    /**
+     * Alias `toJS`.
+     */
+
+    toJS(options: any = {}) {
+        return this.toJSON(options);
     }
 }
 
+/**
+ * Attach a pseudo-symbol for type checking.
+ */
+
 Mark.prototype[MODEL_TYPES.MARK] = true;
 
-memoize(Mark.prototype, ["getComponent"]);
+/**
+ * Memoize read methods.
+ */
+
+// memoize(Mark.prototype, ["getComponent"]);
+
+/**
+ * Export.
+ *
+ * @type {Mark}
+ */
 
 export default Mark;

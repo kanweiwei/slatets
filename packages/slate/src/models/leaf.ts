@@ -2,7 +2,7 @@ import isPlainObject from "is-plain-object";
 import logger from "slate-dev-logger";
 import { List, Record, Set } from "immutable";
 
-import MODEL_TYPES, { isType } from "../constants/model-types";
+import MODEL_TYPES from "../constants/model-types";
 import Mark from "./mark";
 
 const DEFAULTS: any = {
@@ -157,7 +157,9 @@ class Leaf extends Record(DEFAULTS) {
 
     static fromJS = Leaf.fromJSON;
 
-    static isLeaf: (item: any) => boolean = isType.bind(null, "LEAF");
+    static isLeaf(obj) {
+        return !!(obj && obj[MODEL_TYPES.LEAF]);
+    }
 
     static isLeafList(any): boolean {
         return List.isList(any) && any.every(item => Leaf.isLeaf(item));

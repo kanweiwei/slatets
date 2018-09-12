@@ -1,3 +1,3 @@
 declare module "debug";
 
-declare module "get-window"
+declare module "get-window";

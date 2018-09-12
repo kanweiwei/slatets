@@ -1,7 +1,7 @@
 import Debug from "debug";
 import Portal from "react-portal";
 import React from "react";
-import SlateTypes from "slate-prop-types";
+import SlateTypes from "@zykj/slate-prop-types";
 import Types from "prop-types";
 import logger from "slate-dev-logger";
 import { Schema, Stack } from "@zykj/slate";
@@ -74,6 +74,7 @@ class Editor extends React.Component<any, any> {
 
     constructor(props) {
         super(props);
+        this.state = {} as any;
         this.tmp = {};
         this.tmp.updates = 0;
         this.tmp.resolves = 0;
@@ -82,18 +83,24 @@ class Editor extends React.Component<any, any> {
         const plugins = this.resolvePlugins(props.plugins, props.schema);
         const stack = Stack.create({ plugins });
         const schema = Schema.create({ plugins });
+        this.state = {
+            ...this.state,
+            schema: schema
+        }
+        this.state = {
+            ...this.state,
+            stack: stack
+        }
 
         // Run `onChange` on the passed-in value because we need to ensure that it
         // is normalized, and queue the resulting change.
         const change = props.value.change();
         stack.run("onChange", change, this);
         this.queueChange(change);
-
         this.state = {
-            schema,
-            stack,
+            ...this.state,
             value: change.value
-        };
+        }
 
         // Create a bound event handler for each event.
         EVENT_HANDLERS.forEach(handler => {
@@ -284,7 +291,7 @@ class Editor extends React.Component<any, any> {
         debug("render", this);
 
         const children = this.stack
-            .map("renderPortal", this.value, this)
+            .$$map("renderPortal", this.value, this)
             .map((child, i) => (
                 <Portal key={i} isOpened>
                     {child}
