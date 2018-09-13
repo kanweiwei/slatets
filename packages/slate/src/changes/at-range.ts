@@ -393,7 +393,7 @@ Changes.deleteBackwardAtRange = (change, range, n = 1, options = {}) => {
     const block = document.getClosestBlock(start.key);
 
     // If the closest is not void, but empty, remove it
-    if (block && block.isEmpty && document.nodes.size !== 1) {
+    if (block && block.isEmpty() && document.nodes.size !== 1) {
         change.removeNodeByKey(block.key, { normalize });
         return;
     }
@@ -551,7 +551,7 @@ Changes.deleteForwardAtRange = (change, range, n = 1, options = {}) => {
     const block = document.getClosestBlock(start.key);
 
     // If the closest is not void, but empty, remove it
-    if (block && block.isEmpty && document.nodes.size !== 1) {
+    if (block && block.isEmpty() && document.nodes.size !== 1) {
         const nextBlock = document.getNextBlock(block.key);
         change.removeNodeByKey(block.key, { normalize });
 
@@ -652,7 +652,7 @@ Changes.insertBlockAtRange = (change, range, block, options = {}) => {
     if (startBlock.isVoid) {
         const extra = start.isAtEndOfNode(startBlock) ? 1 : 0;
         change.insertNodeByKey(parent.key, index + extra, block, { normalize });
-    } else if (startBlock.isEmpty) {
+    } else if (startBlock.isEmpty()) {
         change.insertNodeByKey(parent.key, index + 1, block, { normalize });
     } else if (start.isAtStartOfNode(startBlock)) {
         change.insertNodeByKey(parent.key, index, block, { normalize });

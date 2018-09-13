@@ -545,7 +545,7 @@ class Value extends Record(DEFAULTS) {
         if (this.selection.isCollapsed) return true;
         if (this.selection.end.offset != 0 && this.selection.start.offset != 0)
             return false;
-        return this.fragment.isEmpty;
+        return this.fragment.isEmpty();
     }
 
     /**
