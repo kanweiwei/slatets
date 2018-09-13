@@ -79,7 +79,6 @@ function babelify(js, modules, entry) {
     if (modules === false) {
         babelConfig.plugins.push(replaceLib);
     } else {
-        console.log(modules)
         babelConfig.plugins.push(require.resolve('babel-plugin-add-module-exports'));
     }
     let stream = js.pipe(babel(babelConfig))
