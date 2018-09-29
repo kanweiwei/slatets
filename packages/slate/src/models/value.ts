@@ -580,13 +580,13 @@ class Value extends Record(DEFAULTS) {
      * @return {Value}
      */
     // todo
-    //   addMark(path, offset, length, mark) {
-    //     let value = this
-    //     let { document } = value
-    //     document = document.addMark(path, offset, length, mark)
-    //     value = this.set('document', document)
-    //     return value
-    //   }
+    addMark(path, offset, length, mark) {
+        let value = this;
+        let { document } = value;
+        document = document.addMark(path, offset, length, mark);
+        value = this.set("document", document) as this;
+        return value;
+    }
 
     /**
      * Insert a `node`.

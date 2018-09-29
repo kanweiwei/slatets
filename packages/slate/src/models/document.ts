@@ -107,6 +107,7 @@ class Document extends Record(DEFAULTS) {
     /**
      * 节点通用方法
      */
+    addMark;
     createPoint;
     createRange;
     filterDescendants;
