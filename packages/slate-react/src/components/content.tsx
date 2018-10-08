@@ -170,6 +170,10 @@ class Content extends React.Component<any, any> {
         const native = window.getSelection();
         const { rangeCount, anchorNode } = native;
 
+        // .getSelection() can return null in some cases
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=827585
+        if (!native) return;
+
         // If both selections are blurred, do nothing.
         if (!rangeCount && selection.isBlurred) return;
 
@@ -324,7 +328,7 @@ class Content extends React.Component<any, any> {
             const native = window.getSelection();
             const range = findRange(native, value);
 
-            if (range && range.equals(selection)) {
+            if (range && range.equals(selection.toRange())) {
                 this.updateSelection();
                 return;
             }

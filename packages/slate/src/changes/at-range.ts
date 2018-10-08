@@ -1169,7 +1169,6 @@ Changes.toggleMarkAtRange = (change, range, mark, options = {}) => {
 Changes.unwrapBlockAtRange = (change, range, properties, options = {}) => {
     properties = Node.createProperties(properties);
 
-    const normalize = change.getFlag("normalize", options);
     const { value } = change;
     let { document } = value;
     const blocks = document.getBlocksAtRange(range);
@@ -1255,10 +1254,6 @@ Changes.unwrapBlockAtRange = (change, range, properties, options = {}) => {
         }
     });
 
-    // TODO: optmize to only normalize the right block
-    if (normalize) {
-        change.normalizeDocument();
-    }
 };
 
 /**
@@ -1274,7 +1269,6 @@ Changes.unwrapBlockAtRange = (change, range, properties, options = {}) => {
 Changes.unwrapInlineAtRange = (change, range, properties, options = {}) => {
     properties = Node.createProperties(properties);
 
-    const normalize = change.getFlag("normalize", options);
     const { value } = change;
     const { document } = value;
     const texts = document.getTextsAtRange(range);
@@ -1312,10 +1306,6 @@ Changes.unwrapInlineAtRange = (change, range, properties, options = {}) => {
         });
     });
 
-    // TODO: optmize to only normalize the right block
-    if (normalize) {
-        change.normalizeDocument();
-    }
 };
 
 /**
@@ -1543,6 +1533,10 @@ Changes.wrapInlineAtRange = (change, range, inline, options = {}) => {
                 change.normalizeNodeByKey(block.key);
             }
         });
+    }
+
+    if (normalize) {
+        change.normalizeDocument();
     }
 };
 

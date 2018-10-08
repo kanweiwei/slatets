@@ -689,6 +689,12 @@ class Range extends Record(DEFAULTS) {
         return range;
     }
 
+    toRange() {
+        const properties = Range.createProperties(this);
+        const range = Range.create(properties);
+        return range;
+    }
+
     /**
      * Return a JSON representation of the range.
      */
