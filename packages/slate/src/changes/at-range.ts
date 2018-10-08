@@ -1322,7 +1322,6 @@ Changes.wrapBlockAtRange = (change, range, block, options = {}) => {
     block = Block.create(block);
     block = block.set("nodes", block.nodes.clear());
 
-    const normalize = change.getFlag("normalize", options);
     const { value } = change;
     const { document } = value;
 
@@ -1374,9 +1373,6 @@ Changes.wrapBlockAtRange = (change, range, block, options = {}) => {
         change.moveNodeByKey(node.key, block.key, i, { normalize: false });
     });
 
-    if (normalize) {
-        change.normalizeNodeByKey(parent.key);
-    }
 };
 
 /**
