@@ -11,9 +11,15 @@ const DEFAULTS: any = {
 };
 
 class Leaf extends Record(DEFAULTS) {
+    /**
+     * 属性
+     */
     public marks: Set<Mark>;
     public text: string;
 
+    /**
+     * 静态方法
+     */
     static create(attrs: any = {}): Leaf {
         if (Leaf.isLeaf(attrs)) {
             return attrs;
@@ -32,7 +38,7 @@ class Leaf extends Record(DEFAULTS) {
         );
     }
 
-    // 重新处理一遍叶节点，该合并的合并
+    // 重新处理一遍叶节点，相邻的 `Leaf` 有相同的 marks 则合并这两个 `Leaf` 节点
     static createLeaves(leaves: List<Leaf>): List<Leaf> {
         if (leaves.size <= 1) return leaves;
 
@@ -83,6 +89,7 @@ class Leaf extends Record(DEFAULTS) {
         return result as List<Leaf>;
     }
 
+    // 从指定的文字位置分割
     static splitLeaves(leaves: List<Leaf>, offset: number): Array<List<Leaf>> {
         if (offset < 0) return [List(), leaves];
 
@@ -133,14 +140,17 @@ class Leaf extends Record(DEFAULTS) {
         ];
     }
 
-    static createList(attrs: any[] = []): List<Leaf> {
-        if (List.isList(attrs) || Array.isArray(attrs)) {
-            const list = List(attrs.map(Leaf.create));
+    static createList(elements: Array<any> | List<any> = List()): List<Leaf> {
+        if (Array.isArray(elements)) {
+            elements = List(elements);
+        }
+        if (List.isList(elements)) {
+            const list: List<Leaf> = List(elements.map(Leaf.create));
             return list;
         }
 
         throw new Error(
-            `\`Leaf.createList\` only accepts arrays or lists, but you passed it: ${attrs}`
+            `\`Leaf.createList\` only accepts arrays or lists, but you passed it: ${elements}`
         );
     }
 
@@ -191,7 +201,7 @@ class Leaf extends Record(DEFAULTS) {
         return this.set("marks", newMarks) as this;
     }
 
-    addMarks(set: Set<Mark>): this {
+    addMarks(set: Array<Mark>): this {
         const { marks } = this;
         return this.set("marks", marks.union(set)) as this;
     }

@@ -27,27 +27,33 @@ class Inline extends Record(DEFAULTS) {
     public data: Map<any, any>;
     public nodes: List<any>;
 
-    static create(attrs: any = {}): Inline {
-        if (Inline.isInline(attrs)) {
-            return attrs;
+    static create(properties: any = {}): Inline {
+        if (Inline.isInline(properties)) {
+            return properties;
         }
 
-        if (typeof attrs == "string") {
-            attrs = { type: attrs };
+        if (typeof properties == "string") {
+            properties = { type: properties };
         }
 
-        if (isPlainObject(attrs)) {
-            return Inline.fromJSON(attrs);
+        if (isPlainObject(properties)) {
+            return Inline.fromJSON(properties);
         }
 
         throw new Error(
-            `\`Inline.create\` only accepts objects, strings or inlines, but you passed it: ${attrs}`
+            `\`Inline.create\` only accepts objects, strings or inlines, but you passed it: ${properties}`
         );
     }
 
-    static createList(elements: Array<any> = []): List<Inline> {
-        if (List.isList(elements) || Array.isArray(elements)) {
-            const list = List(elements.map(Inline.create));
+    static createList(elements: Array<any> | List<any>): List<Inline> {
+        if (!elements) {
+            elements = List();
+        }
+        if (Array.isArray(elements)) {
+            elements = List(elements);
+        }
+        if (List.isList(elements)) {
+            const list: List<Inline> = List(elements.map(Inline.create));
             return list;
         }
 
@@ -56,9 +62,9 @@ class Inline extends Record(DEFAULTS) {
         );
     }
 
-    static fromJSON(object) {
-        if (Inline.isInline(object)) {
-            return object;
+    static fromJSON(obj: any) {
+        if (Inline.isInline(obj)) {
+            return obj;
         }
 
         const {
@@ -67,7 +73,7 @@ class Inline extends Record(DEFAULTS) {
             key = KeyUtils.create(),
             nodes = [],
             type
-        } = object;
+        } = obj;
 
         if (typeof type != "string") {
             throw new Error("`Inline.fromJS` requires a `type` string.");
@@ -111,10 +117,6 @@ class Inline extends Record(DEFAULTS) {
         return this.object;
     }
 
-    isEmpty() {
-        return !this.isVoid && !this.nodes.some(child => !child.isEmpty());
-    }
-
     // 所有子节点的text拼接后的结果
     get text(): string {
         return this.getText();
@@ -143,6 +145,11 @@ class Inline extends Record(DEFAULTS) {
         return this.toJSON(options);
     }
 
+    isEmpty() {
+        return !this.isVoid && !this.nodes.some(child => !child.isEmpty());
+    }
+
+    addMark;
     createPoint;
     createRange;
     filterDescendants;

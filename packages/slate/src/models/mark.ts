@@ -24,15 +24,15 @@ const DEFAULTS = {
  */
 
 class Mark extends Record(DEFAULTS) {
-    public type: any;
-    public data: any;
     /**
-     * Create a new `Mark` with `attrs`.
-     *
-     * @param {Object|Mark} attrs
-     * @return {Mark}
+     * 属性
      */
-
+    public type: undefined | string;
+    public data: Map<any, any>;
+    
+    /**
+     * 静态方法
+     */
     static create(attrs = {}) {
         if (Mark.isMark(attrs)) {
             return attrs;
@@ -51,16 +51,12 @@ class Mark extends Record(DEFAULTS) {
         );
     }
 
-    /**
-     * Create a set of marks.
-     *
-     * @param {Array<Object|Mark>} elements
-     * @return {Set<Mark>}
-     */
-
-    static createSet(elements) {
-        if (Set.isSet(elements) || Array.isArray(elements)) {
-            const marks = Set(elements.map(Mark.create));
+    static createSet(elements: Array<any> | Set<any> = []): Set<Mark> {
+        if (Array.isArray(elements)) {
+            elements = Set(elements);
+        }
+        if (Set.isSet(elements)) {
+            const marks: Set<Mark> = Set(elements.map(Mark.create));
             return marks;
         }
 
@@ -72,13 +68,6 @@ class Mark extends Record(DEFAULTS) {
             `\`Mark.createSet\` only accepts sets, arrays or null, but you passed it: ${elements}`
         );
     }
-
-    /**
-     * Create a dictionary of settable mark properties from `attrs`.
-     *
-     * @param {Object|String|Mark} attrs
-     * @return {Object}
-     */
 
     static createProperties(attrs: any = {}) {
         if (Mark.isMark(attrs)) {
@@ -104,9 +93,6 @@ class Mark extends Record(DEFAULTS) {
         );
     }
 
-    /**
-     * Create a `Mark` from a JSON `object`.
-     */
     static fromJSON(object: any): Mark {
         const { data = {}, type } = object;
 
@@ -122,32 +108,14 @@ class Mark extends Record(DEFAULTS) {
         return mark;
     }
 
-    /**
-     * Alias `fromJS`.
-     */
-
+    
     static fromJS = Mark.fromJSON;
 
-    /**
-     * Check if `any` is a `Mark`.
-     *
-     * @param {Any} any
-     * @return {Boolean}
-     */
-
     static isMark = isType.bind(null, "MARK");
-
-    /**
-     * Check if `any` is a set of marks.
-     */
 
     static isMarkSet(any: any): boolean {
         return Set.isSet(any) && any.every(item => Mark.isMark(item));
     }
-
-    /**
-     * Object.
-     */
 
     get object() {
         return "mark";
@@ -162,34 +130,17 @@ class Mark extends Record(DEFAULTS) {
     }
 
     /**
-     * Get the component for the node from a `schema`.
-     *
-     * @param {Schema} schema
-     * @return {Component|Void}
+     * 实例方法
      */
-    // getComponent(schema: Schema) {
-    //     return schema.__getComponent(this);
-    // }
-
-    /**
-     * Return a JSON representation of the mark.
-     *
-     * @return {Object}
-     */
-
     toJSON(options: any = {}) {
         const object: any = {
             object: this.object,
             type: this.type,
-            data: this.data.toJSON()
+            data: (this.data as any).toJSON()
         };
 
         return object;
     }
-
-    /**
-     * Alias `toJS`.
-     */
 
     toJS(options: any = {}) {
         return this.toJSON(options);

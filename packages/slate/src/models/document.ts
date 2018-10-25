@@ -20,10 +20,12 @@ const DEFAULTS: any = {
  * @type {Document}
  */
 class Document extends Record(DEFAULTS) {
+    // 属性
     public key: string;
     public data: Data;
     public nodes: List<Block & Inline & Text>;
 
+    // 静态方法
     static create(attrs: any = {}) {
         if (Document.isDocument(attrs)) {
             return attrs;
@@ -42,7 +44,7 @@ class Document extends Record(DEFAULTS) {
         );
     }
 
-    static fromJSON(object) {
+    static fromJSON(object: any) {
         if (Document.isDocument(object)) {
             return object;
         }
@@ -66,6 +68,7 @@ class Document extends Record(DEFAULTS) {
 
     static createChildren: (nodes) => List<any>;
 
+    // 计算属性
     get object(): "document" {
         return "document";
     }
@@ -78,12 +81,13 @@ class Document extends Record(DEFAULTS) {
         return this.object;
     }
 
-    isEmpty() {
-        return !this.nodes.some((child: any) => !child.isEmpty());
-    }
-
     get text() {
         return this.getText();
+    }
+
+    // 成员方法
+    isEmpty() {
+        return !this.nodes.some((child: any) => !child.isEmpty());
     }
 
     toJSON(options: any = {}) {

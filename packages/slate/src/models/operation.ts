@@ -61,15 +61,28 @@ const DEFAULTS = {
  */
 
 class Operation extends Record(DEFAULTS) {
-    public type: any;
     /**
-     * Create a new `Operation` with `attrs`.
-     *
-     * @param {Object|Array|List|String|Operation} attrs
-     * @return {Operation}
+     * 属性
      */
+    public length: any;
+    public mark: any;
+    public marks: any;
+    public newPath: any;
+    public node: any;
+    public offset: any;
+    public path: any;
+    public position: any;
+    public properties: any;
+    public selection: any;
+    public target: any;
+    public text: any;
+    public type: any;
+    public value: any;
 
-    static create(attrs = {}) {
+    /**
+     * 静态方法
+     */
+    static create(attrs: any = {}) {
         if (Operation.isOperation(attrs)) {
             return attrs;
         }
@@ -83,13 +96,6 @@ class Operation extends Record(DEFAULTS) {
         );
     }
 
-    /**
-     * Create a list of `Operations` from `elements`.
-     *
-     * @param {Array<Operation|Object>|List<Operation|Object>} elements
-     * @return {List<Operation>}
-     */
-
     static createList(elements = []) {
         if (List.isList(elements) || Array.isArray(elements)) {
             const list = List(elements.map(Operation.create));
@@ -100,13 +106,6 @@ class Operation extends Record(DEFAULTS) {
             `\`Operation.createList\` only accepts arrays or lists, but you passed it: ${elements}`
         );
     }
-
-    /**
-     * Create a `Operation` from a JSON `object`.
-     *
-     * @param {Object|Operation} object
-     * @return {Operation}
-     */
 
     static fromJSON(object) {
         if (Operation.isOperation(object)) {
@@ -194,41 +193,17 @@ class Operation extends Record(DEFAULTS) {
         return node;
     }
 
-    /**
-     * Alias `fromJS`.
-     */
-
     static fromJS = Operation.fromJSON;
-
-    /**
-     * Check if `any` is a `Operation`.
-     *
-     * @param {Any} any
-     * @return {Boolean}
-     */
 
     static isOperation(any) {
         return !!(any && any[MODEL_TYPES.OPERATION]);
     }
-
-    /**
-     * Check if `any` is a list of operations.
-     *
-     * @param {Any} any
-     * @return {Boolean}
-     */
 
     static isOperationList(any) {
         return (
             List.isList(any) && any.every(item => Operation.isOperation(item))
         );
     }
-
-    /**
-     * Object.
-     *
-     * @return {String}
-     */
 
     get object() {
         return "operation";
@@ -241,13 +216,6 @@ class Operation extends Record(DEFAULTS) {
         );
         return this.object;
     }
-
-    /**
-     * Return a JSON representation of the operation.
-     *
-     * @param {Object} options
-     * @return {Object}
-     */
 
     toJSON(options = {}) {
         const { object, type } = this;
@@ -321,10 +289,6 @@ class Operation extends Record(DEFAULTS) {
 
         return json;
     }
-
-    /**
-     * Alias `toJS`.
-     */
 
     toJS(options: any = {}) {
         return this.toJSON(options);

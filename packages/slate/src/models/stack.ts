@@ -9,6 +9,9 @@ const DEFAULTS = {
 };
 
 class Stack extends Record(DEFAULTS) {
+    /**
+     * 属性
+     */
     public plugins: any[];
 
     static create(attrs: any = {}) {
@@ -35,13 +38,13 @@ class Stack extends Record(DEFAULTS) {
 
     getPluginsWith(property: string) {
         return this.plugins.filter(plugin => plugin[property] != null);
-    }
+    } 
 
     $$find(property: string, ...args: any[]) {
         const plugins: any[] = this.getPluginsWith(property);
 
-        for (const plugin of plugins) {
-            const ret = plugin[property](...args);
+        for (let i = 0, len = plugins.length; i < len; i++) {
+            const ret = plugins[i][property](...args);
             if (ret != null) return ret;
         }
     }
@@ -50,8 +53,8 @@ class Stack extends Record(DEFAULTS) {
         const plugins: any[] = this.getPluginsWith(property);
         const array: any[] = [];
 
-        for (const plugin of plugins) {
-            const ret = plugin[property](...args);
+        for (let i = 0, len = plugins.length; i < len; i++) {
+            const ret = plugins[i][property](...args);
             if (ret != null) array.push(ret);
         }
 

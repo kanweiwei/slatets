@@ -25,12 +25,14 @@ const DEFAULTS = {
  * @type {Block}
  */
 class Block extends Record(DEFAULTS) {
+    // 属性
     public key: string;
     public type: string;
     public isVoid: string;
     public data: Map<any, any>;
     public nodes: List<Block & Inline & Text>;
 
+    // 静态方法
     static create(attrs: any | string | Block = {}): Block {
         if (Block.isBlock(attrs)) {
             return attrs;
@@ -48,18 +50,24 @@ class Block extends Record(DEFAULTS) {
         );
     }
 
-    static createList(attrs: Array<any>): List<Block> {
-        if (List.isList(attrs) || Array.isArray(attrs)) {
-            const list: List<Block> = List(attrs.map(Block.create));
+    static createList(elements: Array<any> | List<any>): List<Block> {
+        if(!elements){
+            elements = List();
+        }
+        if (Array.isArray(elements)) {
+            elements = List(elements);
+        }
+        if (List.isList(elements)) {
+            const list: List<Block> = List(elements.map(Block.create));
             return list;
         }
 
         throw new Error(
-            `\`Block.createList\` only accepts arrays or lists, but you passed it: ${attrs}`
+            `\`Block.createList\` only accepts arrays or lists, but you passed it: ${elements}`
         );
     }
 
-    static fromJSON(obj) {
+    static fromJSON(obj: any): Block {
         if (Block.isBlock(obj)) {
             return obj;
         }
@@ -91,13 +99,13 @@ class Block extends Record(DEFAULTS) {
      */
     static fromJS = Block.fromJSON;
 
-    static isBlock(obj) {
+    static isBlock(obj: any) {
         return !!(obj && obj[MODEL_TYPES.BLOCK]);
     }
     /**
      * 确认参数any是否是一个block组成的list
      */
-    static isBlockList(any) {
+    static isBlockList(any: any) {
         return (
             List.isList(any) && any.every((item: any) => Block.isBlock(item))
         );
@@ -105,6 +113,7 @@ class Block extends Record(DEFAULTS) {
 
     static createChildren: (nodes) => List<any>;
 
+    // 计算属性
     get object(): "block" {
         return "block";
     }
@@ -122,6 +131,7 @@ class Block extends Record(DEFAULTS) {
         return this.getText();
     }
 
+    // 成员方法
     toJSON(options: any = {}): any {
         const object: any = {
             object: this.object,
@@ -148,14 +158,8 @@ class Block extends Record(DEFAULTS) {
         );
     }
 
-    // addMark: (
-    //     path: List<number> | string,
-    //     offset: number,
-    //     length: number,
-    //     mark: Mark
-    // ) => any;
-
     //
+    addMark;
     createPoint;
     createRange;
     filterDescendants;

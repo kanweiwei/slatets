@@ -14,9 +14,15 @@ const DEFAULTS = {
 };
 
 class Text extends Record(DEFAULTS) {
+    /**
+     * 属性 
+     */ 
     public leaves: List<Leaf>;
     public key: string;
 
+    /**
+     * 静态方法
+     */
     static create(attrs: any = ""): Text {
         if (Text.isText(attrs)) {
             return attrs;
@@ -94,21 +100,12 @@ class Text extends Record(DEFAULTS) {
         return !!(obj && obj[MODEL_TYPES.TEXT]);
     }
 
-    /**
-     * Check if `any` is a list of texts.
-     *
-     * @param {Any} any
-     * @return {Boolean}
-     */
+    // 判断是否是多个 `Text` 节点组成的 `List`
     static isTextList(any) {
         return List.isList(any) && any.every(item => Text.isText(item));
     }
-    /**
-     * Object.
-     *
-     * @return {String}
-     */
-
+    
+    // 计算属性
     get object() {
         return "text";
     }
@@ -121,43 +118,27 @@ class Text extends Record(DEFAULTS) {
         return this.object;
     }
 
-    /**
-     * Is the node empty?
-     *
-     * @return {Boolean}
-     */
-    isEmpty() {
-        return this.text == "";
-    }
-    /**
-     * Get the concatenated text of the node.
-     *
-     * @return {String}
-     */
-
     get text() {
-        return this.getString();
+        return this.getText();
     }
-    getString() {
+
+    /**
+     * 实例方法
+     */
+    // 获取文本内容
+    getText() {
         return this.leaves.reduce(
             (string: string, leaf: Leaf) => string + leaf.text,
             ""
         );
     }
 
-    /**
-     * Find the 'first' leaf at offset; By 'first' the alorighthm prefers `endOffset === offset` than `startOffset === offset`
-     * Corner Cases:
-     *   1. if offset is negative, return the first leaf;
-     *   2. if offset is larger than text length, the leaf is null, startOffset, endOffset and index is of the last leaf
-     *
-     * @param {number}
-     * @returns {Object}
-     *   @property {number} startOffset
-     *   @property {number} endOffset
-     *   @property {number} index
-     *   @property {Leaf} leaf
-     */
+    // 当前节点的文本内容是否为空
+    isEmpty() {
+        return this.text === "";
+    }
+
+    // 根据文字的位置获取所在 `leaf` 节点信息
     searchLeafAtOffset(offset) {
         let endOffset = 0;
         let startOffset = 0;
@@ -178,29 +159,13 @@ class Text extends Record(DEFAULTS) {
         };
     }
 
-    /**
-     * Add a `mark` at `index` and `length`.
-     *
-     * @param {Number} index
-     * @param {Number} length
-     * @param {Mark} mark
-     * @return {Text}
-     */
+    
     addMark(index, length, mark) {
         const marks = Set.of(mark);
         return this.addMarks(index, length, marks);
     }
 
-    /**
-     * Add a `set` of marks at `index` and `length`.
-     * Corner Cases:
-     *   1. If empty text, and if length === 0 and index === 0, will make sure the text contain an empty leaf with the given mark.
-     *
-     * @param {Number} index
-     * @param {Number} length
-     * @param {Set<Mark>} set
-     * @return {Text}
-     */
+    
     addMarks(index, length, set) {
         if (this.text === "" && length === 0 && index === 0) {
             const { leaves } = this;
@@ -230,13 +195,7 @@ class Text extends Record(DEFAULTS) {
         );
         return this.setLeaves(leaves);
     }
-    /**
-     * Get the decorations for the node from a `schema`.
-     *
-     * @param {Schema} schema
-     * @return {Array}
-     */
-
+    
     getDecorations(schema) {
         return schema.__getDecorations(this);
     }
@@ -280,15 +239,6 @@ class Text extends Record(DEFAULTS) {
         return Leaf.createLeaves(leaves);
     }
 
-    /**
-     * Get all of the active marks on between two offsets
-     * Corner Cases:
-     *   1. if startOffset is equal or bigger than endOffset, then return Set();
-     *   2. If no text is selected between start and end, then return Set()
-     *
-     * @return {Set<Mark>}
-     */
-
     getActiveMarksBetweenOffsets(startOffset, endOffset) {
         if (startOffset <= 0 && endOffset >= this.text.length) {
             return this.getActiveMarks();
@@ -320,12 +270,7 @@ class Text extends Record(DEFAULTS) {
 
         return result || Set();
     }
-
-    /**
-     * Get all of the active marks on the text
-     *
-     * @return {Set<Mark>}
-     */
+    
     getActiveMarks() {
         if (this.leaves.size === 0) return Set();
 

@@ -95,6 +95,9 @@ class Point extends Record(DEFAULTS) {
         return !!(obj && obj[MODEL_TYPES.POINT]);
     }
 
+    /**
+     * 实例方法
+     */
     isAtEndOfNode(node: any): boolean {
         if (this.isUnset) return false;
         const last = node.getLastText();

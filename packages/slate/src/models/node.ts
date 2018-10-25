@@ -1383,15 +1383,9 @@ class Node {
         return startIndex == null ? null : { start: startIndex, end: endIndex };
     }
 
-    /**
-     * Get the concatenated text string of all child nodes.
-     *
-     */
     getText() {
-        const text = this.nodes.reduce((string: string, node: any) => {
-            return string + node.text;
-        }, "");
-
+        const children = this.object === "text" ? (this as any).leaves : this.nodes;
+        const text = children.reduce((memo, c) => memo + c.text, "");
         return text;
     }
 

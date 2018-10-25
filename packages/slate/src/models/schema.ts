@@ -164,14 +164,14 @@ const DEFAULTS = {
 };
 
 class Schema extends Record(DEFAULTS) {
+    /**
+     * 属性
+     */
     public stack: Stack;
     public rules: any[];
 
     /**
-     * Create a new `Schema` with `attrs`.
-     *
-     * @param {Object|Schema} attrs
-     * @return {Schema}
+     * 静态方法
      */
     static create(attrs = {}) {
         if (Schema.isSchema(attrs)) {
@@ -187,12 +187,6 @@ class Schema extends Record(DEFAULTS) {
         );
     }
 
-    /**
-     * Create a `Schema` from a JSON `object`.
-     *
-     * @param {Object} object
-     * @return {Schema}
-     */
     static fromJSON(object) {
         if (Schema.isSchema(object)) {
             return object;
@@ -236,25 +230,14 @@ class Schema extends Record(DEFAULTS) {
         return ret;
     }
 
-    /**
-     * Alias `fromJS`.
-     */
     static fromJS = Schema.fromJSON;
 
-    /**
-     * Check if `any` is a `Schema`.
-     *
-     * @param {Any} any
-     * @return {Boolean}
-     */
     static isSchema(any) {
         return !!(any && any[MODEL_TYPES.SCHEMA]);
     }
 
     /**
-     * Object.
-     *
-     * @return {String}
+     * 计算属性
      */
     get object() {
         return "schema";
@@ -269,10 +252,7 @@ class Schema extends Record(DEFAULTS) {
     }
 
     /**
-     * Validate a `node` with the schema, returning an error if it's invalid.
-     *
-     * @param {Node} node
-     * @return {Error|Void}
+     * 实例方法
      */
     validateNode(node) {
         const rules = this.rules.filter(r => testRules(node, r.match));
