@@ -105,6 +105,7 @@ class Inline extends Record(DEFAULTS) {
 
     static createChildren: (nodes) => List<any>;
 
+    // 计算属性
     get object(): "inline" {
         return "inline";
     }
@@ -122,6 +123,7 @@ class Inline extends Record(DEFAULTS) {
         return this.getText();
     }
 
+    // 成员方法
     toJSON(options: any = {}): any {
         const object: any = {
             object: this.object,
@@ -138,9 +140,7 @@ class Inline extends Record(DEFAULTS) {
         return object;
     }
 
-    /**
-     * Alias `toJS`.
-     */
+    // alias `toJSON`
     toJS(options: any = {}) {
         return this.toJSON(options);
     }
@@ -149,6 +149,7 @@ class Inline extends Record(DEFAULTS) {
         return !this.isVoid && !this.nodes.some(child => !child.isEmpty());
     }
 
+    // 节点通用方法
     addMark;
     createPoint;
     createRange;
