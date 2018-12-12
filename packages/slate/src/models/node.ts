@@ -1384,7 +1384,8 @@ class Node {
     }
 
     getText() {
-        const children = this.object === "text" ? (this as any).leaves : this.nodes;
+        const children =
+            this.object === "text" ? (this as any).leaves : this.nodes;
         const text = children.reduce((memo, c) => memo + c.text, "");
         return text;
     }
@@ -1810,7 +1811,7 @@ class Node {
     removeNode(path) {
         this.assertDescendant(path);
         path = this.resolvePath(path);
-        const deep = path.flatMap(x => List(["nodes", x]));
+        const deep = path.flatMap(x => ["nodes", x]);
         const ret = (this as any).deleteIn(deep);
         return ret;
     }

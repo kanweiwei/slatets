@@ -695,8 +695,7 @@ memoize(Text.prototype, [
     "getActiveMarks",
     "getMarks",
     "getMarksAsArray",
-    "validate",
-    "getString"
+    "validate"
 ]);
 
 export default Text;

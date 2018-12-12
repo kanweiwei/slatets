@@ -351,7 +351,7 @@ function AfterPlugin() {
             .moveAnchorTo(point.key, start)
             .moveFocusTo(point.key, end);
 
-        entire = document.resolveRange(entire);
+        entire = document.resolveRange(entire)
 
         // Change the current value to have the leaf's text replaced.
         change
@@ -591,7 +591,7 @@ function AfterPlugin() {
             if (next) range = range.moveFocusTo(next.key, 0);
         }
 
-        range = document.resolveRange(range);
+        range = document.resolveRange(range)
         change.select(range);
     }
 

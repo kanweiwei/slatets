@@ -698,8 +698,7 @@ Changes.select = (change, properties, options: any = {}) => {
   const { value } = change
   const { document, selection } = value
   const props: any = {}
-  let next = selection.setProperties(properties)
-  next = document.resolveRange(next)
+  const next = document.createRange(selection.setProperties(properties))
 
   // Re-compute the properties, to ensure that we get their normalized values.
   properties = pick(next, Object.keys(properties))
