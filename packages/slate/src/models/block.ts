@@ -19,7 +19,7 @@ const DEFAULTS = {
     nodes: List(),
     type: void 0
 };
-
+666
 /**
  * Block
  * @type {Block}
@@ -105,9 +105,9 @@ class Block extends Record(DEFAULTS) {
     /**
      * 确认参数any是否是一个block组成的list
      */
-    static isBlockList(any: any) {
+    static isBlockList(elements: any) {
         return (
-            List.isList(any) && any.every((item: any) => Block.isBlock(item))
+            List.isList(elements) && elements.every((item: any) => Block.isBlock(item))
         );
     }
 
