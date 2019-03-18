@@ -29,11 +29,11 @@ class Mark extends Record(DEFAULTS) {
      */
     public type: undefined | string;
     public data: Map<any, any>;
-    
+
     /**
      * 静态方法
      */
-    static create(attrs = {}) {
+    static create(attrs: any = {}) {
         if (Mark.isMark(attrs)) {
             return attrs;
         }
@@ -93,7 +93,7 @@ class Mark extends Record(DEFAULTS) {
         );
     }
 
-    static fromJSON(object: any): Mark {
+    static fromJSON(object: { data?: any; type: string }): Mark {
         const { data = {}, type } = object;
 
         if (typeof type != "string") {
@@ -108,7 +108,6 @@ class Mark extends Record(DEFAULTS) {
         return mark;
     }
 
-    
     static fromJS = Mark.fromJSON;
 
     static isMark = isType.bind(null, "MARK");

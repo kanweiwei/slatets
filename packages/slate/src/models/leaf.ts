@@ -154,7 +154,7 @@ class Leaf extends Record(DEFAULTS) {
         );
     }
 
-    static fromJSON(object): Leaf {
+    static fromJSON(object: { text: string; marks: any[] }): Leaf {
         const { text = "", marks = [] } = object;
 
         const leaf = new Leaf({
@@ -167,7 +167,7 @@ class Leaf extends Record(DEFAULTS) {
 
     static fromJS = Leaf.fromJSON;
 
-    static isLeaf(obj) {
+    static isLeaf(obj: any) {
         return !!(obj && obj[MODEL_TYPES.LEAF]);
     }
 

@@ -159,12 +159,10 @@ class Text extends Record(DEFAULTS) {
         };
     }
 
-    
     addMark(index, length, mark) {
         const marks = Set.of(mark);
         return this.addMarks(index, length, marks);
     }
-
     
     addMarks(index, length, set) {
         if (this.text === "" && length === 0 && index === 0) {
@@ -192,7 +190,7 @@ class Text extends Record(DEFAULTS) {
         const leaves = before.concat(
             middle.map((x: Leaf) => x.addMarks(set)),
             after
-        );
+        ).toList();
         return this.setLeaves(leaves);
     }
     
@@ -239,7 +237,7 @@ class Text extends Record(DEFAULTS) {
         return Leaf.createLeaves(leaves);
     }
 
-    getActiveMarksBetweenOffsets(startOffset, endOffset) {
+    getActiveMarksBetweenOffsets(startOffset: number, endOffset: number) {
         if (startOffset <= 0 && endOffset >= this.text.length) {
             return this.getActiveMarks();
         }
@@ -303,7 +301,7 @@ class Text extends Record(DEFAULTS) {
      *
      * @return {OrderedSet<Mark>}
      */
-    getMarksBetweenOffsets(startOffset, endOffset) {
+    getMarksBetweenOffsets(startOffset: number, endOffset: number) {
         if (startOffset <= 0 && endOffset >= this.text.length) {
             return this.getMarks();
         }
@@ -315,7 +313,7 @@ class Text extends Record(DEFAULTS) {
         let result: any = null;
         let leafEnd = 0;
 
-        this.leaves.forEach(
+        this.leaves.forEach( 
             (leaf: Leaf): any => {
                 const leafStart = leafEnd;
                 leafEnd = leafStart + leaf.text.length;
@@ -378,7 +376,7 @@ class Text extends Record(DEFAULTS) {
      * @return {Set<Mark>}
      */
 
-    getMarksAtIndex(index) {
+    getMarksAtIndex(index: number) {
         const { leaf } = this.searchLeafAtOffset(index);
         if (!leaf) return Set();
         return leaf.marks as Set<Mark>;
@@ -391,7 +389,7 @@ class Text extends Record(DEFAULTS) {
      * @return {Node|Null}
      */
 
-    getNode(key) {
+    getNode(key: string) {
         return this.key == key ? this : null;
     }
 
@@ -402,7 +400,7 @@ class Text extends Record(DEFAULTS) {
      * @return {Boolean}
      */
 
-    hasNode(key) {
+    hasNode(key: string) {
         return !!this.getNode(key);
     }
 
@@ -415,7 +413,7 @@ class Text extends Record(DEFAULTS) {
      * @return {Text}
      */
 
-    insertText(offset, text, marks): Text {
+    insertText(offset: number, text: string, marks: Set<Mark>): Text {
         if (this.text === "") {
             return this.set(
                 "leaves",
@@ -448,7 +446,7 @@ class Text extends Record(DEFAULTS) {
             leaf.set("text", beforeText),
             Leaf.create({ text, marks }),
             leaf.set("text", afterText)
-        );
+        ).toList();
 
         return this.setLeaves(nextLeaves);
     }
@@ -482,7 +480,7 @@ class Text extends Record(DEFAULTS) {
         const leaves = before.concat(
             middle.map((x: Leaf) => x.removeMark(mark)),
             after
-        );
+        ).toList();
         return this.setLeaves(leaves);
     }
 
@@ -569,14 +567,7 @@ class Text extends Record(DEFAULTS) {
      * Alias `toJS`.
      */
 
-    toJS(
-        options: any = {}
-    ): {
-        object: "text";
-        leaves: any;
-    } {
-        return this.toJSON(options);
-    }
+    toJS = this.toJSON;
 
     /**
      * Update a `mark` at `index` and `length` with `properties`.
@@ -608,7 +599,7 @@ class Text extends Record(DEFAULTS) {
         const leaves = before.concat(
             middle.map((x: Leaf) => x.updateMark(mark, newMark)),
             after
-        );
+        ).toList();
 
         return this.setLeaves(leaves);
     }
@@ -631,8 +622,8 @@ class Text extends Record(DEFAULTS) {
      * merge this text and another text at the end
      */
 
-    mergeText(text): Text {
-        const leaves = this.leaves.concat(text.leaves);
+    mergeText(text: Text): Text {
+        const leaves = this.leaves.concat(text.leaves).toList();
         return this.setLeaves(leaves);
     }
 
@@ -671,7 +662,7 @@ class Text extends Record(DEFAULTS) {
     /**
      * Set leaves with normalized `leaves`
      */
-    setLeaves(leaves): Text {
+    setLeaves(leaves: List<Leaf>): Text {
         const result = Leaf.createLeaves(leaves);
 
         if (result.size === 1) {
