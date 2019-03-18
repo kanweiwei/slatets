@@ -19,7 +19,7 @@ const DEFAULTS = {
     nodes: List(),
     type: void 0
 };
-666
+
 /**
  * Block
  * @type {Block}
