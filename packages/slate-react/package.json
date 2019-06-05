@@ -1,77 +1,76 @@
 {
-    "name": "@zykj/slate-react",
-    "description": "A set of React components for building completely customizable rich-text editors.",
-    "version": "0.15.1",
-    "license": "MIT",
-    "repository": "git://github.com/kanweiwei/slate.git",
-    "main": "lib/index.js",
-    "module": "es/index.js",
-    "jsnext:main": "es/index.js",
-    "files": [
-      "dist/",
-      "lib/",
-      "es/"
-    ],
-    "dependencies": {
-      "debug": "^3.1.0",
-      "get-window": "^1.1.1",
-      "is-window": "^1.0.2",
-      "keycode": "^2.1.2",
-      "lodash": "^4.1.1",
-      "prop-types": "^15.5.8",
-      "react-immutable-proptypes": "^2.1.0",
-      "react-portal": "^3.1.0",
-      "selection-is-backward": "^1.0.0",
-      "@zykj/slate-base64-serializer": "^0.2.47",
-      "slate-dev-environment": "^0.1.4",
-      "slate-dev-logger": "^0.1.42",
-      "@zykj/slate-hotkeys": "^0.1.4",
-      "@zykj/slate-plain-serializer": "^0.5.28",
-      "@zykj/slate-prop-types": "^0.4.45"
-    },
-    "peerDependencies": {
-      "immutable": ">=3.8.1",
-      "react": ">=0.14.0",
-      "react-dom": ">=0.14.0",
-      "@zykj/slate": ">=0.37.0"
-    },
-    "devDependencies": {
-      "immutable": "^3.8.1",
-      "mocha": "^2.5.3",
-      "@zykj/slate": "^0.37.1",
-      "slate-hyperscript": "^0.7.1",
-      "slate-simulator": "^0.4.45"
-    },
-    "scripts": {
-      "clean": "rm -rf ./dist ./lib ./node_modules"
-    },
-    "umdGlobals": {
-      "immutable": "Immutable",
-      "react": "React",
-      "react-dom": "ReactDOM",
-      "slate": "Slate"
-    },
-    "keywords": [
-      "canvas",
-      "contenteditable",
-      "doc",
-      "docs",
-      "document",
-      "edit",
-      "editor",
-      "html",
-      "immutable",
-      "markdown",
-      "medium",
-      "paper",
-      "react",
-      "rich",
-      "rich-text",
-      "richtext",
-      "slate",
-      "text",
-      "wysiwyg",
-      "wysiwym"
-    ]
-  }
-  
+  "name": "@zykj/slate-react",
+  "description": "A set of React components for building completely customizable rich-text editors.",
+  "version": "0.15.2",
+  "license": "MIT",
+  "repository": "git://github.com/kanweiwei/slate.git",
+  "main": "lib/index.js",
+  "module": "es/index.js",
+  "jsnext:main": "es/index.js",
+  "files": [
+    "dist/",
+    "lib/",
+    "es/"
+  ],
+  "dependencies": {
+    "debug": "^3.1.0",
+    "get-window": "^1.1.1",
+    "is-window": "^1.0.2",
+    "keycode": "^2.1.2",
+    "lodash": "^4.1.1",
+    "prop-types": "^15.5.8",
+    "react-immutable-proptypes": "^2.1.0",
+    "react-portal": "^3.1.0",
+    "selection-is-backward": "^1.0.0",
+    "@zykj/slate-base64-serializer": "^0.2.47",
+    "slate-dev-environment": "^0.1.4",
+    "slate-dev-logger": "^0.1.42",
+    "@zykj/slate-hotkeys": "^0.1.4",
+    "@zykj/slate-plain-serializer": "^0.5.28",
+    "@zykj/slate-prop-types": "^0.4.45"
+  },
+  "peerDependencies": {
+    "immutable": ">=3.8.1",
+    "react": ">=0.14.0",
+    "react-dom": ">=0.14.0",
+    "@zykj/slate": ">=0.37.0"
+  },
+  "devDependencies": {
+    "immutable": "^3.8.1",
+    "mocha": "^2.5.3",
+    "@zykj/slate": "^0.37.1",
+    "slate-hyperscript": "^0.7.1",
+    "slate-simulator": "^0.4.45"
+  },
+  "scripts": {
+    "clean": "rm -rf ./dist ./lib ./node_modules"
+  },
+  "umdGlobals": {
+    "immutable": "Immutable",
+    "react": "React",
+    "react-dom": "ReactDOM",
+    "slate": "Slate"
+  },
+  "keywords": [
+    "canvas",
+    "contenteditable",
+    "doc",
+    "docs",
+    "document",
+    "edit",
+    "editor",
+    "html",
+    "immutable",
+    "markdown",
+    "medium",
+    "paper",
+    "react",
+    "rich",
+    "rich-text",
+    "richtext",
+    "slate",
+    "text",
+    "wysiwyg",
+    "wysiwym"
+  ]
+}
