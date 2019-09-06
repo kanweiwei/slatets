@@ -87,10 +87,6 @@ class Editor extends React.Component<any, any> {
             ...this.state,
             schema: schema
         }
-        this.state = {
-            ...this.state,
-            stack: stack
-        }
 
         // Run `onChange` on the passed-in value because we need to ensure that it
         // is normalized, and queue the resulting change.
