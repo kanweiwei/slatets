@@ -1,4 +1,4 @@
-import EVENT_HANDLERS from './event-handlers'
+import EVENT_HANDLERS from "./event-handlers";
 
 /**
  * Props that can be defined by plugins.
@@ -8,16 +8,16 @@ import EVENT_HANDLERS from './event-handlers'
 
 const PLUGIN_PROPS = [
   ...EVENT_HANDLERS,
-  'decorateNode',
-  'onChange',
-  'renderEditor',
-  'renderMark',
-  'renderNode',
-  'renderPlaceholder',
-  'renderPortal',
-  'schema',
-  'validateNode',
-]
+  "decorateNode",
+  "onChange",
+  "renderEditor",
+  "renderMark",
+  "renderNode",
+  "renderPlaceholder",
+  "renderPortal",
+  "schema",
+  "validateNode"
+];
 
 /**
  * Export.
@@ -25,4 +25,4 @@ const PLUGIN_PROPS = [
  * @type {Array}
  */
 
-export default PLUGIN_PROPS
+export default PLUGIN_PROPS;
