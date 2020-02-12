@@ -549,7 +549,7 @@ class Value extends Record(DEFAULTS) {
 
   get isInVoid() {
     if (this.selection.isExpanded) return false;
-    return this.document.hasVoidParent(this.selection.start.key);
+    return this.document.hasVoidParent(this.selection.start.key, this.schema);
   }
 
   /**

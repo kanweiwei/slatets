@@ -510,9 +510,15 @@ class Node {
    *
    * @param path
    */
-  getClosestVoid(path: List<number> | string) {
-    const closest = this.getClosest(path, p => p.isVoid);
-    return closest;
+  getClosestVoid(path, schema) {
+    if (!schema) {
+      const closest = this.getClosest(path, p => p.get("isVoid"));
+      return closest;
+    }
+
+    const ancestors = this.getAncestors(path) as List<any>;
+    const ancestor = ancestors.findLast(a => schema.isVoid(a));
+    return ancestor;
   }
 
   /**
@@ -1512,8 +1518,18 @@ class Node {
    *
    * @param {List|String} path
    */
-  hasVoidParent(path: List<number> | string): boolean {
-    const closest = this.getClosestVoid(path);
+  hasVoidParent(path: List<number> | string, schema) {
+    if (!schema) {
+      logger.deprecate(
+        "0.38.0",
+        "Calling the `Node.hasVoidParent` method without the second `schema` argument is deprecated."
+      );
+      // @ts-ignore
+      const closest = this.getClosestVoid(path);
+      return !!closest;
+    }
+
+    const closest = this.getClosestVoid(path, schema);
     return !!closest;
   }
 

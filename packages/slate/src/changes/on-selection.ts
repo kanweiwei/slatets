@@ -800,9 +800,9 @@ function pointBackward(change, point, n = 1) {
 
   const Point = point.slice(0, 1).toUpperCase() + point.slice(1);
   const { value } = change;
-  const { document, selection } = value;
+  const { document, selection, schema } = value;
   const p = selection[point];
-  const isInVoid = document.hasVoidParent(p.path);
+  const isInVoid = document.hasVoidParent(p.path, schema);
 
   if (!isInVoid && p.offset - n >= 0) {
     const range = selection[`move${Point}Backward`](n);
@@ -815,7 +815,8 @@ function pointBackward(change, point, n = 1) {
 
   const block = document.getClosestBlock(p.path);
   const isInBlock = block.hasNode(previous.key);
-  const isPreviousInVoid = previous && document.hasVoidParent(previous.key);
+  const isPreviousInVoid =
+    previous && document.hasVoidParent(previous.key, schema);
   change[`move${Point}ToEndOfNode`](previous);
 
   if (!isInVoid && !isPreviousInVoid && isInBlock) {
@@ -830,10 +831,10 @@ function pointForward(change, point, n = 1) {
 
   const Point = point.slice(0, 1).toUpperCase() + point.slice(1);
   const { value } = change;
-  const { document, selection } = value;
+  const { document, selection, schema } = value;
   const p = selection[point];
   const text = document.getNode(p.path);
-  const isInVoid = document.hasVoidParent(p.path);
+  const isInVoid = document.hasVoidParent(p.path, schema);
 
   if (!isInVoid && p.offset + n <= text.text.length) {
     const range = selection[`move${Point}Forward`](n);
@@ -848,7 +849,7 @@ function pointForward(change, point, n = 1) {
 
   const block = document.getClosestBlock(p.path);
   const isInBlock = block.hasNode(next.key);
-  const isNextInVoid = document.hasVoidParent(next.key);
+  const isNextInVoid = document.hasVoidParent(next.key, schema);
   change[`move${Point}ToStartOfNode`](next);
 
   if (!isInVoid && !isNextInVoid && isInBlock) {

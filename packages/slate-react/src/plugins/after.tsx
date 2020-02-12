@@ -161,9 +161,11 @@ function AfterPlugin() {
     if (editor.props.readOnly) return true;
 
     const { value } = change;
-    const { document } = value;
+    const { document, schema } = value;
     const node = findNode(event.target, value);
-    const isVoid = node && (node.isVoid || document.hasVoidParent(node.key));
+    const ancestors = document.getAncestors(node.key);
+    const isVoid =
+      node && (schema.isVoid(node) || ancestors.some(a => schema.isVoid(a)));
 
     if (isVoid) {
       // COMPAT: In Chrome & Safari, selections that are at the zero offset of
@@ -207,10 +209,10 @@ function AfterPlugin() {
       // If user cuts a void block node or a void inline node,
       // manually removes it since selection is collapsed in this case.
       const { value } = change;
-      const { endBlock, endInline, selection } = value;
+      const { endBlock, endInline, selection, schema } = value;
       const { isCollapsed } = selection;
-      const isVoidBlock = endBlock && endBlock.isVoid && isCollapsed;
-      const isVoidInline = endInline && endInline.isVoid && isCollapsed;
+      const isVoidBlock = endBlock && schema.isVoid(endBlock) && isCollapsed;
+      const isVoidInline = endInline && schema.isVoid(endInline) && isCollapsed;
 
       if (isVoidBlock) {
         editor.change(c => c.removeNodeByKey(endBlock.key));
@@ -262,9 +264,11 @@ function AfterPlugin() {
     isDraggingInternally = true;
 
     const { value } = change;
-    const { document } = value;
+    const { document, schema } = value;
     const node = findNode(event.target, value);
-    const isVoid = node && (node.isVoid || document.hasVoidParent(node.key));
+    const ancestors = document.getAncestors(node.key);
+    const isVoid =
+      node && (schema.isVoid(node) || ancestors.some(a => schema.isVoid(a)));
 
     if (isVoid) {
       const encoded = Base64.serializeNode(node, { preserveKeys: true });
@@ -288,7 +292,7 @@ function AfterPlugin() {
     debug("onDrop", { event });
 
     const { value } = change;
-    const { document, selection } = value;
+    const { document, selection, schema } = value;
     const window = getWindow(event.target);
     let target = getEventRange(event, value);
     if (!target) return;
@@ -320,7 +324,7 @@ function AfterPlugin() {
 
     if (type == "text" || type == "html") {
       const { anchor } = target;
-      let hasVoidParent = document.hasVoidParent(anchor.key);
+      let hasVoidParent = document.hasVoidParent(anchor.key, schema);
 
       if (hasVoidParent) {
         let n = document.getNode(anchor.key);
@@ -328,7 +332,7 @@ function AfterPlugin() {
         while (hasVoidParent) {
           n = document.getNextText(n.key);
           if (!n) break;
-          hasVoidParent = document.hasVoidParent(n.key);
+          hasVoidParent = document.hasVoidParent(n.key, schema);
         }
 
         if (n) change.moveToStartOfNode(n);
@@ -449,7 +453,7 @@ function AfterPlugin() {
     debug("onKeyDown", { event });
 
     const { value } = change;
-
+    const { schema } = value;
     // COMPAT: In iOS, some of these hotkeys are handled in the
     // `onNativeBeforeInput` handler of the `<Content>` component in order to
     // preserve native autocorrect behavior, so they shouldn't be handled here.
@@ -520,7 +524,7 @@ function AfterPlugin() {
     if (Hotkeys.isMoveBackward(event)) {
       const { document, isInVoid, previousText, startText } = value;
       const isPreviousInVoid =
-        previousText && document.hasVoidParent(previousText.key);
+        previousText && document.hasVoidParent(previousText.key, schema);
 
       if (isInVoid || isPreviousInVoid || startText.text == "") {
         event.preventDefault();
@@ -530,7 +534,8 @@ function AfterPlugin() {
 
     if (Hotkeys.isMoveForward(event)) {
       const { document, isInVoid, nextText, startText } = value;
-      const isNextInVoid = nextText && document.hasVoidParent(nextText.key);
+      const isNextInVoid =
+        nextText && document.hasVoidParent(nextText.key, schema);
 
       if (isInVoid || isNextInVoid || startText.text == "") {
         event.preventDefault();
@@ -541,7 +546,7 @@ function AfterPlugin() {
     if (Hotkeys.isExtendBackward(event)) {
       const { document, isInVoid, previousText, startText } = value;
       const isPreviousInVoid =
-        previousText && document.hasVoidParent(previousText.key);
+        previousText && document.hasVoidParent(previousText.key, schema);
 
       if (isInVoid || isPreviousInVoid || startText.text == "") {
         event.preventDefault();
@@ -551,7 +556,8 @@ function AfterPlugin() {
 
     if (Hotkeys.isExtendForward(event)) {
       const { document, isInVoid, nextText, startText } = value;
-      const isNextInVoid = nextText && document.hasVoidParent(nextText.key);
+      const isNextInVoid =
+        nextText && document.hasVoidParent(nextText.key, schema);
 
       if (isInVoid || isNextInVoid || startText.text == "") {
         event.preventDefault();
@@ -581,8 +587,8 @@ function AfterPlugin() {
     if (type == "text" || type == "html") {
       if (!text) return;
       const { value } = change;
-      const { document, selection, startBlock } = value;
-      if (startBlock.isVoid) return;
+      const { document, selection, startBlock, schema } = value;
+      if (schema.isVoid(startBlock)) return;
 
       const defaultBlock = startBlock;
       const defaultMarks = document.getInsertMarksAtRange(selection);
@@ -605,7 +611,7 @@ function AfterPlugin() {
 
     const window = getWindow(event.target);
     const { value } = change;
-    const { document } = value;
+    const { document, schema } = value;
     const native = window.getSelection();
 
     // If there are no ranges, the editor was blurred natively.
@@ -635,10 +641,10 @@ function AfterPlugin() {
     // selection, go with `0`. (2017/09/07)
     if (
       anchorBlock &&
-      !anchorBlock.isVoid &&
+      !schema.isVoid(anchorBlock) &&
       anchor.offset == 0 &&
       focusBlock &&
-      focusBlock.isVoid &&
+      schema.isVoid(focusBlock) &&
       focus.offset != 0
     ) {
       range = range.setFocus(focus.setOffset(0));
@@ -649,7 +655,7 @@ function AfterPlugin() {
     // standardizes the behavior, since it's indistinguishable to the user.
     if (
       anchorInline &&
-      !anchorInline.isVoid &&
+      !schema.isVoid(anchorInline) &&
       anchor.offset == anchorText.text.length
     ) {
       const block = document.getClosestBlock(anchor.key);

@@ -130,7 +130,7 @@ class Node extends React.Component<any, any> {
       readOnly
     } = this.props;
     const { value } = editor;
-    const { selection } = value;
+    const { selection, schema } = value;
     const { stack } = editor;
     const indexes = node.getSelectionIndexes(selection, isSelected);
     const decs = decorations.concat(node.getDecorations(stack));
@@ -184,7 +184,11 @@ class Node extends React.Component<any, any> {
       children
     });
 
-    return node.isVoid ? <Void {...this.props}>{element}</Void> : element;
+    return schema.isVoid(node) ? (
+      <Void {...this.props}>{element}</Void>
+    ) : (
+      element
+    );
   }
 
   /**

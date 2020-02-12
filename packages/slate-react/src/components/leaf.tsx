@@ -1,9 +1,9 @@
-import Debug from 'debug'
-import React from 'react'
-import Types from 'prop-types'
-import SlateTypes from '@zykj/slate-prop-types'
+import Debug from "debug";
+import React from "react";
+import Types from "prop-types";
+import SlateTypes from "@zykj/slate-prop-types";
 
-import OffsetKey from '../utils/offset-key'
+import OffsetKey from "../utils/offset-key";
 
 /**
  * Debugger.
@@ -11,7 +11,7 @@ import OffsetKey from '../utils/offset-key'
  * @type {Function}
  */
 
-const debug = Debug('slate:leaves')
+const debug = Debug("slate:leaves");
 
 /**
  * Leaf.
@@ -35,8 +35,8 @@ class Leaf extends React.Component<any, any> {
     node: SlateTypes.node.isRequired,
     offset: Types.number.isRequired,
     parent: SlateTypes.node.isRequired,
-    text: Types.string.isRequired,
-  }
+    text: Types.string.isRequired
+  };
 
   /**
    * Debug.
@@ -46,8 +46,8 @@ class Leaf extends React.Component<any, any> {
    */
 
   debug = (message, ...args) => {
-    debug(message, `${this.props.node.key}-${this.props.index}`, ...args)
-  }
+    debug(message, `${this.props.node.key}-${this.props.index}`, ...args);
+  };
 
   /**
    * Should component update?
@@ -64,11 +64,11 @@ class Leaf extends React.Component<any, any> {
       props.text != this.props.text ||
       props.parent != this.props.parent
     ) {
-      return true
+      return true;
     }
 
     // Otherwise, don't update.
-    return false
+    return false;
   }
 
   /**
@@ -78,15 +78,15 @@ class Leaf extends React.Component<any, any> {
    */
 
   render() {
-    this.debug('render', this)
+    this.debug("render", this);
 
-    const { node, index } = this.props
+    const { node, index } = this.props;
     const offsetKey = OffsetKey.stringify({
       key: node.key,
-      index,
-    })
+      index
+    });
 
-    return <span data-offset-key={offsetKey}>{this.renderMarks()}</span>
+    return <span data-offset-key={offsetKey}>{this.renderMarks()}</span>;
   }
 
   /**
@@ -96,12 +96,12 @@ class Leaf extends React.Component<any, any> {
    */
 
   renderMarks() {
-    const { marks, node, offset, text, editor } = this.props
-    const { stack } = editor
-    const leaf = this.renderText()
+    const { marks, node, offset, text, editor } = this.props;
+    const { stack } = editor;
+    const leaf = this.renderText();
     const attributes = {
-      'data-slate-leaf': true,
-    }
+      "data-slate-leaf": true
+    };
 
     return marks.reduce((children, mark) => {
       const props = {
@@ -112,11 +112,11 @@ class Leaf extends React.Component<any, any> {
         offset,
         text,
         children,
-        attributes,
-      }
-      const element = stack.$$find('renderMark', props)
-      return element || children
-    }, leaf)
+        attributes
+      };
+      const element = stack.$$find("renderMark", props);
+      return element || children;
+    }, leaf);
   }
 
   /**
@@ -126,43 +126,45 @@ class Leaf extends React.Component<any, any> {
    */
 
   renderText() {
-    const { block, node, parent, text, index, leaves } = this.props
+    const { block, node, editor, parent, text, index, leaves } = this.props;
+    const { value } = editor;
+    const { schema } = value;
 
     // COMPAT: Render text inside void nodes with a zero-width space.
     // So the node can contain selection but the text is not visible.
-    if (parent.isVoid) {
-      return <span data-slate-zero-width="z">{'\u200B'}</span>
+    if (schema.isVoid(parent)) {
+      return <span data-slate-zero-width="z">{"\u200B"}</span>;
     }
 
     // COMPAT: If this is the last text node in an empty block, render a zero-
     // width space that will convert into a line break when copying and pasting
     // to support expected plain text.
     if (
-      text === '' &&
-      parent.object === 'block' &&
-      parent.text === '' &&
+      text === "" &&
+      parent.object === "block" &&
+      parent.text === "" &&
       parent.nodes.size === 1
     ) {
-      return <span data-slate-zero-width="n">{'\u200B'}</span>
+      return <span data-slate-zero-width="n">{"\u200B"}</span>;
     }
 
     // COMPAT: If the text is empty, it's because it's on the edge of an inline
     // void node, so we render a zero-width space so that the selection can be
     // inserted next to it still.
-    if (text === '') {
-      return <span data-slate-zero-width="z">{'\u200B'}</span>
+    if (text === "") {
+      return <span data-slate-zero-width="z">{"\u200B"}</span>;
     }
 
     // COMPAT: Browsers will collapse trailing new lines at the end of blocks,
     // so we need to add an extra trailing new lines to prevent that.
-    const lastText = block.getLastText()
-    const lastChar = text.charAt(text.length - 1)
-    const isLastText = node === lastText
-    const isLastLeaf = index === leaves.size - 1
-    if (isLastText && isLastLeaf && lastChar === '\n') return `${text}\n`
+    const lastText = block.getLastText();
+    const lastChar = text.charAt(text.length - 1);
+    const isLastText = node === lastText;
+    const isLastLeaf = index === leaves.size - 1;
+    if (isLastText && isLastLeaf && lastChar === "\n") return `${text}\n`;
 
     // Otherwise, just return the text.
-    return text
+    return text;
   }
 }
 
@@ -172,4 +174,4 @@ class Leaf extends React.Component<any, any> {
  * @type {Component}
  */
 
-export default Leaf
+export default Leaf;
