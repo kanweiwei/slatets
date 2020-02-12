@@ -32,7 +32,6 @@ const debug = Debug("slate:content");
  */
 
 class Content extends React.Component<any, any> {
-  public tmp: any;
   public element: any;
   /**
    * Property types.
@@ -65,22 +64,25 @@ class Content extends React.Component<any, any> {
   };
 
   /**
-   * Constructor.
+   * Temporary values.
    *
-   * @param {Object} props
+   * @type {Object}
    */
 
-  constructor(props) {
-    super(props);
-    this.tmp = {};
-    this.tmp.isUpdatingSelection = false;
+  tmp = {
+    isUpdatingSelection: false
+  };
 
-    EVENT_HANDLERS.forEach(handler => {
-      this[handler] = event => {
-        this.onEvent(handler, event);
-      };
-    });
-  }
+  /**
+   * Create a set of bound event handlers.
+   *
+   * @type {Object}
+   */
+
+  handlers = EVENT_HANDLERS.reduce((obj, handler) => {
+    obj[handler] = event => this.onEvent(handler, event);
+    return obj;
+  }, {});
 
   onBlur: (event: any) => any;
   onFocus: (event: any) => any;
@@ -392,7 +394,7 @@ class Content extends React.Component<any, any> {
    */
 
   render() {
-    const { props } = this;
+    const { props, handlers } = this;
     const {
       className,
       readOnly,
@@ -414,11 +416,6 @@ class Content extends React.Component<any, any> {
 
       return this.renderNode(child, isSelected, childrenDecorations[i]);
     });
-
-    const handlers = EVENT_HANDLERS.reduce((obj, handler) => {
-      obj[handler] = this[handler];
-      return obj;
-    }, {});
 
     const style = {
       // Prevent the default outline styles.
@@ -446,21 +443,6 @@ class Content extends React.Component<any, any> {
         contentEditable={readOnly ? null : true}
         suppressContentEditableWarning
         className={className}
-        onBlur={this.onBlur}
-        onFocus={this.onFocus}
-        onCompositionEnd={this.onCompositionEnd}
-        onCompositionStart={this.onCompositionStart}
-        onCopy={this.onCopy}
-        onCut={this.onCut}
-        onDragEnd={this.onDragEnd}
-        onDragOver={this.onDragOver}
-        onDragStart={this.onDragStart}
-        onDrop={this.onDrop}
-        onInput={this.onInput}
-        onKeyDown={this.onKeyDown}
-        onKeyUp={this.onKeyUp}
-        onPaste={this.onPaste}
-        onSelect={this.onSelect}
         autoCorrect={props.autoCorrect ? "on" : "off"}
         spellCheck={spellCheck}
         style={style}
