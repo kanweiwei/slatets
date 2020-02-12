@@ -2,7 +2,7 @@ import direction from "direction";
 import isPlainObject from "is-plain-object";
 import logger from "slate-dev-logger";
 
-import { List, Iterable, OrderedSet, Set } from "immutable";
+import { List, Iterable, OrderedSet, Set, Record } from "immutable";
 
 import Data from "./data";
 import Block from "./block";
@@ -569,16 +569,9 @@ class Node {
     path = this.resolvePath(path);
     if (!path) return null;
 
-    const array = path.toArray();
-    let descendant: any = this;
-
-    for (const index of array) {
-      if (!descendant) return null;
-      if (!descendant.nodes) return null;
-      descendant = descendant.nodes.get(index) as any;
-    }
-
-    return descendant;
+    const deep = path.flatMap(x => ["nodes", x]);
+    const ret = (this as Record<any, any>).getIn(deep);
+    return ret;
   }
 
   /**
@@ -895,8 +888,7 @@ class Node {
    */
   getMarks(): Set<Mark> {
     const array: Mark[] = this.getMarksAsArray();
-    const set = Set(array);
-    return set;
+    return Set(array);
   }
 
   /**
@@ -957,8 +949,7 @@ class Node {
    */
   getMarksByType(type: string): Set<Mark> {
     const array: Mark[] = this.getMarksByTypeAsArray(type);
-    const set: Set<Mark> = Set(array);
-    return set;
+    return Set(array);
   }
 
   /**
@@ -1109,8 +1100,7 @@ class Node {
    */
   getOrderedMarks(): OrderedSet<Mark> {
     const array = this.getMarksAsArray();
-    const set = OrderedSet(array);
-    return set;
+    return OrderedSet(array);
   }
 
   /**
@@ -1188,8 +1178,7 @@ class Node {
    */
   getOrderedMarksByType(type: string): OrderedSet<Mark> {
     const array = this.getMarksByTypeAsArray(type);
-    const set = OrderedSet(array);
-    return set;
+    return OrderedSet(array);
   }
 
   /**
@@ -1390,8 +1379,7 @@ class Node {
    */
   getTexts(): List<Text> {
     const array: Text[] = this.getTextsAsArray();
-    const list = List(array);
-    return list;
+    return List(array);
   }
 
   /**
