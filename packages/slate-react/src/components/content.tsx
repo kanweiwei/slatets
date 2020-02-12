@@ -469,7 +469,8 @@ class Content extends React.Component<any, any> {
   renderNode = (child, isSelected, decorations) => {
     const { editor, readOnly } = this.props;
     const { value } = editor;
-    const { document, isFocused } = value;
+    const { document, selection } = value;
+    const { isFocused } = selection;
 
     return (
       <Node
