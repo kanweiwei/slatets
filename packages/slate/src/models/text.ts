@@ -120,14 +120,13 @@ class Text extends Record(DEFAULTS) {
   }
 
   get text() {
-    return this.getText();
+    return this.getString();
   }
 
   /**
    * 实例方法
    */
-  // 获取文本内容
-  getText() {
+  getString() {
     return this.leaves.reduce(
       (string: string, leaf: Leaf) => string + leaf.text,
       ""
@@ -189,7 +188,10 @@ class Text extends Record(DEFAULTS) {
     const [before, bundle] = Leaf.splitLeaves(this.leaves, index);
     const [middle, after] = Leaf.splitLeaves(bundle, length);
     const leaves = before
-      .concat(middle.map((x: Leaf) => x.addMarks(set)), after)
+      .concat(
+        middle.map((x: Leaf) => x.addMarks(set)),
+        after
+      )
       .toList();
     return this.setLeaves(leaves);
   }
@@ -274,12 +276,10 @@ class Text extends Record(DEFAULTS) {
     if (result.size === 0) return result;
 
     return result.withMutations(x => {
-      this.leaves.forEach(
-        (c: Leaf): any => {
-          x.intersect(c.marks);
-          if (x.size === 0) return false;
-        }
-      );
+      this.leaves.forEach((c: Leaf): any => {
+        x.intersect(c.marks);
+        if (x.size === 0) return false;
+      });
     });
   }
 
@@ -311,22 +311,20 @@ class Text extends Record(DEFAULTS) {
     let result: any = null;
     let leafEnd = 0;
 
-    this.leaves.forEach(
-      (leaf: Leaf): any => {
-        const leafStart = leafEnd;
-        leafEnd = leafStart + leaf.text.length;
+    this.leaves.forEach((leaf: Leaf): any => {
+      const leafStart = leafEnd;
+      leafEnd = leafStart + leaf.text.length;
 
-        if (leafEnd <= startOffset) return;
-        if (leafStart >= endOffset) return false;
+      if (leafEnd <= startOffset) return;
+      if (leafStart >= endOffset) return false;
 
-        if (!result) {
-          result = leaf.marks;
-          return;
-        }
-
-        result = result.union(leaf.marks);
+      if (!result) {
+        result = leaf.marks;
+        return;
       }
-    );
+
+      result = result.union(leaf.marks);
+    });
 
     return result || Set();
   }
@@ -428,10 +426,10 @@ class Text extends Record(DEFAULTS) {
     if (leaf.marks.equals(marks)) {
       return this.set(
         "leaves",
-        leaves.set(index, leaf.set(
-          "text",
-          beforeText + text + afterText
-        ) as Leaf)
+        leaves.set(
+          index,
+          leaf.set("text", beforeText + text + afterText) as Leaf
+        )
       ) as Text;
     }
 
@@ -475,7 +473,10 @@ class Text extends Record(DEFAULTS) {
     const [before, bundle] = Leaf.splitLeaves(this.leaves, index);
     const [middle, after] = Leaf.splitLeaves(bundle, length);
     const leaves = before
-      .concat(middle.map((x: Leaf) => x.removeMark(mark)), after)
+      .concat(
+        middle.map((x: Leaf) => x.removeMark(mark)),
+        after
+      )
       .toList();
     return this.setLeaves(leaves);
   }
@@ -588,7 +589,10 @@ class Text extends Record(DEFAULTS) {
     const [middle, after] = Leaf.splitLeaves(bundle, length);
 
     const leaves = before
-      .concat(middle.map((x: Leaf) => x.updateMark(mark, newMark)), after)
+      .concat(
+        middle.map((x: Leaf) => x.updateMark(mark, newMark)),
+        after
+      )
       .toList();
 
     return this.setLeaves(leaves);
@@ -667,6 +671,17 @@ class Text extends Record(DEFAULTS) {
 
     return this.set("leaves", Leaf.createLeaves(leaves)) as Text;
   }
+
+  /**
+   * Get an object mapping all the keys in the node to their paths.
+   *
+   * @return {Object}
+   */
+  getKeysToPathsTable() {
+    return {
+      [this.key]: []
+    };
+  }
 }
 
 Text.prototype[MODEL_TYPES.TEXT] = true;
@@ -676,7 +691,9 @@ memoize(Text.prototype, [
   "getActiveMarks",
   "getMarks",
   "getMarksAsArray",
-  "validate"
+  "validate",
+  "getString",
+  "getKeysToPathsTable"
 ]);
 
 export default Text;
