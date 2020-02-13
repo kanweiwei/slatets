@@ -95,8 +95,6 @@ class Text extends Record(DEFAULTS) {
     return node;
   }
 
-  static fromJS = Text.fromJSON;
-
   static isText(obj) {
     return !!(obj && obj[MODEL_TYPES.TEXT]);
   }
@@ -109,14 +107,6 @@ class Text extends Record(DEFAULTS) {
   // 计算属性
   get object() {
     return "text";
-  }
-
-  get kind() {
-    logger.deprecate(
-      "slate@0.32.0",
-      "The `kind` property of Slate objects has been renamed to `object`."
-    );
-    return this.object;
   }
 
   get text() {
@@ -196,10 +186,6 @@ class Text extends Record(DEFAULTS) {
     return this.setLeaves(leaves);
   }
 
-  getDecorations(schema) {
-    return schema.__getDecorations(this);
-  }
-
   getLeaves(decorations = []) {
     let { leaves } = this;
     if (leaves.size === 0) return List.of(Leaf.create({}));
@@ -207,8 +193,8 @@ class Text extends Record(DEFAULTS) {
     if (this.text.length === 0) return leaves;
     const { key } = this;
 
-    decorations.forEach((range: any) => {
-      const { start, end, marks } = range;
+    decorations.forEach((dec: any) => {
+      const { start, end, mark } = dec;
       const hasStart = start.key == key;
       const hasEnd = end.key == key;
 
@@ -223,14 +209,14 @@ class Text extends Record(DEFAULTS) {
           const [before, bundle] = Leaf.splitLeaves(leaves, index);
           const [middle, after] = Leaf.splitLeaves(bundle, length);
           leaves = before.concat(
-            middle.map((x: Leaf) => x.addMarks(marks)),
+            middle.map((x: Leaf) => x.addMark(mark)),
             after
           ) as List<Leaf>;
           return;
         }
       }
 
-      leaves = leaves.map((x: Leaf) => x.addMarks(marks)) as List<Leaf>;
+      leaves = leaves.map((x: Leaf) => x.addMark(mark)) as List<Leaf>;
     });
 
     if (leaves === this.leaves) return leaves;
@@ -559,14 +545,6 @@ class Text extends Record(DEFAULTS) {
   }
 
   /**
-   * Alias `toJS`.
-   */
-
-  toJS() {
-    return this.toJSON();
-  }
-
-  /**
    * Update a `mark` at `index` and `length` with `properties`.
    */
 
@@ -687,7 +665,6 @@ class Text extends Record(DEFAULTS) {
 Text.prototype[MODEL_TYPES.TEXT] = true;
 
 memoize(Text.prototype, [
-  "getDecorations",
   "getActiveMarks",
   "getMarks",
   "getMarksAsArray",

@@ -5,21 +5,23 @@
  */
 
 const MODEL_TYPES: any = {
-    BLOCK: "@@__SLATE_BLOCK__@@",
-    CHANGE: "@@__SLATE_CHANGE__@@",
-    CHARACTER: "@@__SLATE_CHARACTER__@@",
-    DOCUMENT: "@@__SLATE_DOCUMENT__@@",
-    DATA: "@@__SLATE_DATA__@@",
-    HISTORY: "@@__SLATE_HISTORY__@@",
-    INLINE: "@@__SLATE_INLINE__@@",
-    LEAF: "@@__SLATE_LEAF__@@",
-    MARK: "@@__SLATE_MARK__@@",
-    OPERATION: "@@__SLATE_OPERATION__@@",
-    RANGE: "@@__SLATE_RANGE__@@",
-    SCHEMA: "@@__SLATE_SCHEMA__@@",
-    STACK: "@@__SLATE_STACK__@@",
-    TEXT: "@@__SLATE_TEXT__@@",
-    VALUE: "@@__SLATE_VALUE__@@"
+  BLOCK: "@@__SLATE_BLOCK__@@",
+  CHANGE: "@@__SLATE_CHANGE__@@",
+  CHARACTER: "@@__SLATE_CHARACTER__@@",
+  DOCUMENT: "@@__SLATE_DOCUMENT__@@",
+  DATA: "@@__SLATE_DATA__@@",
+  HISTORY: "@@__SLATE_HISTORY__@@",
+  INLINE: "@@__SLATE_INLINE__@@",
+  LEAF: "@@__SLATE_LEAF__@@",
+  MARK: "@@__SLATE_MARK__@@",
+  OPERATION: "@@__SLATE_OPERATION__@@",
+  RANGE: "@@__SLATE_RANGE__@@",
+  SCHEMA: "@@__SLATE_SCHEMA__@@",
+  STACK: "@@__SLATE_STACK__@@",
+  TEXT: "@@__SLATE_TEXT__@@",
+  VALUE: "@@__SLATE_VALUE__@@",
+  DECORATION: "@@__SLATE_DECORATION__@@",
+  SELECTION: "@@__SLATE_SELECTION__@@"
 };
 
 /**
@@ -31,7 +33,7 @@ const MODEL_TYPES: any = {
  */
 
 export function isType(type: string, any: any): boolean {
-    return !!(any && any[MODEL_TYPES[type]]);
+  return !!(any && any[MODEL_TYPES[type]]);
 }
 
 /**

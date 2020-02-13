@@ -408,7 +408,7 @@ class Content extends React.Component<any, any> {
     const Container = tagName;
     const { document, selection, decorations } = value;
     const indexes = document.getSelectionIndexes(selection);
-    const decs = document.getDecorations(stack).concat(decorations || []);
+    const decs = document.getDecorations(stack).concat(decorations);
     const childrenDecorations = getChildrenDecorations(document, decs);
 
     const children = document.nodes.toArray().map((child, i) => {

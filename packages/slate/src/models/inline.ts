@@ -1,10 +1,9 @@
 import isPlainObject from "is-plain-object";
-import logger from "slate-dev-logger";
 import { List, Map, Record } from "immutable";
 
 import MODEL_TYPES from "../constants/model-types";
 import KeyUtils from "../utils/key-utils";
-
+import Node from "./node";
 /**
  * 默认属性
  */
@@ -83,16 +82,11 @@ class Inline extends Record(DEFAULTS) {
       type,
       isVoid: !!isVoid,
       data: Map(data),
-      nodes: Inline.createChildren(nodes)
+      nodes: Node.createList(nodes)
     });
 
     return inline;
   }
-
-  /**
-   * fromJSON的别名
-   */
-  static fromJS = Inline.fromJSON;
 
   static isInline(obj) {
     return !!(obj && obj[MODEL_TYPES.INLINE]);
@@ -107,28 +101,6 @@ class Inline extends Record(DEFAULTS) {
   // 计算属性
   get object(): "inline" {
     return "inline";
-  }
-
-  get kind(): "inline" {
-    logger.deprecate(
-      "slate@0.32.0",
-      "The `kind` property of Slate objects has been renamed to `inline`."
-    );
-    return this.object;
-  }
-
-  // 所有子节点的text拼接后的结果
-  get text(): string {
-    return this.getText();
-  }
-
-  get isVoid() {
-    logger.deprecate(
-      "0.38.0",
-      "The `Node.isVoid` property is deprecated, please use the `Schema.isVoid()` checking method instead."
-    );
-
-    return this.get("isVoid");
   }
 
   // 成员方法
@@ -146,15 +118,6 @@ class Inline extends Record(DEFAULTS) {
     }
 
     return object;
-  }
-
-  // alias `toJSON`
-  toJS(options: any = {}) {
-    return this.toJSON(options);
-  }
-
-  isEmpty() {
-    return !this.isVoid && !this.nodes.some(child => !child.isEmpty());
   }
 
   // 节点通用方法

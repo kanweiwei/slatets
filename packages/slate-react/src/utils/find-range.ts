@@ -1,5 +1,4 @@
 import getWindow from "get-window";
-const isBackward = require("selection-is-backward");
 import { IS_IE, IS_EDGE } from "@zykj/slate-dev-environment";
 
 import findPoint from "./find-point";
@@ -61,9 +60,7 @@ function findRange(native, value) {
   const { document } = value;
   const range = document.createRange({
     anchor,
-    focus,
-    isBackward: isCollapsed ? false : isBackward(native),
-    isFocused: true
+    focus
   });
 
   return range;

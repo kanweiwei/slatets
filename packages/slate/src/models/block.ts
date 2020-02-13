@@ -1,12 +1,11 @@
 import isPlainObject from "is-plain-object";
-import logger from "slate-dev-logger";
 import { List, Map, Record } from "immutable";
 
-import MODEL_TYPES from "../constants/model-types";
 import KeyUtils from "../utils/key-utils";
 import Inline from "./inline";
 import Text from "./text";
-
+import MODEL_TYPES from "../constants/model-types";
+import Node from "./node";
 // import Mark from "./mark";
 
 /**
@@ -88,15 +87,10 @@ class Block extends Record(DEFAULTS) {
       type,
       isVoid: !!isVoid,
       data: Map(data),
-      nodes: Block.createChildren(nodes)
+      nodes: Node.createList(nodes)
     });
     return block;
   }
-
-  /**
-   * fromJSON的别名
-   */
-  static fromJS = Block.fromJSON;
 
   static isBlock(obj: any) {
     return !!(obj && obj[MODEL_TYPES.BLOCK]);
@@ -118,28 +112,6 @@ class Block extends Record(DEFAULTS) {
     return "block";
   }
 
-  get kind(): "block" {
-    logger.deprecate(
-      "slate@0.32.0",
-      "The `kind` property of Slate objects has been renamed to `object`."
-    );
-    return this.object;
-  }
-
-  get isVoid() {
-    logger.deprecate(
-      "0.37.1",
-      "The `Node.isVoid` property is deprecated, please use the `Schema.isVoid()` checking method instead."
-    );
-
-    return this.get("isVoid");
-  }
-
-  // 所有子节点的text拼接后的结果
-  get text(): string {
-    return this.getText();
-  }
-
   // 成员方法
   toJSON(options: any = {}): any {
     const object: any = {
@@ -155,10 +127,6 @@ class Block extends Record(DEFAULTS) {
     }
 
     return object;
-  }
-
-  toJS(options = {}) {
-    return this.toJSON(options);
   }
 
   isEmpty() {

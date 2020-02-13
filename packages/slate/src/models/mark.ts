@@ -1,5 +1,4 @@
 import isPlainObject from "is-plain-object";
-import logger from "slate-dev-logger";
 import { Map, Record, Set } from "immutable";
 
 import MODEL_TYPES, { isType } from "../constants/model-types";
@@ -13,8 +12,8 @@ import Data from "./data";
  */
 
 const DEFAULTS = {
-    data: Map(),
-    type: undefined
+  data: Map(),
+  type: undefined
 };
 
 /**
@@ -24,126 +23,112 @@ const DEFAULTS = {
  */
 
 class Mark extends Record(DEFAULTS) {
-    /**
-     * 属性
-     */
-    public type: undefined | string;
-    public data: Map<any, any>;
+  /**
+   * 属性
+   */
+  public type: undefined | string;
+  public data: Map<any, any>;
 
-    /**
-     * 静态方法
-     */
-    static create(attrs: any = {}) {
-        if (Mark.isMark(attrs)) {
-            return attrs;
-        }
-
-        if (typeof attrs == "string") {
-            attrs = { type: attrs };
-        }
-
-        if (isPlainObject(attrs)) {
-            return Mark.fromJSON(attrs);
-        }
-
-        throw new Error(
-            `\`Mark.create\` only accepts objects, strings or marks, but you passed it: ${attrs}`
-        );
+  /**
+   * 静态方法
+   */
+  static create(attrs: any = {}) {
+    if (Mark.isMark(attrs)) {
+      return attrs;
     }
 
-    static createSet(elements: Array<any> | Set<any> = []): Set<Mark> {
-        if (Array.isArray(elements)) {
-            elements = Set(elements);
-        }
-        if (Set.isSet(elements)) {
-            const marks: Set<Mark> = Set(elements.map(Mark.create));
-            return marks;
-        }
-
-        if (elements == null) {
-            return Set();
-        }
-
-        throw new Error(
-            `\`Mark.createSet\` only accepts sets, arrays or null, but you passed it: ${elements}`
-        );
+    if (typeof attrs == "string") {
+      attrs = { type: attrs };
     }
 
-    static createProperties(attrs: any = {}) {
-        if (Mark.isMark(attrs)) {
-            return {
-                data: attrs.data,
-                type: attrs.type
-            };
-        }
-
-        if (typeof attrs == "string") {
-            return { type: attrs };
-        }
-
-        if (isPlainObject(attrs)) {
-            const props: any = {};
-            if ("type" in attrs) props.type = attrs.type;
-            if ("data" in attrs) props.data = Data.create(attrs.data);
-            return props;
-        }
-
-        throw new Error(
-            `\`Mark.createProperties\` only accepts objects, strings or marks, but you passed it: ${attrs}`
-        );
+    if (isPlainObject(attrs)) {
+      return Mark.fromJSON(attrs);
     }
 
-    static fromJSON(object: { data?: any; type: string }): Mark {
-        const { data = {}, type } = object;
+    throw new Error(
+      `\`Mark.create\` only accepts objects, strings or marks, but you passed it: ${attrs}`
+    );
+  }
 
-        if (typeof type != "string") {
-            throw new Error("`Mark.fromJS` requires a `type` string.");
-        }
-
-        const mark = new Mark({
-            type,
-            data: Map(data)
-        });
-
-        return mark;
+  static createSet(elements: Array<any> | Set<any> = []): Set<Mark> {
+    if (Array.isArray(elements)) {
+      elements = Set(elements);
+    }
+    if (Set.isSet(elements)) {
+      const marks: Set<Mark> = Set(elements.map(Mark.create));
+      return marks;
     }
 
-    static fromJS = Mark.fromJSON;
-
-    static isMark = isType.bind(null, "MARK");
-
-    static isMarkSet(any: any): boolean {
-        return Set.isSet(any) && any.every(item => Mark.isMark(item));
+    if (elements == null) {
+      return Set();
     }
 
-    get object() {
-        return "mark";
+    throw new Error(
+      `\`Mark.createSet\` only accepts sets, arrays or null, but you passed it: ${elements}`
+    );
+  }
+
+  static createProperties(attrs: any = {}) {
+    if (Mark.isMark(attrs)) {
+      return {
+        data: attrs.data,
+        type: attrs.type
+      };
     }
 
-    get kind() {
-        logger.deprecate(
-            "slate@0.32.0",
-            "The `kind` property of Slate objects has been renamed to `object`."
-        );
-        return this.object;
+    if (typeof attrs == "string") {
+      return { type: attrs };
     }
 
-    /**
-     * 实例方法
-     */
-    toJSON(options: any = {}) {
-        const object: any = {
-            object: this.object,
-            type: this.type,
-            data: (this.data as any).toJSON()
-        };
-
-        return object;
+    if (isPlainObject(attrs)) {
+      const props: any = {};
+      if ("type" in attrs) props.type = attrs.type;
+      if ("data" in attrs) props.data = Data.create(attrs.data);
+      return props;
     }
 
-    toJS(options: any = {}) {
-        return this.toJSON(options);
+    throw new Error(
+      `\`Mark.createProperties\` only accepts objects, strings or marks, but you passed it: ${attrs}`
+    );
+  }
+
+  static fromJSON(object: { data?: any; type: string }): Mark {
+    const { data = {}, type } = object;
+
+    if (typeof type != "string") {
+      throw new Error("`Mark.fromJS` requires a `type` string.");
     }
+
+    const mark = new Mark({
+      type,
+      data: Map(data)
+    });
+
+    return mark;
+  }
+
+  static isMark = isType.bind(null, "MARK");
+
+  static isMarkSet(any: any): boolean {
+    return Set.isSet(any) && any.every(item => Mark.isMark(item));
+  }
+
+  get object() {
+    return "mark";
+  }
+
+  /**
+   * 实例方法
+   */
+  toJSON(options: any = {}) {
+    const object: any = {
+      object: this.object,
+      type: this.type,
+      data: (this.data as any).toJSON()
+    };
+
+    return object;
+  }
 }
 
 /**

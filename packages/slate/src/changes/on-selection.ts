@@ -3,7 +3,7 @@ import isEmpty from "is-empty";
 import logger from "slate-dev-logger";
 import pick from "lodash/pick";
 
-import Range from "../models/range";
+import Selection from "../models/selection";
 
 const Changes: {
   blur;
@@ -155,7 +155,7 @@ Changes.blur = change => {
 };
 
 Changes.deselect = change => {
-  const range = Range.create();
+  const range = Selection.create();
   change.select(range);
 };
 
@@ -692,12 +692,12 @@ Changes.moveToStartOfText = change => {
 };
 
 Changes.select = (change, properties, options: any = {}) => {
-  properties = Range.createProperties(properties);
+  properties = Selection.createProperties(properties);
   const { snapshot = false } = options;
   const { value } = change;
   const { document, selection } = value;
   const props: any = {};
-  const next = document.createRange(selection.setProperties(properties));
+  const next = document.resolveSelection(selection.setProperties(properties));
 
   // Re-compute the properties, to ensure that we get their normalized values.
   properties = pick(next, Object.keys(properties));

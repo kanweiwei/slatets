@@ -8,7 +8,7 @@ import Block from "./block";
 import Inline from "./inline";
 import Text from "./text";
 import Data from "./data";
-
+import Node from "./node";
 // 默认值
 const DEFAULTS: any = {
   data: Map(),
@@ -54,13 +54,11 @@ class Document extends Record(DEFAULTS) {
     const document = new Document({
       key,
       data: Map(data),
-      nodes: Document.createChildren(nodes)
+      nodes: Node.createList(nodes)
     });
 
     return document;
   }
-
-  static fromJS = Document.fromJSON;
 
   static isDocument(obj) {
     return !!(obj && obj[MODEL_TYPES.DOCUMENT]);
@@ -71,27 +69,6 @@ class Document extends Record(DEFAULTS) {
   // 计算属性
   get object(): "document" {
     return "document";
-  }
-
-  get kind(): "document" {
-    logger.deprecate(
-      "slate@0.32.0",
-      "The `kind` property of Slate objects has been renamed to `object`."
-    );
-    return this.object;
-  }
-
-  get text() {
-    return this.getText();
-  }
-
-  get isVoid() {
-    return this.get("isVoid");
-  }
-
-  // 成员方法
-  isEmpty() {
-    return !this.nodes.some((child: any) => !child.isEmpty());
   }
 
   toJSON(options: any = {}) {
@@ -106,10 +83,6 @@ class Document extends Record(DEFAULTS) {
     }
 
     return object;
-  }
-
-  toJS(options: any = {}) {
-    return this.toJSON(options);
   }
 
   /**
