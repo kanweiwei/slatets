@@ -110,17 +110,26 @@ class Text extends Record(DEFAULTS) {
   }
 
   get text() {
-    return this.getString();
+    return this.getText();
   }
 
   /**
    * 实例方法
    */
-  getString() {
+  getText() {
     return this.leaves.reduce(
       (string: string, leaf: Leaf) => string + leaf.text,
       ""
     );
+  }
+
+  getString() {
+    logger.deprecate(
+      "0.39.0",
+      "The `Text.getString` property is deprecated, please use `Text.getText` instead."
+    );
+
+    return this.getText();
   }
 
   // 当前节点的文本内容是否为空
@@ -627,8 +636,17 @@ class Text extends Record(DEFAULTS) {
    * @returns {Text|Null}
    */
 
-  getFirstInvalidDescendant(schema): Text | null {
+  getFirstInvalidNode(schema): Text | null {
     return this.validate(schema) ? this : null;
+  }
+
+  getFirstInvalidDescendant(schema) {
+    logger.deprecate(
+      "0.39.0",
+      "The `Node.getFirstInvalidDescendant` method is deprecated, please use `Node.getFirstInvalidNode` instead."
+    );
+
+    return this.getFirstInvalidNode(schema);
   }
 
   /**
@@ -669,7 +687,7 @@ memoize(Text.prototype, [
   "getMarks",
   "getMarksAsArray",
   "validate",
-  "getString",
+  "getText",
   "getKeysToPathsTable"
 ]);
 

@@ -505,15 +505,24 @@ class NodeInterface {
    * @return {Node|Text|Null}
    */
 
-  getFirstInvalidDescendant(schema) {
+  getFirstInvalidNode(schema) {
     let result = null;
 
     this.nodes.find(n => {
-      result = n.validate(schema) ? n : n.getFirstInvalidDescendant(schema);
+      result = n.validate(schema) ? n : n.getFirstInvalidNode(schema);
       return result;
     });
 
     return result;
+  }
+
+  getFirstInvalidDescendant(schema) {
+    logger.deprecate(
+      "0.39.0",
+      "The `Node.getFirstInvalidDescendant` method is deprecated, please use `Node.getFirstInvalidNode` instead."
+    );
+
+    return this.getFirstInvalidNode(schema);
   }
 
   /**
@@ -2177,7 +2186,7 @@ memoize(NodeInterface.prototype, [
   "getBlocksAtRangeAsArray",
   "getBlocksByTypeAsArray",
   "getDecorations",
-  "getFirstInvalidDescendant",
+  "getFirstInvalidNode",
   "getFirstText",
   "getFragmentAtRange",
   "getInlinesAsArray",
