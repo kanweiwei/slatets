@@ -718,7 +718,7 @@ Changes.select = (change, properties, options: any = {}) => {
   }
 
   // If there are no new properties to set, abort to avoid extra operations.
-  if (isEmpty(props)) {
+  if (Object.keys(props).length === 0) {
     return;
   }
 
