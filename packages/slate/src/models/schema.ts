@@ -18,13 +18,17 @@ import {
   NODE_TEXT_INVALID,
   NODE_TYPE_INVALID,
   PARENT_OBJECT_INVALID,
-  PARENT_TYPE_INVALID
+  PARENT_TYPE_INVALID,
+  PREVIOUS_SIBLING_TYPE_INVALID,
+  NEXT_SIBLING_OBJECT_INVALID,
+  NEXT_SIBLING_TYPE_INVALID
 } from "@zykj/slate-schema-violations";
 
 import MODEL_TYPES from "../constants/model-types";
 import Stack from "./stack";
 import Text from "./text";
 import SlateError from "../utils/slate-error";
+import { PREVIOUS_SIBLING_OBJECT_INVALID } from "dist/slate-schema-violations/es";
 
 const debug = Debug("slate: schema");
 
@@ -365,7 +369,7 @@ class Schema extends Record(DEFAULTS) {
  */
 
 function defaultNormalize(change, error) {
-  const { code, node, child, key, mark } = error;
+  const { code, node, child, key, mark, next, previous } = error;
   switch (code) {
     case CHILD_OBJECT_INVALID:
     case CHILD_TYPE_INVALID:
@@ -380,7 +384,23 @@ function defaultNormalize(change, error) {
         ? change.removeNodeByKey(node.key, { normalize: false })
         : change.removeNodeByKey(child.key, { normalize: false });
     }
+    case PREVIOUS_SIBLING_OBJECT_INVALID:
+    case PREVIOUS_SIBLING_TYPE_INVALID: {
+      return previous.object === "text" &&
+        node.object === "block" &&
+        node.nodes.size === 1
+        ? change.removeNodeByKey(node.key, { normalize: false })
+        : change.removeNodeByKey(previous.key, { normalize: false });
+    }
 
+    case NEXT_SIBLING_OBJECT_INVALID:
+    case NEXT_SIBLING_TYPE_INVALID: {
+      return next.object === "text" &&
+        node.object === "block" &&
+        node.nodes.size === 1
+        ? change.removeNodeByKey(node.key, { normalize: false })
+        : change.removeNodeByKey(next.key, { normalize: false });
+    }
     case CHILD_REQUIRED:
     case NODE_TEXT_INVALID:
     case PARENT_OBJECT_INVALID:
@@ -487,6 +507,7 @@ function validateObject(node, rule) {
 
   if (rule.object == null) return;
   if (rule.object === node.object) return;
+  if (typeof rule.object === "function" && rule.object(node.object)) return;
   return fail(NODE_OBJECT_INVALID, { rule, node });
 }
 
@@ -505,12 +526,18 @@ function validateType(node, rule) {
 function validateIsVoid(node, rule) {
   if (rule.isVoid == null) return;
   if (rule.isVoid === node.get("isVoid")) return;
+  if (typeof rule.type === "function" && rule.type(node.type)) return;
   return fail(NODE_IS_VOID_INVALID, { rule, node });
 }
 
 function validateData(node, rule) {
   if (rule.data == null) return;
   if (node.data == null) return;
+
+  if (typeof rule.data === "function") {
+    if (rule.data(node.data)) return;
+    return fail("node_data_invalid", { rule, node });
+  }
 
   for (const key in rule.data) {
     const fn = rule.data[key];
@@ -526,7 +553,11 @@ function validateMarks(node, rule) {
   const marks = node.getMarks().toArray();
 
   for (const mark of marks) {
-    const valid = rule.marks.some(def => def.type === mark.type);
+    const valid = rule.marks.some(def =>
+      typeof def.type === "function"
+        ? def.type(mark.type)
+        : def.type === mark.type
+    );
     if (valid) continue;
     return fail(NODE_MARK_INVALID, { rule, node, mark });
   }
