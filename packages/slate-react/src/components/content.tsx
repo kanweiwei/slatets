@@ -112,7 +112,7 @@ class Content extends React.Component<any, any> {
 
     window.document.addEventListener(
       "selectionchange",
-      this.handlers.onNativeSelectionChange
+      this.onNativeSelectionChange
     );
 
     // COMPAT: Restrict scope of `beforeinput` to clients that support the
@@ -135,7 +135,7 @@ class Content extends React.Component<any, any> {
     if (window) {
       window.document.removeEventListener(
         "selectionchange",
-        this.handlers.onNativeSelectionChange
+        this.onNativeSelectionChange
       );
     }
 
