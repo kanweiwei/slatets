@@ -79,7 +79,7 @@ class Content extends React.Component<any, any> {
    * @type {Object}
    */
 
-  handlers = EVENT_HANDLERS.reduce((obj, handler) => {
+  handlers: any = EVENT_HANDLERS.reduce((obj, handler) => {
     obj[handler] = event => this.onEvent(handler, event);
     return obj;
   }, {});
@@ -112,14 +112,14 @@ class Content extends React.Component<any, any> {
 
     window.document.addEventListener(
       "selectionchange",
-      this.onNativeSelectionChange
+      this.handlers.onNativeSelectionChange
     );
 
     // COMPAT: Restrict scope of `beforeinput` to clients that support the
     // Input Events Level 2 spec, since they are preventable events.
     if (HAS_INPUT_EVENTS_LEVEL_2) {
       // @ts-ignore
-      this.element.addEventListener("beforeinput", this.onBeforeInput);
+      this.element.addEventListener("beforeinput", this.handlers.onBeforeInput);
     }
 
     this.updateSelection();
@@ -135,14 +135,16 @@ class Content extends React.Component<any, any> {
     if (window) {
       window.document.removeEventListener(
         "selectionchange",
-        this.onNativeSelectionChange
+        this.handlers.onNativeSelectionChange
       );
     }
 
     // COMPAT: Restrict scope of `beforeinput` to mobile.
     if (HAS_INPUT_EVENTS_LEVEL_2) {
-      // @ts-ignore
-      this.element.removeEventListener("beforeinput", this.onBeforeInput);
+      this.element.removeEventListener(
+        "beforeinput",
+        this.handlers.onBeforeInput
+      );
     }
   }
 
