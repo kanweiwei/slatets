@@ -22,159 +22,158 @@ const debug = Debug("slate:node");
  */
 
 class Text extends React.Component<any, any> {
-    /**
-     * Property types.
-     *
-     * @type {Object}
-     */
+  /**
+   * Property types.
+   *
+   * @type {Object}
+   */
 
-    static propTypes = {
-        block: SlateTypes.block,
-        decorations: ImmutableTypes.list.isRequired,
-        editor: Types.object.isRequired,
-        node: SlateTypes.node.isRequired,
-        parent: SlateTypes.node.isRequired,
-        style: Types.object
-    };
+  static propTypes = {
+    block: SlateTypes.block,
+    decorations: ImmutableTypes.list.isRequired,
+    editor: Types.object.isRequired,
+    node: SlateTypes.node.isRequired,
+    parent: SlateTypes.node.isRequired,
+    style: Types.object
+  };
 
-    /**
-     * Default prop types.
-     *
-     * @type {Object}
-     */
+  /**
+   * Default prop types.
+   *
+   * @type {Object}
+   */
 
-    static defaultProps = {
-        style: null
-    };
+  static defaultProps = {
+    style: null
+  };
 
-    /**
-     * Debug.
-     *
-     * @param {String} message
-     * @param {Mixed} ...args
-     */
+  /**
+   * Debug.
+   *
+   * @param {String} message
+   * @param {Mixed} ...args
+   */
 
-    debug = (message, ...args) => {
-        const { node } = this.props;
-        const { key } = node;
-        debug(message, `${key} (text)`, ...args);
-    };
+  debug = (message, ...args) => {
+    const { node } = this.props;
+    const { key } = node;
+    debug(message, `${key} (text)`, ...args);
+  };
 
-    /**
-     * Should the node update?
-     *
-     * @param {Object} nextProps
-     * @param {Object} value
-     * @return {Boolean}
-     */
+  /**
+   * Should the node update?
+   *
+   * @param {Object} nextProps
+   * @param {Object} value
+   * @return {Boolean}
+   */
 
-    shouldComponentUpdate(nextProps: any) {
-        const { props } = this;
-        const n = nextProps;
-        const p = props;
+  shouldComponentUpdate(nextProps: any) {
+    const { props } = this;
+    const n = nextProps;
+    const p = props;
 
-        // If the node has changed, update. PERF: There are cases where it will have
-        // changed, but it's properties will be exactly the same (eg. copy-paste)
-        // which this won't catch. But that's rare and not a drag on performance, so
-        // for simplicity we just let them through.
-        if (n.node != p.node) return true;
+    // If the node has changed, update. PERF: There are cases where it will have
+    // changed, but it's properties will be exactly the same (eg. copy-paste)
+    // which this won't catch. But that's rare and not a drag on performance, so
+    // for simplicity we just let them through.
+    if (n.node != p.node) return true;
 
-        // If the node parent is a block node, and it was the last child of the
-        // block, re-render to cleanup extra `\n`.
-        if (n.parent.object == "block") {
-            const pLast = p.parent.nodes.last();
-            const nLast = n.parent.nodes.last();
-            if (p.node == pLast && n.node != nLast) return true;
-        }
-
-        // Re-render if the current decorations have changed.
-        if (!n.decorations.equals(p.decorations)) return true;
-
-        // Otherwise, don't update.
-        return false;
+    // If the node parent is a block node, and it was the last child of the
+    // block, re-render to cleanup extra `\n`.
+    if (n.parent.object == "block") {
+      const pLast = p.parent.nodes.last();
+      const nLast = n.parent.nodes.last();
+      if (p.node == pLast && n.node != nLast) return true;
     }
 
-    /**
-     * Render.
-     *
-     * @return {Element}
-     */
+    // Re-render if the current decorations have changed.
+    if (!n.decorations.equals(p.decorations)) return true;
 
-    render() {
-        this.debug("render", this);
+    // Otherwise, don't update.
+    return false;
+  }
 
-        const { decorations, editor, node, style } = this.props;
-        const { value } = editor;
-        const { document } = value;
-        const { key } = node;
+  /**
+   * Render.
+   *
+   * @return {Element}
+   */
 
-        const decs = decorations.filter(d => {
-            const { start, end } = d;
+  render() {
+    this.debug("render", this);
 
-            // If either of the decoration's keys match, include it.
-            if (start.key === key || end.key === key) return true;
+    const { decorations, editor, node, style } = this.props;
+    const { value } = editor;
+    const { document } = value;
+    const { key } = node;
 
-            // Otherwise, if the decoration is in a single node, it's not ours.
-            if (start.key === end.key) return false;
+    const decs = decorations.filter(d => {
+      const { start, end } = d;
 
-            // If the node's path is before the start path, ignore it.
-            const path = document.assertPathByKey(key);
-            if (PathUtils.compare(path, start.path) === -1) return false;
+      // If either of the decoration's keys match, include it.
+      if (start.key === key || end.key === key) return true;
 
-            // If the node's path is after the end path, ignore it.
-            if (PathUtils.compare(path, end.path) === 1) return false;
+      // Otherwise, if the decoration is in a single node, it's not ours.
+      if (start.key === end.key) return false;
 
-            // Otherwise, include it.
-            return true;
-        });
+      // If the node's path is before the start path, ignore it.
+      const path = document.assertPath(key);
+      if (PathUtils.compare(path, start.path) === -1) return false;
 
-        // PERF: Take advantage of cache by avoiding arguments
-        const leaves =
-            decs.size === 0 ? node.getLeaves() : node.getLeaves(decs);
-        let offset = 0;
+      // If the node's path is after the end path, ignore it.
+      if (PathUtils.compare(path, end.path) === 1) return false;
 
-        const children = leaves.map((leaf, i) => {
-            const child = this.renderLeaf(leaves, leaf, i, offset);
-            offset += leaf.text.length;
-            return child;
-        });
+      // Otherwise, include it.
+      return true;
+    });
 
-        return (
-            <span data-key={key} style={style}>
-                {children}
-            </span>
-        );
-    }
+    // PERF: Take advantage of cache by avoiding arguments
+    const leaves = decs.size === 0 ? node.getLeaves() : node.getLeaves(decs);
+    let offset = 0;
 
-    /**
-     * Render a single leaf given a `leaf` and `offset`.
-     *
-     * @param {List<Leaf>} leaves
-     * @param {Leaf} leaf
-     * @param {Number} index
-     * @param {Number} offset
-     * @return {Element} leaf
-     */
+    const children = leaves.map((leaf, i) => {
+      const child = this.renderLeaf(leaves, leaf, i, offset);
+      offset += leaf.text.length;
+      return child;
+    });
 
-    renderLeaf = (leaves, leaf, index, offset) => {
-        const { block, node, parent, editor } = this.props;
-        const { text, marks } = leaf;
+    return (
+      <span data-key={key} style={style}>
+        {children}
+      </span>
+    );
+  }
 
-        return (
-            <Leaf
-                key={`${node.key}-${index}`}
-                block={block}
-                editor={editor}
-                index={index}
-                marks={marks}
-                node={node}
-                offset={offset}
-                parent={parent}
-                leaves={leaves}
-                text={text}
-            />
-        );
-    };
+  /**
+   * Render a single leaf given a `leaf` and `offset`.
+   *
+   * @param {List<Leaf>} leaves
+   * @param {Leaf} leaf
+   * @param {Number} index
+   * @param {Number} offset
+   * @return {Element} leaf
+   */
+
+  renderLeaf = (leaves, leaf, index, offset) => {
+    const { block, node, parent, editor } = this.props;
+    const { text, marks } = leaf;
+
+    return (
+      <Leaf
+        key={`${node.key}-${index}`}
+        block={block}
+        editor={editor}
+        index={index}
+        marks={marks}
+        node={node}
+        offset={offset}
+        parent={parent}
+        leaves={leaves}
+        text={text}
+      />
+    );
+  };
 }
 
 /**
