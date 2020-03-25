@@ -174,7 +174,22 @@ class Point extends Record(DEFAULTS) {
     }
 
     const { key, offset, path } = this;
-    const target = node.getNode(key || path);
+    // PERF: this function gets called a lot.
+    // to avoid creating the key -> path lookup table, we attempt to look up by path first.
+    let target = path && node.getNode(path)
+
+    if (!target) {
+      target = node.getNode(key)
+
+      if (target) {
+        // There is a misalignment of path and key
+        const point = this.merge({
+          path: node.getPath(key),
+        })
+
+        return point
+      }
+    }
 
     if (!target) {
       logger.warn("A point's `path` or `key` invalid and was reset:", this);
