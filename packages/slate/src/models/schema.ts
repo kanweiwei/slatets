@@ -28,7 +28,7 @@ import MODEL_TYPES from "../constants/model-types";
 import Stack from "./stack";
 import Text from "./text";
 import SlateError from "../utils/slate-error";
-import { PREVIOUS_SIBLING_OBJECT_INVALID } from "dist/slate-schema-violations/es";
+import { PREVIOUS_SIBLING_OBJECT_INVALID } from "@zykj/slate-schema-violations";
 
 const debug = Debug("slate: schema");
 
@@ -407,8 +407,8 @@ function defaultNormalize(change, error) {
     case PARENT_TYPE_INVALID: {
       return node.object === "document"
         ? node.nodes.forEach(n =>
-            change.removeNodeByKey(n.key, { normalize: false })
-          )
+          change.removeNodeByKey(n.key, { normalize: false })
+        )
         : change.removeNodeByKey(node.key, { normalize: false });
     }
 
@@ -416,10 +416,10 @@ function defaultNormalize(change, error) {
       return node.data.get(key) === undefined && node.object !== "document"
         ? change.removeNodeByKey(node.key, { normalize: false })
         : change.setNodeByKey(
-            node.key,
-            { data: node.data.delete(key) },
-            { normalize: false }
-          );
+          node.key,
+          { data: node.data.delete(key) },
+          { normalize: false }
+        );
     }
 
     case NODE_IS_VOID_INVALID: {

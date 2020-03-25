@@ -185,9 +185,9 @@ class Point extends Record(DEFAULTS) {
         // There is a misalignment of path and key
         const point = this.merge({
           path: node.getPath(key),
-        })
+        }) as Point;
 
-        return point
+        return point;
       }
     }
 

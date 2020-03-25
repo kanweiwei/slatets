@@ -1,5 +1,5 @@
 import { is } from "immutable";
-import isEmpty from "is-empty";
+// import isEmpty from "is-empty";
 import logger from "slate-dev-logger";
 import pick from "lodash/pick";
 
@@ -950,7 +950,7 @@ const DEPRECATEDS = [
 ];
 
 DEPRECATEDS.forEach(([deprecated, method]) => {
-  Changes[deprecated] = function(change, ...args) {
+  Changes[deprecated] = function (change, ...args) {
     logger.deprecate(
       "0.37.0",
       `The \`Change.${deprecated}\` method is deprecated, please use \`Change.${method}\` instead.`

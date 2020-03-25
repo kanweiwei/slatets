@@ -18,5 +18,6 @@ module.exports = function () {
     moduleResolution: 'node',
     declaration: true,
     allowSyntheticDefaultImports: true,
+    isolatedModules: true
   }, my.compilerOptions);
 };

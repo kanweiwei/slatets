@@ -100,7 +100,7 @@ class NodeInterface {
   createSelection(properties) {
     properties = Selection.createProperties(properties);
     const selection = this.resolveSelection(properties);
-    return selection;
+    return selection as Selection;
   }
 
   /**
@@ -459,7 +459,7 @@ class NodeInterface {
    */
 
   getDecorations(stack) {
-    const decorations = stack.find("decorateNode", this);
+    const decorations = stack.$$find("decorateNode", this);
     const list = Decoration.createList(decorations || []);
     return list;
   }
@@ -2164,7 +2164,7 @@ class NodeInterface {
 const ASSERTS = ["Child", "Depth", "Descendant", "Node", "Parent", "Path"];
 
 for (const method of ASSERTS) {
-  NodeInterface.prototype[`assert${method}`] = function(path, ...args) {
+  NodeInterface.prototype[`assert${method}`] = function (path, ...args) {
     const ret = this[`get${method}`](path, ...args);
 
     if (ret == null) {

@@ -432,7 +432,7 @@ class Value extends Record(DEFAULTS) {
     return this.selection.isUnset
       ? Set()
       : this.selection.marks ||
-          this.document.getActiveMarksAtRange(this.selection);
+      this.document.getActiveMarksAtRange(this.selection);
   }
 
   /**
@@ -687,16 +687,16 @@ class Value extends Record(DEFAULTS) {
         range = prev
           ? range.moveStartTo(prev.key, prev.text.length)
           : next
-          ? range.moveStartTo(next.key, 0)
-          : range.unset();
+            ? range.moveStartTo(next.key, 0)
+            : range.unset();
       }
 
       if (node.hasNode(end.key)) {
         range = prev
           ? range.moveEndTo(prev.key, prev.text.length)
           : next
-          ? range.moveEndTo(next.key, 0)
-          : range.unset();
+            ? range.moveEndTo(next.key, 0)
+            : range.unset();
       }
 
       range = range.updatePoints(point => point.setPath(null));
@@ -735,8 +735,8 @@ class Value extends Record(DEFAULTS) {
           anchor.offset >= rangeOffset
             ? range.moveAnchorBackward(length)
             : anchor.offset > offset
-            ? range.moveAnchorTo(anchor.key, offset)
-            : range;
+              ? range.moveAnchorTo(anchor.key, offset)
+              : range;
       }
 
       if (focus.key === node.key) {
@@ -744,8 +744,8 @@ class Value extends Record(DEFAULTS) {
           focus.offset >= rangeOffset
             ? range.moveFocusBackward(length)
             : focus.offset > offset
-            ? range.moveFocusTo(focus.key, offset)
-            : range;
+              ? range.moveFocusTo(focus.key, offset)
+              : range;
       }
 
       return range;
