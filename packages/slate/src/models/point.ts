@@ -176,7 +176,10 @@ class Point extends Record(DEFAULTS) {
     const { key, offset, path } = this;
     // PERF: this function gets called a lot.
     // to avoid creating the key -> path lookup table, we attempt to look up by path first.
-    let target = path && node.getNode(path)
+    let target;
+    if (path && path.size > 0) {
+      target = node.getNode(path);
+    }
 
     if (!target) {
       target = node.getNode(key)
@@ -185,9 +188,9 @@ class Point extends Record(DEFAULTS) {
         // There is a misalignment of path and key
         const point = this.merge({
           path: node.getPath(key),
-        }) as Point;
+        })
 
-        return point;
+        return point as Point;
       }
     }
 

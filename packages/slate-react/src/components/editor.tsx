@@ -153,7 +153,7 @@ class Editor extends React.Component<any, any> {
     debug("render", this);
 
     const children = this.stack
-      .map("renderPortal", this.value, this)
+      .$$map("renderPortal", this.value, this)
       .map((child, i) => (
         <Portal key={i} isOpened>
           {child}

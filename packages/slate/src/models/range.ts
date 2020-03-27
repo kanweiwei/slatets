@@ -51,6 +51,8 @@ class Range extends Record(DEFAULTS) {
 
         return Decoration.create(attrs);
       }
+
+      return Range.fromJSON(attrs)
     }
 
     throw new Error(

@@ -18,7 +18,6 @@
   },
   "homepage": "https://github.com/kanweiwei/slatets#readme",
   "dependencies": {
-    "@zykj/slate": "^0.37.1",
     "@zykj/slate-hotkeys": "^0.1.4",
     "@zykj/slate-schema-violations": "^0.1.39",
     "commitizen": "^4.0.3",
@@ -36,6 +35,7 @@
   "devDependencies": {
     "@types/immutable": "^3.8.7",
     "@types/react-dom": "16.0.4",
+    "@zykj/slate-dev-environment": "^0.1.4",
     "babel": "^6.23.0",
     "babel-core": "^6.26.3",
     "babel-plugin-add-module-exports": "^0.2.1",
