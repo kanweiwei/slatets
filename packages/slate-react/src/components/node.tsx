@@ -1,4 +1,4 @@
-import Debug from "debug";
+// import Debug from "debug";
 import ImmutableTypes from "react-immutable-proptypes";
 import React from "react";
 import SlateTypes from "@zykj/slate-prop-types";
@@ -8,6 +8,7 @@ import Types from "prop-types";
 import Void from "./void";
 import Text from "./text";
 import getChildrenDecorations from "../utils/get-children-decorations";
+import { List } from "immutable";
 
 /**
  * Debug.
@@ -15,7 +16,7 @@ import getChildrenDecorations from "../utils/get-children-decorations";
  * @type {Function}
  */
 
-const debug = Debug("slate:node");
+// const DebugNode = Debug("slate:node");
 
 /**
  * Node.
@@ -23,53 +24,117 @@ const debug = Debug("slate:node");
  * @type {Component}
  */
 
-class Node extends React.Component<any, any> {
-  /**
-   * Property types.
-   *
-   * @type {Object}
-   */
+interface NodeProps {
+  block: any;
+  decorations: List<any>;
+  editor: any;
+  isFocused: boolean;
+  isSelected: boolean;
+  node: any;
+  parent: any;
+  readOnly: any;
+}
 
-  static propTypes = {
-    block: SlateTypes.block,
-    decorations: ImmutableTypes.list.isRequired,
-    editor: Types.object.isRequired,
-    isFocused: Types.bool.isRequired,
-    isSelected: Types.bool.isRequired,
-    node: SlateTypes.node.isRequired,
-    parent: SlateTypes.node.isRequired,
-    readOnly: Types.bool.isRequired
-  };
+const Node = React.memo(
+  (props: NodeProps) => {
+    // const debug = (message, ...args) => {
+    //   const { node } = props;
+    //   const { key, type } = node;
+    //   DebugNode(message, `${key} (${type})`, ...args);
+    // };
 
-  /**
-   * Debug.
-   *
-   * @param {String} message
-   * @param {Mixed} ...args
-   */
+    const renderNode = (child, isSelected, decorations) => {
+      const { block, editor, node, readOnly, isFocused } = props;
+      const Component = child.object == "text" ? Text : Node;
 
-  debug = (message, ...args) => {
-    const { node } = this.props;
-    const { key, type } = node;
-    debug(message, `${key} (${type})`, ...args);
-  };
+      return (
+        <Component
+          block={node.object == "block" ? node : block}
+          decorations={decorations}
+          editor={editor}
+          isSelected={isSelected}
+          isFocused={isFocused && isSelected}
+          key={child.key}
+          node={child}
+          parent={node}
+          readOnly={readOnly}
+        />
+      );
+    };
 
-  /**
-   * Should the node update?
-   *
-   * @param {Object} nextProps
-   * @param {Object} value
-   * @return {Boolean}
-   */
-  shouldComponentUpdate(nextProps) {
-    const { props } = this;
-    const { stack } = props.editor;
-    const shouldUpdate = stack.$$find(
-      "shouldNodeComponentUpdate",
-      props,
-      nextProps
+    const {
+      editor,
+      isSelected,
+      isFocused,
+      node,
+      decorations,
+      parent,
+      readOnly,
+    } = props;
+    const { value } = editor;
+    const { selection, schema } = value;
+    const { stack } = editor;
+    const indexes = node.getSelectionIndexes(selection, isSelected);
+    const decs = decorations.concat(node.getDecorations(stack));
+    const childrenDecorations = getChildrenDecorations(node, decs);
+
+    let children: any[] = [];
+
+    node.nodes.forEach((child, i) => {
+      const isChildSelected =
+        !!indexes && indexes.start <= i && i < indexes.end;
+
+      children.push(renderNode(child, isChildSelected, childrenDecorations[i]));
+    });
+
+    // Attributes that the developer must mix into the element in their
+    // custom node renderer component.
+    const attributes: any = { "data-key": node.key };
+
+    // If it's a block node with inline children, add the proper `dir` attribute
+    // for text direction.
+    if (node.object == "block" && node.nodes.first().object != "block") {
+      const direction = node.getTextDirection();
+      if (direction == "rtl") attributes.dir = "rtl";
+    }
+
+    const nodeProps = {
+      key: node.key,
+      editor,
+      isFocused,
+      isSelected,
+      node,
+      parent,
+      readOnly,
+    };
+
+    let placeholder = stack.$$find("renderPlaceholder", nodeProps);
+
+    if (placeholder) {
+      placeholder = React.cloneElement(placeholder, {
+        key: `${node.key}-placeholder`,
+      });
+
+      children = [placeholder, ...children];
+    }
+
+    const element = stack.$$find("renderNode", {
+      ...nodeProps,
+      attributes,
+      children,
+    });
+
+    return schema.isVoid(node) ? (
+      <Void {...this.props}>{element}</Void>
+    ) : (
+      element
     );
-    const n = nextProps;
+  },
+  (pre, next) => {
+    const props = pre;
+    const { stack } = props.editor;
+    const shouldUpdate = stack.$$find("shouldNodeComponentUpdate", props, next);
+    const n = next;
     const p = props;
 
     // If the `Component` has a custom logic to determine whether the component
@@ -111,119 +176,6 @@ class Node extends React.Component<any, any> {
     // Otherwise, don't update.
     return false;
   }
-
-  /**
-   * Render.
-   *
-   * @return {Element}
-   */
-
-  render() {
-    this.debug("render", this);
-    const {
-      editor,
-      isSelected,
-      isFocused,
-      node,
-      decorations,
-      parent,
-      readOnly
-    } = this.props;
-    const { value } = editor;
-    const { selection, schema } = value;
-    const { stack } = editor;
-    const indexes = node.getSelectionIndexes(selection, isSelected);
-    const decs = decorations.concat(node.getDecorations(stack));
-    const childrenDecorations = getChildrenDecorations(node, decs);
-
-    let children: any[] = [];
-
-    node.nodes.forEach((child, i) => {
-      const isChildSelected =
-        !!indexes && indexes.start <= i && i < indexes.end;
-
-      children.push(
-        this.renderNode(child, isChildSelected, childrenDecorations[i])
-      );
-    });
-
-    // Attributes that the developer must mix into the element in their
-    // custom node renderer component.
-    const attributes: any = { "data-key": node.key };
-
-    // If it's a block node with inline children, add the proper `dir` attribute
-    // for text direction.
-    if (node.object == "block" && node.nodes.first().object != "block") {
-      const direction = node.getTextDirection();
-      if (direction == "rtl") attributes.dir = "rtl";
-    }
-
-    const props = {
-      key: node.key,
-      editor,
-      isFocused,
-      isSelected,
-      node,
-      parent,
-      readOnly
-    };
-
-    let placeholder = stack.$$find("renderPlaceholder", props);
-
-    if (placeholder) {
-      placeholder = React.cloneElement(placeholder, {
-        key: `${node.key}-placeholder`
-      });
-
-      children = [placeholder, ...children];
-    }
-
-    const element = stack.$$find("renderNode", {
-      ...props,
-      attributes,
-      children
-    });
-
-    return schema.isVoid(node) ? (
-      <Void {...this.props}>{element}</Void>
-    ) : (
-      element
-    );
-  }
-
-  /**
-   * Render a `child` node.
-   *
-   * @param {Node} child
-   * @param {Boolean} isSelected
-   * @param {Array<Decoration>} decorations
-   * @return {Element}
-   */
-
-  renderNode = (child, isSelected, decorations) => {
-    const { block, editor, node, readOnly, isFocused } = this.props;
-    const Component = child.object == "text" ? Text : Node;
-
-    return (
-      <Component
-        block={node.object == "block" ? node : block}
-        decorations={decorations}
-        editor={editor}
-        isSelected={isSelected}
-        isFocused={isFocused && isSelected}
-        key={child.key}
-        node={child}
-        parent={node}
-        readOnly={readOnly}
-      />
-    );
-  };
-}
-
-/**
- * Export.
- *
- * @type {Component}
- */
+);
 
 export default Node;
