@@ -1,6 +1,3 @@
-import './interfaces/common'
-import './interfaces/node'
-import './interfaces/range'
 import Block from "./models/block";
 import Change from "./models/change";
 import Changes from "./changes";
@@ -26,6 +23,9 @@ import TextUtils from "./utils/text-utils";
 import Value from "./models/value";
 import { resetKeyGenerator, setKeyGenerator } from "./utils/generate-key";
 import { resetMemoization, useMemoization } from "./utils/memoize";
+import "./interfaces/common";
+import "./interfaces/node";
+import "./interfaces/range";
 
 /**
  * Export.
@@ -60,7 +60,7 @@ export {
   Text,
   TextUtils,
   useMemoization,
-  Value
+  Value,
 };
 
 export default {
@@ -89,5 +89,5 @@ export default {
   Text,
   TextUtils,
   useMemoization,
-  Value
+  Value,
 };
