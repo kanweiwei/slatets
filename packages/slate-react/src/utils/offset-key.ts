@@ -4,7 +4,7 @@
  * @type {RegExp}
  */
 
-const PARSER = /^([\w-]+)(?::(\d+))?$/
+const PARSER = /^([\w-]+)(?::(\d+))?$/;
 
 /**
  * Parse an offset key `string`.
@@ -14,18 +14,17 @@ const PARSER = /^([\w-]+)(?::(\d+))?$/
  */
 
 function parse(string) {
-  const matches = PARSER.exec(string)
+  const matches = PARSER.exec(string);
 
   if (!matches) {
-    throw new Error(`Invalid offset key string "${string}".`)
+    throw new Error(`Invalid offset key string "${string}".`);
   }
   // tslint:disable-next-line:no-unused-variable
   const [original, key, index] = matches;
-  console.log(original)
   return {
     key,
     index: parseInt(index, 10),
-  }
+  };
 }
 
 /**
@@ -38,7 +37,7 @@ function parse(string) {
  */
 
 function stringify(object) {
-  return `${object.key}:${object.index}`
+  return `${object.key}:${object.index}`;
 }
 
 /**
@@ -50,4 +49,4 @@ function stringify(object) {
 export default {
   parse,
   stringify,
-}
+};

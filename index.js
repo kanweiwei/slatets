@@ -19,11 +19,10 @@ export var PARENT_TYPE_INVALID = "parent_type_invalid";
 export var PREVIOUS_SIBLING_OBJECT_INVALID = "previous_sibling_object_invalid";
 export var PREVIOUS_SIBLING_TYPE_INVALID = "previous_sibling_type_invalid";
 var A = /** @class */ (function () {
-    function A() {
-    }
-    A.prototype.call = function () {
-        console.log(1);
-    };
-    return A;
-}());
+  function A() {}
+  A.prototype.call = function () {
+    // console.log(1);
+  };
+  return A;
+})();
 export { A };

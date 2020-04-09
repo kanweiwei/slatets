@@ -47,7 +47,6 @@ function getEventTransfer(event) {
     const matches = FRAGMENT_MATCHER.exec(html) as RegExpExecArray;
     /* tslint:disable-next-line:no-unused-variable */
     const [full, encoded] = matches;
-    console.log(full);
     if (encoded) fragment = encoded;
   }
 
@@ -72,7 +71,7 @@ function getEventTransfer(event) {
     if (transfer.items && transfer.items.length) {
       files = Array.from(transfer.items)
         .map((item: any) => (item.kind == "file" ? item.getAsFile() : null))
-        .filter(exists => exists);
+        .filter((exists) => exists);
     } else if (transfer.files && transfer.files.length) {
       files = Array.from(transfer.files);
     }

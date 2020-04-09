@@ -68,7 +68,6 @@ const Node = (props: NodeProps) => {
       // KEY_TO_ELEMENT.delete(key);
       NODE_TO_ELEMENT.delete(node);
     }
-    console.log(KEY_TO_ELEMENT, NODE_TO_ELEMENT, ELEMENT_TO_NODE);
   });
 
   const renderNode = (child, isSelected, decorations) => {
