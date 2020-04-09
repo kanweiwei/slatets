@@ -10,7 +10,8 @@ interface TextInterface {
   editor: any;
   node: any;
   parent: any;
-  style: any;
+  readOnly?: boolean;
+  style?: any;
 }
 
 const Text = (props: TextInterface) => {
