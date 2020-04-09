@@ -1,6 +1,5 @@
 // import Debug from "debug";
-import React, { useRef, useEffect } from "react";
-import logger from "slate-dev-logger";
+import React, { useRef } from "react";
 
 import Void from "./void";
 import Text from "./text";
@@ -57,15 +56,16 @@ const Node = (props: NodeProps) => {
   } = props;
 
   const ref = useRef<HTMLElement>(null);
+
   const key = node.key;
 
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (ref.current) {
-      KEY_TO_ELEMENT.set(key, ref.current);
+      // KEY_TO_ELEMENT.set(key, ref.current);
       NODE_TO_ELEMENT.set(node, ref.current);
       ELEMENT_TO_NODE.set(ref.current, node);
     } else {
-      KEY_TO_ELEMENT.delete(key);
+      // KEY_TO_ELEMENT.delete(key);
       NODE_TO_ELEMENT.delete(node);
     }
     console.log(KEY_TO_ELEMENT, NODE_TO_ELEMENT, ELEMENT_TO_NODE);
@@ -73,7 +73,7 @@ const Node = (props: NodeProps) => {
 
   const renderNode = (child, isSelected, decorations) => {
     const { block, editor, node, readOnly, isFocused } = props;
-    const Component = child.object == "text" ? Text : Node;
+    const Component = child.object == "text" ? Text : MemoNode;
 
     return (
       <Component
@@ -165,25 +165,13 @@ const MemoNode = React.memo(Node, (pre, next) => {
   //   }
   // }
 
-  // If the `readOnly` status has changed, re-render in case there is any
-  // user-land logic that depends on it, like nested editable contents.
   if (n.readOnly != p.readOnly) return false;
 
-  // If the node has changed, update. PERF: There are cases where it will have
-  // changed, but it's properties will be exactly the same (eg. copy-paste)
-  // which this won't catch. But that's rare and not a drag on performance, so
-  // for simplicity we just let them through.
   if (n.node != p.node) return false;
 
-  // If the selection value of the node or of some of its children has changed,
-  // re-render in case there is any user-land logic depends on it to render.
-  // if the node is selected update it, even if it was already selected: the
-  // selection value of some of its children could have been changed and they
-  // need to be rendered again.
   if (n.isSelected || p.isSelected) return false;
   if (n.isFocused || p.isFocused) return false;
 
-  // If the decorations have changed, update.
   if (!n.decorations.equals(p.decorations)) return false;
 
   return true;
