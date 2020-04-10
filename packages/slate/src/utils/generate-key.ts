@@ -17,7 +17,7 @@ let generate: () => string;
  * @return {String}
  */
 function generateKey(): string {
-    return generate();
+  return generate();
 }
 
 /**
@@ -26,21 +26,29 @@ function generateKey(): string {
  * @param {Function} func
  */
 function setKeyGenerator(func): void {
-    generate = func;
+  generate = func;
 }
 
 /**
  * 重置key
  */
 function resetKeyGenerator(): void {
-    n = 0;
-    generate = () => `${n++}`;
+  n = 0;
+  generate = () => `${n++}`;
 }
 
 /**
  * 初始化
  */
 resetKeyGenerator();
+
+class Key {
+  id: string;
+
+  constructor() {
+    this.id = generate();
+  }
+}
 
 export default generateKey;
 export { setKeyGenerator, resetKeyGenerator };

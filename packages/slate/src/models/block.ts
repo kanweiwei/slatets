@@ -1,7 +1,7 @@
 import isPlainObject from "is-plain-object";
 import { List, Map, Record } from "immutable";
 
-import KeyUtils from "../utils/key-utils";
+import Key from "../utils/key-utils";
 import Inline from "./inline";
 import Text from "./text";
 import MODEL_TYPES from "../constants/model-types";
@@ -16,7 +16,7 @@ const DEFAULTS = {
   isVoid: false,
   key: void 0,
   nodes: List(),
-  type: void 0
+  type: void 0,
 };
 
 /**
@@ -73,9 +73,9 @@ class Block extends Record(DEFAULTS) {
     const {
       data = {},
       isVoid = false,
-      key = KeyUtils.create(),
+      key = Key.create(),
       nodes = [],
-      type
+      type,
     } = obj;
 
     if (typeof type !== "string") {
@@ -87,7 +87,7 @@ class Block extends Record(DEFAULTS) {
       type,
       isVoid: !!isVoid,
       data: Map(data),
-      nodes: Node.createList(nodes)
+      nodes: Node.createList(nodes),
     });
     return block;
   }
@@ -119,7 +119,7 @@ class Block extends Record(DEFAULTS) {
       type: this.type,
       isVoid: this.get("isVoid"),
       data: (this.data as any).toJSON(),
-      nodes: this.nodes.toArray().map(n => n.toJSON(options))
+      nodes: this.nodes.toArray().map((n) => n.toJSON(options)),
     };
 
     if (options.preserveKeys) {

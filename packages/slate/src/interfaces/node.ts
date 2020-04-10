@@ -8,12 +8,13 @@ import Block from "../models/block";
 import Decoration from "../models/decoration";
 import Document from "../models/document";
 import Inline from "../models/inline";
-import KeyUtils from "../utils/key-utils";
+import Key from "../utils/key-utils";
 import memoize from "../utils/memoize";
 import PathUtils from "../utils/path-utils";
 import Point from "../models/point";
 import Range from "../models/range";
 import Selection from "../models/selection";
+import Key from "../utils/key-utils";
 
 /**
  * The interface that `Document`, `Block` and `Inline` all implement, to make
@@ -392,7 +393,7 @@ class NodeInterface {
    */
 
   getClosestBlock(path) {
-    const closest = this.getClosest(path, n => n.object === "block");
+    const closest = this.getClosest(path, (n) => n.object === "block");
     return closest;
   }
 
@@ -404,7 +405,7 @@ class NodeInterface {
    */
 
   getClosestInline(path) {
-    const closest = this.getClosest(path, n => n.object === "inline");
+    const closest = this.getClosest(path, (n) => n.object === "inline");
     return closest;
   }
 
@@ -423,13 +424,13 @@ class NodeInterface {
         "Calling the `Node.getClosestVoid` method without passing a second `schema` argument is deprecated."
       );
 
-      const closest = this.getClosest(path, p => p.get("isVoid"));
+      const closest = this.getClosest(path, (p) => p.get("isVoid"));
       return closest;
     }
 
     const ancestors = this.getAncestors(path);
 
-    const ancestor = ancestors.findLast(a => schema.isVoid(a));
+    const ancestor = ancestors.findLast((a) => schema.isVoid(a));
     return ancestor;
   }
 
@@ -492,7 +493,7 @@ class NodeInterface {
     path = this.resolvePath(path);
     if (!path) return null;
 
-    const deep = path.flatMap(x => ["nodes", x]);
+    const deep = path.flatMap((x) => ["nodes", x]);
 
     const ret = this.getIn(deep);
     return ret;
@@ -508,7 +509,7 @@ class NodeInterface {
   getFirstInvalidNode(schema) {
     let result = null;
 
-    this.nodes.find(n => {
+    this.nodes.find((n) => {
       result = n.validate(schema) ? n : n.getFirstInvalidNode(schema);
       return result;
     });
@@ -534,7 +535,7 @@ class NodeInterface {
   getFirstText() {
     let descendant = null;
 
-    const found = this.nodes.find(node => {
+    const found = this.nodes.find((node) => {
       if (node.object === "text") return true;
       descendant = node.getFirstText();
       return !!descendant;
@@ -629,7 +630,7 @@ class NodeInterface {
    */
 
   getFurthestBlock(path) {
-    const furthest = this.getFurthest(path, n => n.object === "block");
+    const furthest = this.getFurthest(path, (n) => n.object === "block");
     return furthest;
   }
 
@@ -641,7 +642,7 @@ class NodeInterface {
    */
 
   getFurthestInline(path) {
-    const furthest = this.getFurthest(path, n => n.object === "inline");
+    const furthest = this.getFurthest(path, (n) => n.object === "inline");
     return furthest;
   }
 
@@ -659,7 +660,7 @@ class NodeInterface {
     const furthest = ancestors
       .rest()
       .reverse()
-      .takeUntil(p => p.nodes.size > 1)
+      .takeUntil((p) => p.nodes.size > 1)
       .last();
 
     return furthest || null;
@@ -686,7 +687,7 @@ class NodeInterface {
   getInlinesAsArray() {
     let array = [];
 
-    this.nodes.forEach(child => {
+    this.nodes.forEach((child) => {
       if (child.object == "text") return;
 
       if (child.isLeafInline()) {
@@ -725,8 +726,8 @@ class NodeInterface {
     if (range.isUnset) return [];
 
     const array = this.getTextsAtRangeAsArray(range)
-      .map(text => this.getClosestInline(text.key))
-      .filter(exists => exists);
+      .map((text) => this.getClosestInline(text.key))
+      .filter((exists) => exists);
 
     return array;
   }
@@ -799,7 +800,7 @@ class NodeInterface {
 
   getKeysToPathsTable() {
     const ret = {
-      [this.key]: []
+      [this.key]: [],
     };
 
     this.nodes.forEach((node, i) => {
@@ -831,7 +832,7 @@ class NodeInterface {
   getLastText() {
     let descendant = null;
 
-    const found = this.nodes.findLast(node => {
+    const found = this.nodes.findLast((node) => {
       if (node.object == "text") return true;
       descendant = node.getLastText();
       return descendant;
@@ -860,7 +861,7 @@ class NodeInterface {
   getMarksAsArray() {
     const result: any[] = [];
 
-    this.nodes.forEach(node => {
+    this.nodes.forEach((node) => {
       result.push(node.getMarksAsArray());
     });
 
@@ -932,7 +933,7 @@ class NodeInterface {
   getMarksByTypeAsArray(type) {
     const array = this.nodes.reduce((memo, node) => {
       return node.object == "text"
-        ? memo.concat(node.getMarksAsArray().filter(m => m.type == type))
+        ? memo.concat(node.getMarksAsArray().filter((m) => m.type == type))
         : memo.concat(node.getMarksByTypeAsArray(type));
     }, []);
 
@@ -1050,7 +1051,7 @@ class NodeInterface {
     const child = this.getFurthestAncestor(key);
 
     const offset = this.nodes
-      .takeUntil(n => n == child)
+      .takeUntil((n) => n == child)
       .reduce((memo, n) => memo + n.text.length, 0);
 
     // Recurse if need be.
@@ -1141,8 +1142,8 @@ class NodeInterface {
 
     const texts = this.getTextsBetweenPositionsAsArray(startKey, endKey);
 
-    return OrderedSet().withMutations(result => {
-      texts.forEach(text => {
+    return OrderedSet().withMutations((result) => {
+      texts.forEach((text) => {
         if (text.key === startKey) {
           result.union(
             text.getMarksBetweenOffsets(startOffset, text.text.length)
@@ -1409,7 +1410,7 @@ class NodeInterface {
   getTextsAsArray() {
     let array = [];
 
-    this.nodes.forEach(node => {
+    this.nodes.forEach((node) => {
       if (node.object == "text") {
         array.push(node);
       } else {
@@ -1484,7 +1485,7 @@ class NodeInterface {
    */
 
   hasBlockChildren() {
-    return !!(this.nodes && this.nodes.find(n => n.object === "block"));
+    return !!(this.nodes && this.nodes.find((n) => n.object === "block"));
   }
 
   /**
@@ -1508,7 +1509,7 @@ class NodeInterface {
   hasInlineChildren() {
     return !!(
       this.nodes &&
-      this.nodes.find(n => n.object === "inline" || n.object === "text")
+      this.nodes.find((n) => n.object === "inline" || n.object === "text")
     );
   }
 
@@ -1604,7 +1605,7 @@ class NodeInterface {
 
   isLeafBlock() {
     return (
-      this.object === "block" && this.nodes.every(n => n.object !== "block")
+      this.object === "block" && this.nodes.every((n) => n.object !== "block")
     );
   }
 
@@ -1616,7 +1617,7 @@ class NodeInterface {
 
   isLeafInline() {
     return (
-      this.object === "inline" && this.nodes.every(n => n.object !== "inline")
+      this.object === "inline" && this.nodes.every((n) => n.object !== "inline")
     );
   }
 
@@ -1786,7 +1787,7 @@ class NodeInterface {
    */
 
   regenerateKey() {
-    const key = KeyUtils.create();
+    const key = new Key();
     const node = this.set("key", key);
     return node;
   }
@@ -1819,7 +1820,7 @@ class NodeInterface {
   removeNode(path) {
     this.assertDescendant(path);
     path = this.resolvePath(path);
-    const deep = path.flatMap(x => ["nodes", x]);
+    const deep = path.flatMap((x) => ["nodes", x]);
     const ret = this.deleteIn(deep);
     return ret;
   }
@@ -1859,7 +1860,7 @@ class NodeInterface {
 
     if (!path.size) return node;
     this.assertNode(path);
-    const deep = path.flatMap(x => ["nodes", x]);
+    const deep = path.flatMap((x) => ["nodes", x]);
     const ret = this.setIn(deep, node);
     return ret;
   }
@@ -2052,7 +2053,7 @@ class NodeInterface {
   get isEmpty() {
     logger.deprecate("0.38.0", "The `Node.isEmpty` property is deprecated.");
 
-    return !this.get("isVoid") && !this.nodes.some(child => !child.isEmpty);
+    return !this.get("isVoid") && !this.nodes.some((child) => !child.isEmpty);
   }
 
   getNodeAtPath(path) {
@@ -2104,10 +2105,10 @@ class NodeInterface {
       "The `Node.areDescendantsSorted` method is deprecated. Use the new `PathUtils.compare` helper instead."
     );
 
-    first = KeyUtils.create(first);
-    second = KeyUtils.create(second);
+    first = Key.create(first);
+    second = Key.create(second);
 
-    const keys = this.getKeysAsArray().filter(k => k !== this.key);
+    const keys = this.getKeysAsArray().filter((k) => k !== this.key);
     const firstIndex = keys.indexOf(first);
     const secondIndex = keys.indexOf(second);
     if (firstIndex == -1 || secondIndex == -1) return null;
@@ -2148,7 +2149,7 @@ class NodeInterface {
     const texts = node.getTextsAtRange(range);
     let memo = false;
 
-    texts.forEach(text => {
+    texts.forEach((text) => {
       if (node.hasDescendant(text.key)) memo = true;
       return memo;
     });
@@ -2211,7 +2212,7 @@ memoize(NodeInterface.prototype, [
   "isLeafBlock",
   "isLeafInline",
   "normalize",
-  "validate"
+  "validate",
 ]);
 
 /**

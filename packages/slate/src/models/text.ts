@@ -4,13 +4,13 @@ import { List, OrderedSet, Record, Set } from "immutable";
 
 import Leaf from "./leaf";
 import MODEL_TYPES from "../constants/model-types";
-import KeyUtils from "../utils/key-utils";
+import Key from "../utils/key-utils";
 import memoize from "../utils/memoize";
 import Mark from "./mark";
 
 const DEFAULTS = {
   leaves: List(),
-  key: void 0
+  key: void 0,
 };
 
 class Text extends Record(DEFAULTS) {
@@ -19,7 +19,7 @@ class Text extends Record(DEFAULTS) {
    */
 
   public leaves: List<Leaf>;
-  public key: string;
+  public key: Key;
 
   /**
    * 静态方法
@@ -63,7 +63,7 @@ class Text extends Record(DEFAULTS) {
       return object;
     }
 
-    const { key = KeyUtils.create() } = object;
+    const { key = Key.create() } = object;
     let { leaves } = object;
 
     if (!leaves) {
@@ -80,16 +80,16 @@ class Text extends Record(DEFAULTS) {
     }
 
     if (Array.isArray(leaves)) {
-      leaves = List(leaves.map(x => Leaf.create(x)));
+      leaves = List(leaves.map((x) => Leaf.create(x)));
     } else if (List.isList(leaves)) {
-      leaves = leaves.map(x => Leaf.create(x));
+      leaves = leaves.map((x) => Leaf.create(x));
     } else {
       throw new Error("leaves must be either Array or Immutable.List");
     }
 
     const node = new Text({
       leaves: Leaf.createLeaves(leaves),
-      key
+      key,
     });
 
     return node;
@@ -101,7 +101,7 @@ class Text extends Record(DEFAULTS) {
 
   // 判断是否是多个 `Text` 节点组成的 `List`
   static isTextList(any) {
-    return List.isList(any) && any.every(item => Text.isText(item));
+    return List.isList(any) && any.every((item) => Text.isText(item));
   }
 
   // 计算属性
@@ -154,7 +154,7 @@ class Text extends Record(DEFAULTS) {
       leaf,
       endOffset,
       index,
-      startOffset
+      startOffset,
     };
   }
 
@@ -270,7 +270,7 @@ class Text extends Record(DEFAULTS) {
     const result = this.leaves.first().marks;
     if (result.size === 0) return result;
 
-    return result.withMutations(x => {
+    return result.withMutations((x) => {
       this.leaves.forEach((c: Leaf): any => {
         x.intersect(c.marks);
         if (x.size === 0) return false;
@@ -376,22 +376,22 @@ class Text extends Record(DEFAULTS) {
   /**
    * Get a node by `key`, to parallel other nodes.
    *
-   * @param {String} key
+   * @param {Key} key
    * @return {Node|Null}
    */
 
-  getNode(key: string) {
+  getNode(key: Key) {
     return this.key == key ? this : null;
   }
 
   /**
    * Check if the node has a node by `key`, to parallel other nodes.
    *
-   * @param {String} key
+   * @param {Key} key
    * @return {Boolean}
    */
 
-  hasNode(key: string) {
+  hasNode(key: Key) {
     return !!this.getNode(key);
   }
 
@@ -446,7 +446,7 @@ class Text extends Record(DEFAULTS) {
    */
 
   regenerateKey(): Text {
-    const key = KeyUtils.create();
+    const key = Key.create();
     return this.set("key", key) as Text;
   }
 
@@ -543,7 +543,7 @@ class Text extends Record(DEFAULTS) {
       object: this.object,
       leaves: this.getLeaves()
         .toArray()
-        .map(r => r.toJSON())
+        .map((r) => r.toJSON()),
     };
 
     if (options.preserveKeys) {
@@ -667,17 +667,6 @@ class Text extends Record(DEFAULTS) {
 
     return this.set("leaves", Leaf.createLeaves(leaves)) as Text;
   }
-
-  /**
-   * Get an object mapping all the keys in the node to their paths.
-   *
-   * @return {Object}
-   */
-  getKeysToPathsTable() {
-    return {
-      [this.key]: []
-    };
-  }
 }
 
 Text.prototype[MODEL_TYPES.TEXT] = true;
@@ -688,7 +677,7 @@ memoize(Text.prototype, [
   "getMarksAsArray",
   "validate",
   "getText",
-  "getKeysToPathsTable"
+  "getKeysToPathsTable",
 ]);
 
 export default Text;

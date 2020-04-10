@@ -2,7 +2,7 @@ import isPlainObject from "is-plain-object";
 import logger from "slate-dev-logger";
 import { Record, List } from "immutable";
 
-import KeyUtils from "../utils/key-utils";
+import Key from "../utils/key-utils";
 import PathUtils from "../utils/path-utils";
 import MODEL_TYPES from "../constants/model-types";
 
@@ -12,7 +12,7 @@ import MODEL_TYPES from "../constants/model-types";
 const DEFAULTS: any = {
   key: null,
   offset: null,
-  path: null
+  path: null,
 };
 
 class Point extends Record(DEFAULTS) {
@@ -48,12 +48,12 @@ class Point extends Record(DEFAULTS) {
 
   static createProperties(
     a: any = {}
-  ): { key: string; offset: string; path: any } {
+  ): { key: any; offset: string; path: any } {
     if (Point.isPoint(a)) {
       return {
         key: a.key,
         offset: a.offset,
-        path: a.path
+        path: a.path,
       };
     }
 
@@ -83,7 +83,7 @@ class Point extends Record(DEFAULTS) {
     const point = new Point({
       key,
       offset,
-      path: PathUtils.create(path)
+      path: PathUtils.create(path),
     });
 
     return point;
@@ -182,13 +182,13 @@ class Point extends Record(DEFAULTS) {
     }
 
     if (!target) {
-      target = node.getNode(key)
+      target = node.getNode(key);
 
       if (target) {
         // There is a misalignment of path and key
         const point = this.merge({
           path: node.getPath(key),
-        })
+        });
 
         return point as Point;
       }
@@ -203,7 +203,7 @@ class Point extends Record(DEFAULTS) {
       const point: Point = this.merge({
         key: text.key,
         offset: 0,
-        path: node.getPath(text.key)
+        path: node.getPath(text.key),
       }) as Point;
 
       return point;
@@ -217,7 +217,7 @@ class Point extends Record(DEFAULTS) {
       const point: Point = this.merge({
         offset: (offset as number) - before,
         key: text.key,
-        path: node.getPath(text.key)
+        path: node.getPath(text.key),
       }) as Point;
 
       return point;
@@ -230,15 +230,15 @@ class Point extends Record(DEFAULTS) {
     const point: Point = this.merge({
       key: target.key,
       path: path == null ? node.getPath(target.key) : path,
-      offset: offset == null ? 0 : Math.min(offset, target.text.length)
+      offset: offset == null ? 0 : Math.min(offset, target.text.length),
     }) as Point;
 
     return point;
   }
 
-  setKey(key: string | null): Point {
+  setKey(key: Key | null): Point {
     if (key !== null) {
-      key = KeyUtils.create(key);
+      key = Key.create(key);
     }
 
     const point: Point = this.set("key", key) as Point;
@@ -271,7 +271,7 @@ class Point extends Record(DEFAULTS) {
       object: this.object,
       key: this.key,
       offset: this.offset,
-      path: this.path && this.path.toArray()
+      path: this.path && this.path.toArray(),
     };
 
     if (!options.preserveKeys) {
@@ -285,7 +285,7 @@ class Point extends Record(DEFAULTS) {
     return this.merge({
       key: null,
       offset: null,
-      path: null
+      path: null,
     });
   }
 }

@@ -9,16 +9,18 @@ import Inline from "./inline";
 import Document from "./document";
 import { isType } from "../constants/model-types";
 import Text from "./text";
+import Key from "../utils/key-utils";
 
 /**
  * A pseudo-model that is used for its static methods only.
  */
 class Node {
-  public key: string;
+  public key: Key;
   public nodes: List<any>;
   public text: string;
 
   public object: "document" | "block" | "inline" | "text";
+
   __dict: any;
 
   /**
@@ -92,7 +94,7 @@ class Node {
       return {
         data: attrs.data,
         isVoid: attrs.isVoid,
-        type: attrs.type
+        type: attrs.type,
       };
     }
 
@@ -162,7 +164,7 @@ class Node {
    * @param any
    */
   static isNodeList(any: any): boolean {
-    return List.isList(any) && any.every(item => Node.isNode(item));
+    return List.isList(any) && any.every((item) => Node.isNode(item));
   }
 }
 
