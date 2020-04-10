@@ -1,6 +1,6 @@
 import Debug from "debug";
 import Portal from "react-portal";
-import React from "react";
+import React, { useState, useRef, useCallback, useMemo } from "react";
 import SlateTypes from "@zykj/slate-prop-types";
 import Types from "prop-types";
 import logger from "slate-dev-logger";
@@ -12,6 +12,8 @@ import PLUGINS_PROPS from "../constants/plugin-props";
 import AfterPlugin from "../plugins/after";
 import BeforePlugin from "../plugins/before";
 import noop from "../utils/noop";
+import { Value } from "@zykj/slate";
+import { useIsomorphicLayoutEffect } from "../hooks";
 
 /**
  * Debug.
@@ -21,11 +23,175 @@ import noop from "../utils/noop";
 
 const debug = Debug("slate:editor");
 
-/**
- * Editor.
- *
- * @type {Component}
- */
+interface EditorInterface {
+  value: Value;
+  className: string;
+  placeholder: any;
+  role: string;
+  style: React.StyleHTMLAttributes<any>;
+  tabIndex: number;
+  autoCorrect?: boolean;
+  autoFocus?: boolean;
+  onChange?: Function;
+  plugins?: any[];
+  readOnly?: boolean;
+  schema?: any;
+  spellCheck?: boolean;
+}
+
+const tmpEditor = (props: EditorInterface) => {
+  const {
+    autoFocus = false,
+    autoCorrect = true,
+    onChange = noop,
+    plugins = [],
+    readOnly = false,
+    schema = {},
+    spellCheck = true,
+  } = props;
+
+  const [state, setEditorState] = useState({});
+
+  const tmp = useRef({
+    change: null as any,
+    isChanging: false,
+    operationsSize: null,
+    plugins: null,
+    resolves: 0,
+    updates: 0,
+    value: null,
+  });
+
+  const resolvePlugins = useCallback(
+    (plugins = [], schema = {}) => {
+      debug("resolvePlugins", { plugins, schema });
+      tmp.current.resolves++;
+      const beforePlugin = BeforePlugin();
+      const afterPlugin = AfterPlugin();
+      const editorPlugin = { schema };
+
+      for (const prop of PLUGINS_PROPS) {
+        // Skip `onChange` because the editor's `onChange` is special.
+        if (prop == "onChange") continue;
+
+        // Skip `schema` because it can't be proxied easily, so it must be passed
+        // in as an argument to this function instead.
+        if (prop == "schema") continue;
+
+        // Define a function that will just proxies into `props`.
+        editorPlugin[prop] = (...args) => {
+          return props[prop] && props[prop](...args);
+        };
+      }
+
+      return [beforePlugin, editorPlugin, ...plugins, afterPlugin];
+    },
+    [plugins, schema]
+  );
+
+  const editorPlugins = useMemo(() => {
+    return resolvePlugins(plugins, schema);
+  }, [plugins, schema]);
+
+  const resolveStack = useCallback(
+    (plugins) => {
+      const stack = Stack.create({ plugins });
+      return stack;
+    },
+    [plugins]
+  );
+
+  const resolveChange = useCallback(
+    (plugins, change, size) => {
+      const stack = resolveStack(plugins);
+      stack.run("onChange", change, undefined);
+      return change;
+    },
+    [resolveStack, plugins]
+  );
+
+  const resolveValue = useCallback((plugins, value) => {
+    let change = value.change();
+    change = resolveChange(plugins, change, change.operations.size);
+
+    // Store the change and it's operations count so that it can be flushed once
+    // the component next updates.
+    tmp.current.change = change;
+    tmp.current.operationsSize = change.operations.size;
+
+    return change.value;
+  }, []);
+
+  const value = useMemo(() => {
+    if (
+      editorPlugins === tmp.current.plugins &&
+      props.value === tmp.current.value
+    ) {
+      return tmp.current.value;
+    }
+    return resolveValue(plugins, props.value);
+  }, [plugins, props.value, tmp.current]);
+
+  const change = (...args) => {
+    if (tmp.current.isChanging) {
+      logger.warn(
+        "The `editor.change` method was called from within an existing `editor.change` callback. This is not allowed, and often due to calling `editor.change` directly from a plugin's event handler which is unnecessary."
+      );
+
+      return;
+    }
+
+    const change = value.change();
+
+    try {
+      tmp.current.isChanging = true;
+      change.call(...args);
+    } catch (error) {
+      throw error;
+    } finally {
+      tmp.current.isChanging = false;
+    }
+
+    onChange(change);
+  };
+
+  const blur = () => {
+    this.change((c) => c.blur());
+  };
+
+  const focus = () => {
+    change((c) => c.focus());
+  };
+
+  useIsomorphicLayoutEffect(() => {
+    tmp.current.updates++;
+    const { autoFocus } = props;
+    const { change } = tmp.current;
+    if (autoFocus) {
+      if (change) {
+        change.focus();
+      } else {
+        focus();
+      }
+    }
+  }, []);
+
+  useIsomorphicLayoutEffect(() => {
+    tmp.current.updates++;
+    const { change, resolves, updates } = tmp.current;
+    // If we've resolved a few times already, and it's exactly in line with
+    // the updates, then warn the user that they may be doing something wrong.
+    if (resolves > 5 && resolves === updates) {
+      logger.warn(
+        "A Slate <Editor> component is re-resolving `props.plugins` or `props.schema` on each update, which leads to poor performance. This is often due to passing in a new `schema` or `plugins` prop with each render by declaring them inline in your render function. Do not do this!"
+      );
+    }
+
+    if (change) {
+      onChange(change);
+    }
+  });
+};
 
 class Editor extends React.Component<any, any> {
   /**
@@ -47,7 +213,7 @@ class Editor extends React.Component<any, any> {
     spellCheck: Types.bool,
     style: Types.object,
     tabIndex: Types.number,
-    value: SlateTypes.value.isRequired
+    value: SlateTypes.value.isRequired,
   };
 
   /**
@@ -63,7 +229,7 @@ class Editor extends React.Component<any, any> {
     plugins: [],
     readOnly: false,
     schema: {},
-    spellCheck: true
+    spellCheck: true,
   };
 
   /**
@@ -85,7 +251,7 @@ class Editor extends React.Component<any, any> {
     plugins: null,
     resolves: 0,
     updates: 0,
-    value: null
+    value: null,
   };
 
   /**
@@ -95,7 +261,7 @@ class Editor extends React.Component<any, any> {
    */
 
   handlers = EVENT_HANDLERS.reduce((obj, handler) => {
-    obj[handler] = event => this.onEvent(handler, event);
+    obj[handler] = (event) => this.onEvent(handler, event);
     return obj;
   }, {});
   /**
@@ -253,7 +419,7 @@ class Editor extends React.Component<any, any> {
    */
 
   blur = () => {
-    this.change(c => c.blur());
+    this.change((c) => c.blur());
   };
 
   /**
@@ -261,7 +427,7 @@ class Editor extends React.Component<any, any> {
    */
 
   focus = () => {
-    this.change(c => c.focus());
+    this.change((c) => c.focus());
   };
 
   /**
@@ -270,7 +436,7 @@ class Editor extends React.Component<any, any> {
    * @param {Change} change
    */
 
-  onChange = change => {
+  onChange = (change) => {
     // If the change doesn't define any operations to apply, abort.
     if (change.operations.size === 0) {
       return;
@@ -300,7 +466,7 @@ class Editor extends React.Component<any, any> {
    */
 
   onEvent = (handler, event?: any) => {
-    this.change(change => {
+    this.change((change) => {
       this.stack.run(handler, event, change, this);
     });
   };
@@ -365,7 +531,7 @@ class Editor extends React.Component<any, any> {
    * @return {Schema}
    */
 
-  resolveSchema = memoizeOne(plugins => {
+  resolveSchema = memoizeOne((plugins) => {
     debug("resolveSchema", { plugins });
     const schema = Schema.create({ plugins });
     return schema;
@@ -378,7 +544,7 @@ class Editor extends React.Component<any, any> {
    * @return {Stack}
    */
 
-  resolveStack = memoizeOne(plugins => {
+  resolveStack = memoizeOne((plugins) => {
     debug("resolveStack", { plugins });
     const stack = Stack.create({ plugins });
     return stack;
