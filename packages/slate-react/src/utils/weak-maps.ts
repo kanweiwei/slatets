@@ -4,7 +4,7 @@ export const ELEMENT_TO_NODE = new WeakMap();
 
 export const NODE_TO_INDEX = new WeakMap();
 
-export const NODE__TO_KEY = new WeakMap();
+export const NODE_TO_KEY = new WeakMap();
 
 export const NODE_TO_ELEMENT = new WeakMap();
 

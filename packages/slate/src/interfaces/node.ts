@@ -15,6 +15,7 @@ import Point from "../models/point";
 import Range from "../models/range";
 import Selection from "../models/selection";
 import Key from "../utils/key-utils";
+import { NODE_TO_PARENT, NODE_TO_INDEX } from "slate-react";
 
 /**
  * The interface that `Document`, `Block` and `Inline` all implement, to make
@@ -44,7 +45,7 @@ class NodeInterface {
    */
 
   addMark(path, offset, length, mark) {
-    let node = this.assertDescendant(path);
+    let node = this.getDescendant(path);
 
     path = this.resolvePath(path);
     node = node.addMark(offset, length, mark);
@@ -189,8 +190,8 @@ class NodeInterface {
     let endOffset = end.offset;
     let startText = this.getDescendant(startKey);
 
-    if (startKey !== endKey) {
-      while (startKey !== endKey && endOffset === 0) {
+    if (startKey.id !== endKey.id) {
+      while (startKey.id !== endKey.id && endOffset === 0) {
         const endText = this.getPreviousText(endKey);
         endKey = endText.key;
         endOffset = endText.text.length;
@@ -799,28 +800,31 @@ class NodeInterface {
    */
 
   getKeysToPathsTable() {
-    const ret = {
-      [this.key]: [],
-    };
+    const self = this;
+    const path = [];
+    let child = self;
 
-    this.nodes.forEach((node, i) => {
-      const nested = node.getKeysToPathsTable();
-
-      for (const key in nested) {
-        const path = nested[key];
-
-        if (ret[key]) {
-          logger.warn(
-            `A node with a duplicate key of "${key}" was found! Duplicate keys are not allowed, you should use \`node.regenerateKey\` before inserting if you are reusing an existing node.`,
-            this
-          );
+    while (true) {
+      const parent = NODE_TO_PARENT.get(child);
+      if (parent === null) {
+        if (Document.isDocument(child)) {
+          return path;
         }
-
-        ret[key] = [i, ...path];
+        break;
       }
-    });
 
-    return ret;
+      const i = NODE_TO_INDEX.get(child);
+      if (i === null) {
+        break;
+      }
+
+      path.unshift(i);
+      child = parent;
+    }
+
+    throw new Error(
+      `Unable to find the path for Slate node: ${JSON.stringify(this.toJSON())}`
+    );
   }
 
   /**
@@ -1188,12 +1192,13 @@ class NodeInterface {
   /**
    * Find the path to a node.
    *
-   * @param {String|List} key
+   * @param {Key|List} key
    * @return {List}
    */
 
-  getPath(key) {
+  getPath(key: Key | List<number>) {
     // Handle the case of passing in a path directly, to match other methods.
+
     if (List.isList(key)) return key;
 
     const dict = this.getKeysToPathsTable();
@@ -1859,7 +1864,6 @@ class NodeInterface {
     }
 
     if (!path.size) return node;
-    this.assertNode(path);
     const deep = path.flatMap((x) => ["nodes", x]);
     const ret = this.setIn(deep, node);
     return ret;
