@@ -27,11 +27,13 @@
     "immutable": "^3.8.2",
     "is-empty": "^1.2.0",
     "is-plain-object": "^2.0.4",
+    "lodash-es": "^4.17.15",
     "memoize-one": "^4.0.0",
     "slate-dev-logger": "^0.1.39"
   },
   "devDependencies": {
     "@types/immutable": "^3.8.7",
+    "@types/lodash-es": "^4.17.3",
     "@types/react-dom": "16.0.4",
     "@zykj/slate-dev-environment": "^0.1.4",
     "babel": "^6.23.0",

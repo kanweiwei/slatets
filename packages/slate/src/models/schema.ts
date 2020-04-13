@@ -21,7 +21,7 @@ import {
   PARENT_TYPE_INVALID,
   PREVIOUS_SIBLING_TYPE_INVALID,
   NEXT_SIBLING_OBJECT_INVALID,
-  NEXT_SIBLING_TYPE_INVALID
+  NEXT_SIBLING_TYPE_INVALID,
 } from "@zykj/slate-schema-violations";
 
 import MODEL_TYPES from "../constants/model-types";
@@ -38,39 +38,39 @@ const CORE_RULES = [
     match: { object: "document" },
     nodes: [
       {
-        match: { object: "block" }
-      }
-    ]
+        match: { object: "block" },
+      },
+    ],
   },
 
   // Only allow block nodes or inline and text nodes in blocks.
   {
     match: {
       object: "block",
-      first: { object: "block" }
+      first: { object: "block" },
     },
     nodes: [
       {
-        match: { object: "block" }
-      }
-    ]
+        match: { object: "block" },
+      },
+    ],
   },
   {
     match: {
       object: "block",
-      first: [{ object: "inline" }, { object: "text" }]
+      first: [{ object: "inline" }, { object: "text" }],
     },
     nodes: [
       {
-        match: [{ object: "inline" }, { object: "text" }]
-      }
-    ]
+        match: [{ object: "inline" }, { object: "text" }],
+      },
+    ],
   },
 
   // Only allow inline and text nodes in inlines.
   {
     match: { object: "inline" },
-    nodes: [{ match: [{ object: "inline" }, { object: "text" }] }]
+    nodes: [{ match: [{ object: "inline" }, { object: "text" }] }],
   },
 
   // Ensure that block and inline nodes have at least one text child.
@@ -81,9 +81,9 @@ const CORE_RULES = [
       const { code, node } = error;
       if (code !== "child_required") return;
       change.insertNodeByKey(node.key, 0, Text.create(), {
-        normalize: false
+        normalize: false,
       });
-    }
+    },
   },
 
   // Ensure that inline non-void nodes are never empty.
@@ -91,9 +91,9 @@ const CORE_RULES = [
     match: {
       object: "inline",
       isVoid: false,
-      nodes: [{ match: { object: "text" } }]
+      nodes: [{ match: { object: "text" } }],
     },
-    text: /[\w\W]+/
+    text: /[\w\W]+/,
   },
 
   // Ensure that inline void nodes are surrounded by text nodes.
@@ -115,7 +115,7 @@ const CORE_RULES = [
       }
 
       change.insertNodeByKey(node.key, i, text, { normalize: false });
-    }
+    },
   },
   {
     match: { object: "inline" },
@@ -141,7 +141,7 @@ const CORE_RULES = [
       }
 
       change.insertNodeByKey(node.key, i, text, { normalize: false });
-    }
+    },
   },
 
   // Merge adjacent text nodes.
@@ -152,8 +152,8 @@ const CORE_RULES = [
       const { code, next } = error;
       if (code !== "next_sibling_object_invalid") return;
       change.mergeNodeByKey(next.key, { normalize: false });
-    }
-  }
+    },
+  },
 ];
 
 /**
@@ -164,7 +164,7 @@ const CORE_RULES = [
 
 const DEFAULTS = {
   stack: Stack.create(),
-  rules: []
+  rules: [],
 };
 
 class Schema extends Record(DEFAULTS) {
@@ -210,28 +210,28 @@ class Schema extends Record(DEFAULTS) {
       if (schema.document) {
         rules.push({
           match: [{ object: "document" }],
-          ...schema.document
+          ...schema.document,
         });
       }
 
       for (const key in blocks) {
         rules.push({
           match: [{ object: "block", type: key }],
-          ...blocks[key]
+          ...blocks[key],
         });
       }
 
       for (const key in inlines) {
         rules.push({
           match: [{ object: "inline", type: key }],
-          ...inlines[key]
+          ...inlines[key],
         });
       }
 
       for (const key in marks) {
         rules.push({
           match: [{ object: "mark", type: key }],
-          ...marks[key]
+          ...marks[key],
         });
       }
     }
@@ -256,7 +256,7 @@ class Schema extends Record(DEFAULTS) {
    * 实例方法
    */
   validateNode(node) {
-    const rules = this.rules.filter(r => testRules(node, r.match));
+    const rules = this.rules.filter((r) => testRules(node, r.match));
     const failure = validateRules(node, rules, this.rules, { every: true });
     if (!failure) return;
     const error = new SlateError(failure.code, failure);
@@ -300,7 +300,7 @@ class Schema extends Record(DEFAULTS) {
     const error = this.validateNode(node);
     if (!error) return;
 
-    return change => {
+    return (change) => {
       debug(`normalizing`, { error });
       const { rule } = error as any;
       const { size } = change.operations;
@@ -327,7 +327,7 @@ class Schema extends Record(DEFAULTS) {
 
   isAtomic(mark) {
     const rule = this.rules.find(
-      r => "isAtomic" in r && testRules(mark, r.match)
+      (r) => "isAtomic" in r && testRules(mark, r.match)
     );
 
     return rule ? rule.isAtomic : false;
@@ -354,7 +354,7 @@ class Schema extends Record(DEFAULTS) {
   toJSON(options: any = {}) {
     const object = {
       object: this.object,
-      rules: this.rules
+      rules: this.rules,
     };
 
     return object;
@@ -406,9 +406,9 @@ function defaultNormalize(change, error) {
     case PARENT_OBJECT_INVALID:
     case PARENT_TYPE_INVALID: {
       return node.object === "document"
-        ? node.nodes.forEach(n =>
-          change.removeNodeByKey(n.key, { normalize: false })
-        )
+        ? node.nodes.forEach((n) =>
+            change.removeNodeByKey(n.key, { normalize: false })
+          )
         : change.removeNodeByKey(node.key, { normalize: false });
     }
 
@@ -416,10 +416,10 @@ function defaultNormalize(change, error) {
       return node.data.get(key) === undefined && node.object !== "document"
         ? change.removeNodeByKey(node.key, { normalize: false })
         : change.setNodeByKey(
-          node.key,
-          { data: node.data.delete(key) },
-          { normalize: false }
-        );
+            node.key,
+            { data: node.data.delete(key) },
+            { normalize: false }
+          );
     }
 
     case NODE_IS_VOID_INVALID: {
@@ -431,9 +431,9 @@ function defaultNormalize(change, error) {
     }
 
     case NODE_MARK_INVALID: {
-      return node.getTexts().forEach(t =>
+      return node.getTexts().forEach((t) =>
         change.removeMarkByKey(t.key, 0, t.text.length, mark, {
-          normalize: false
+          normalize: false,
         })
       );
     }
@@ -553,7 +553,7 @@ function validateMarks(node, rule) {
   const marks = node.getMarks().toArray();
 
   for (const mark of marks) {
-    const valid = rule.marks.some(def =>
+    const valid = rule.marks.some((def) =>
       typeof def.type === "function"
         ? def.type(mark.type)
         : def.type === mark.type
