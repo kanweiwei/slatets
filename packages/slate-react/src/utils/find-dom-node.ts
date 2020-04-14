@@ -1,4 +1,5 @@
-import { Node } from '@zykj/slate'
+import { Node } from "@zykj/slate";
+import { KEY_TO_ELEMENT } from "./weak-maps";
 
 /**
  * Find the DOM node for a `key`.
@@ -10,18 +11,18 @@ import { Node } from '@zykj/slate'
 
 function findDOMNode(key, win = window) {
   if (Node.isNode(key)) {
-    key = key.key
+    key = key.key;
   }
 
-  const el = win.document.querySelector(`[data-key="${key}"]`)
+  const el = KEY_TO_ELEMENT.get(key);
 
   if (!el) {
     throw new Error(
       `Unable to find a DOM node for "${key}". This is often because of forgetting to add \`props.attributes\` to a custom component.`
-    )
+    );
   }
 
-  return el
+  return el;
 }
 
 /**
@@ -30,4 +31,4 @@ function findDOMNode(key, win = window) {
  * @type {Function}
  */
 
-export default findDOMNode
+export default findDOMNode;
