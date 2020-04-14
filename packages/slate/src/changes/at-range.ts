@@ -796,7 +796,7 @@ Changes.insertFragmentAtRange = (change, range, fragment, options = {}) => {
       ? startChild
       : startBlock.getNextSibling(startChild.key);
     const nextNodes = nextChild
-      ? startBlock.nodes.skipUntil((n) => n.key == nextChild.key)
+      ? startBlock.nodes.skipUntil((n) => isEqual(n.key, nextChild.key))
       : List();
     const lastIndex = lastBlock.nodes.size;
 
