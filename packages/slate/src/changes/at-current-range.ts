@@ -3,6 +3,7 @@ import Block from "../models/block";
 import Inline from "../models/inline";
 import Mark from "../models/mark";
 import Change from "../models/change";
+import { isEqual } from "lodash-es";
 
 /**
  * Changes.
@@ -11,35 +12,35 @@ import Change from "../models/change";
  */
 
 const Changes: {
-    deleteBackward;
-    deleteCharBackward;
-    deleteLineBackward;
-    deleteWordBackward;
-    deleteForward;
-    deleteCharForward;
-    deleteWordForward;
-    deleteLineForward;
-    setBlocks;
-    setInlines;
-    splitInline;
-    unwrapBlock;
-    unwrapInline;
-    wrapBlock;
-    wrapInline;
-    setBlock;
-    setInline;
-    addMark;
-    addMarks;
-    delete;
-    insertBlock;
-    insertFragment;
-    insertInline;
-    insertText;
-    removeMark;
-    replaceMark;
-    splitBlock;
-    toggleMark;
-    wrapText;
+  deleteBackward;
+  deleteCharBackward;
+  deleteLineBackward;
+  deleteWordBackward;
+  deleteForward;
+  deleteCharForward;
+  deleteWordForward;
+  deleteLineForward;
+  setBlocks;
+  setInlines;
+  splitInline;
+  unwrapBlock;
+  unwrapInline;
+  wrapBlock;
+  wrapInline;
+  setBlock;
+  setInline;
+  addMark;
+  addMarks;
+  delete;
+  insertBlock;
+  insertFragment;
+  insertInline;
+  insertText;
+  removeMark;
+  replaceMark;
+  splitBlock;
+  toggleMark;
+  wrapText;
 } = {} as any;
 
 /**
@@ -48,54 +49,54 @@ const Changes: {
  */
 
 const PROXY_TRANSFORMS = [
-    "deleteBackward",
-    "deleteCharBackward",
-    "deleteLineBackward",
-    "deleteWordBackward",
-    "deleteForward",
-    "deleteCharForward",
-    "deleteWordForward",
-    "deleteLineForward",
-    "setBlocks",
-    "setInlines",
-    "splitInline",
-    "unwrapBlock",
-    "unwrapInline",
-    "wrapBlock",
-    "wrapInline"
+  "deleteBackward",
+  "deleteCharBackward",
+  "deleteLineBackward",
+  "deleteWordBackward",
+  "deleteForward",
+  "deleteCharForward",
+  "deleteWordForward",
+  "deleteLineForward",
+  "setBlocks",
+  "setInlines",
+  "splitInline",
+  "unwrapBlock",
+  "unwrapInline",
+  "wrapBlock",
+  "wrapInline",
 ];
 
-PROXY_TRANSFORMS.forEach(method => {
-    Changes[method] = (change: Change, ...args) => {
-        const { value } = change;
-        const { selection } = value;
-        const methodAtRange = `${method}AtRange`;
-        change[methodAtRange](selection, ...args);
+PROXY_TRANSFORMS.forEach((method) => {
+  Changes[method] = (change: Change, ...args) => {
+    const { value } = change;
+    const { selection } = value;
+    const methodAtRange = `${method}AtRange`;
+    change[methodAtRange](selection, ...args);
 
-        if (method.match(/Backward$/)) {
-            change.moveToStart();
-        } else if (method.match(/Forward$/)) {
-            change.moveToEnd();
-        }
-    };
+    if (method.match(/Backward$/)) {
+      change.moveToStart();
+    } else if (method.match(/Forward$/)) {
+      change.moveToEnd();
+    }
+  };
 });
 
 Changes.setBlock = (...args) => {
-    logger.deprecate(
-        "slate@0.33.0",
-        "The `setBlock` method of Slate changes has been renamed to `setBlocks`."
-    );
+  logger.deprecate(
+    "slate@0.33.0",
+    "The `setBlock` method of Slate changes has been renamed to `setBlocks`."
+  );
 
-    Changes.setBlocks(...args);
+  Changes.setBlocks(...args);
 };
 
 Changes.setInline = (...args) => {
-    logger.deprecate(
-        "slate@0.33.0",
-        "The `setInline` method of Slate changes has been renamed to `setInlines`."
-    );
+  logger.deprecate(
+    "slate@0.33.0",
+    "The `setInline` method of Slate changes has been renamed to `setInlines`."
+  );
 
-    Changes.setInlines(...args);
+  Changes.setInlines(...args);
 };
 
 /**
@@ -106,21 +107,21 @@ Changes.setInline = (...args) => {
  */
 
 Changes.addMark = (change, mark) => {
-    mark = Mark.create(mark);
-    const { value } = change;
-    const { document, selection } = value;
+  mark = Mark.create(mark);
+  const { value } = change;
+  const { document, selection } = value;
 
-    if (selection.isExpanded) {
-        change.addMarkAtRange(selection, mark);
-    } else if (selection.marks) {
-        const marks = selection.marks.add(mark);
-        const sel = selection.set("marks", marks);
-        change.select(sel);
-    } else {
-        const marks = document.getActiveMarksAtRange(selection).add(mark);
-        const sel = selection.set("marks", marks);
-        change.select(sel);
-    }
+  if (selection.isExpanded) {
+    change.addMarkAtRange(selection, mark);
+  } else if (selection.marks) {
+    const marks = selection.marks.add(mark);
+    const sel = selection.set("marks", marks);
+    change.select(sel);
+  } else {
+    const marks = document.getActiveMarksAtRange(selection).add(mark);
+    const sel = selection.set("marks", marks);
+    change.select(sel);
+  }
 };
 
 /**
@@ -131,7 +132,7 @@ Changes.addMark = (change, mark) => {
  */
 
 Changes.addMarks = (change, marks) => {
-    marks.forEach(mark => change.addMark(mark));
+  marks.forEach((mark) => change.addMark(mark));
 };
 
 /**
@@ -140,15 +141,15 @@ Changes.addMarks = (change, marks) => {
  * @param {Change} change
  */
 
-Changes.delete = change => {
-    const { value } = change;
-    const { selection } = value;
-    change.deleteAtRange(selection);
+Changes.delete = (change) => {
+  const { value } = change;
+  const { selection } = value;
+  change.deleteAtRange(selection);
 
-    // Ensure that the selection is collapsed to the start, because in certain
-    // cases when deleting across inline nodes, when splitting the inline node the
-    // end point of the selection will end up after the split point.
-    change.moveToStart();
+  // Ensure that the selection is collapsed to the start, because in certain
+  // cases when deleting across inline nodes, when splitting the inline node the
+  // end point of the selection will end up after the split point.
+  change.moveToStart();
 };
 
 /**
@@ -159,14 +160,14 @@ Changes.delete = change => {
  */
 
 Changes.insertBlock = (change, block) => {
-    block = Block.create(block);
-    const { value } = change;
-    const { selection } = value;
-    change.insertBlockAtRange(selection, block);
+  block = Block.create(block);
+  const { value } = change;
+  const { selection } = value;
+  change.insertBlockAtRange(selection, block);
 
-    // If the node was successfully inserted, update the selection.
-    const node = change.value.document.getNode(block.key);
-    if (node) change.moveToEndOfNode(node);
+  // If the node was successfully inserted, update the selection.
+  const node = change.value.document.getNode(block.key);
+  if (node) change.moveToEndOfNode(node);
 };
 
 /**
@@ -177,47 +178,45 @@ Changes.insertBlock = (change, block) => {
  */
 
 Changes.insertFragment = (change, fragment) => {
-    if (!fragment.nodes.size) return;
+  if (!fragment.nodes.size) return;
 
-    let { value } = change;
-    let { document, selection } = value;
-    const { start, end } = selection;
-    const { startText, endText, startInline } = value;
-    const lastText = fragment.getLastText();
-    const lastInline = fragment.getClosestInline(lastText.key);
-    const firstChild = fragment.nodes.first();
-    const lastChild = fragment.nodes.last();
-    const keys = document.getTexts().map(text => text.key);
-    const isAppending =
-        !startInline ||
-        (start.isAtStartOfNode(startText) || end.isAtStartOfNode(startText)) ||
-        (start.isAtEndOfNode(endText) || end.isAtEndOfNode(endText));
+  let { value } = change;
+  let { document, selection } = value;
+  const { start, end } = selection;
+  const { startText, endText, startInline } = value;
+  const lastText = fragment.getLastText();
+  const lastInline = fragment.getClosestInline(lastText.key);
+  const firstChild = fragment.nodes.first();
+  const lastChild = fragment.nodes.last();
+  const keys = document.getTexts().map((text) => text.key);
+  const isAppending =
+    !startInline ||
+    start.isAtStartOfNode(startText) ||
+    end.isAtStartOfNode(startText) ||
+    start.isAtEndOfNode(endText) ||
+    end.isAtEndOfNode(endText);
 
-    const isInserting =
-        firstChild.hasBlockChildren() || lastChild.hasBlockChildren();
+  const isInserting =
+    firstChild.hasBlockChildren() || lastChild.hasBlockChildren();
 
-    change.insertFragmentAtRange(selection, fragment);
-    value = change.value;
-    document = value.document;
+  change.insertFragmentAtRange(selection, fragment);
+  value = change.value;
+  document = value.document;
 
-    const newTexts = document.getTexts().filter(n => !keys.includes(n.key));
-    const newText = isAppending
-        ? newTexts.last()
-        : newTexts.takeLast(2).first();
+  const newTexts = document
+    .getTexts()
+    .filter((n) => !keys.some((key) => isEqual(key, n.key)));
+  const newText = isAppending ? newTexts.last() : newTexts.takeLast(2).first();
 
-    if (newText && (lastInline || isInserting)) {
-        change.select(selection.moveToEndOfNode(newText));
-    } else if (newText) {
-        change.select(
-            selection
-                .moveToStartOfNode(newText)
-                .moveForward(lastText.text.length)
-        );
-    } else {
-        change.select(
-            selection.moveToStart().moveForward(lastText.text.length)
-        );
-    }
+  if (newText && (lastInline || isInserting)) {
+    change.select(selection.moveToEndOfNode(newText));
+  } else if (newText) {
+    change.select(
+      selection.moveToStartOfNode(newText).moveForward(lastText.text.length)
+    );
+  } else {
+    change.select(selection.moveToStart().moveForward(lastText.text.length));
+  }
 };
 
 /**
@@ -228,14 +227,14 @@ Changes.insertFragment = (change, fragment) => {
  */
 
 Changes.insertInline = (change, inline) => {
-    inline = Inline.create(inline);
-    const { value } = change;
-    const { selection } = value;
-    change.insertInlineAtRange(selection, inline);
+  inline = Inline.create(inline);
+  const { value } = change;
+  const { selection } = value;
+  change.insertInlineAtRange(selection, inline);
 
-    // If the node was successfully inserted, update the selection.
-    const node = change.value.document.getNode(inline.key);
-    if (node) change.moveToEndOfNode(node);
+  // If the node was successfully inserted, update the selection.
+  const node = change.value.document.getNode(inline.key);
+  if (node) change.moveToEndOfNode(node);
 };
 
 /**
@@ -247,17 +246,16 @@ Changes.insertInline = (change, inline) => {
  */
 
 Changes.insertText = (change, text, marks) => {
-    const { value } = change;
-    const { document, selection } = value;
-    marks =
-        marks || selection.marks || document.getInsertMarksAtRange(selection);
-    change.insertTextAtRange(selection, text, marks);
+  const { value } = change;
+  const { document, selection } = value;
+  marks = marks || selection.marks || document.getInsertMarksAtRange(selection);
+  change.insertTextAtRange(selection, text, marks);
 
-    // If the text was successfully inserted, and the selection had marks on it,
-    // unset the selection's marks.
-    if (selection.marks && document != change.value.document) {
-        change.select({ marks: null });
-    }
+  // If the text was successfully inserted, and the selection had marks on it,
+  // unset the selection's marks.
+  if (selection.marks && document != change.value.document) {
+    change.select({ marks: null });
+  }
 };
 
 /**
@@ -268,21 +266,21 @@ Changes.insertText = (change, text, marks) => {
  */
 
 Changes.removeMark = (change, mark) => {
-    mark = Mark.create(mark);
-    const { value } = change;
-    const { document, selection } = value;
+  mark = Mark.create(mark);
+  const { value } = change;
+  const { document, selection } = value;
 
-    if (selection.isExpanded) {
-        change.removeMarkAtRange(selection, mark);
-    } else if (selection.marks) {
-        const marks = selection.marks.remove(mark);
-        const sel = selection.set("marks", marks);
-        change.select(sel);
-    } else {
-        const marks = document.getActiveMarksAtRange(selection).remove(mark);
-        const sel = selection.set("marks", marks);
-        change.select(sel);
-    }
+  if (selection.isExpanded) {
+    change.removeMarkAtRange(selection, mark);
+  } else if (selection.marks) {
+    const marks = selection.marks.remove(mark);
+    const sel = selection.set("marks", marks);
+    change.select(sel);
+  } else {
+    const marks = document.getActiveMarksAtRange(selection).remove(mark);
+    const sel = selection.set("marks", marks);
+    change.select(sel);
+  }
 };
 
 /**
@@ -294,8 +292,8 @@ Changes.removeMark = (change, mark) => {
  */
 
 Changes.replaceMark = (change, oldMark, newMark) => {
-    change.removeMark(oldMark);
-    change.addMark(newMark);
+  change.removeMark(oldMark);
+  change.addMark(newMark);
 };
 
 /**
@@ -306,14 +304,14 @@ Changes.replaceMark = (change, oldMark, newMark) => {
  */
 
 Changes.splitBlock = (change, depth = 1) => {
-    const { value } = change;
-    const { selection, document } = value;
-    const marks = selection.marks || document.getInsertMarksAtRange(selection);
-    change.splitBlockAtRange(selection, depth).moveToEnd();
+  const { value } = change;
+  const { selection, document } = value;
+  const marks = selection.marks || document.getInsertMarksAtRange(selection);
+  change.splitBlockAtRange(selection, depth).moveToEnd();
 
-    if (marks && marks.size !== 0) {
-        change.select({ marks });
-    }
+  if (marks && marks.size !== 0) {
+    change.select({ marks });
+  }
 };
 
 /**
@@ -325,15 +323,15 @@ Changes.splitBlock = (change, depth = 1) => {
  */
 
 Changes.toggleMark = (change, mark) => {
-    mark = Mark.create(mark);
-    const { value } = change;
-    const exists = value.activeMarks.has(mark);
+  mark = Mark.create(mark);
+  const { value } = change;
+  const exists = value.activeMarks.has(mark);
 
-    if (exists) {
-        change.removeMark(mark);
-    } else {
-        change.addMark(mark);
-    }
+  if (exists) {
+    change.removeMark(mark);
+  } else {
+    change.addMark(mark);
+  }
 };
 
 /**
@@ -345,24 +343,24 @@ Changes.toggleMark = (change, mark) => {
  */
 
 Changes.wrapText = (change, prefix, suffix = prefix) => {
-    const { value } = change;
-    const { selection } = value;
-    change.wrapTextAtRange(selection, prefix, suffix);
+  const { value } = change;
+  const { selection } = value;
+  change.wrapTextAtRange(selection, prefix, suffix);
 
-    // If the selection was collapsed, it will have moved the start offset too.
-    if (selection.isCollapsed) {
-        change.moveStartBackward(prefix.length);
-    }
+  // If the selection was collapsed, it will have moved the start offset too.
+  if (selection.isCollapsed) {
+    change.moveStartBackward(prefix.length);
+  }
 
-    // Adding the suffix will have pushed the end of the selection further on, so
-    // we need to move it back to account for this.
-    change.moveEndBackward(suffix.length);
+  // Adding the suffix will have pushed the end of the selection further on, so
+  // we need to move it back to account for this.
+  change.moveEndBackward(suffix.length);
 
-    // There's a chance that the selection points moved "through" each other,
-    // resulting in a now-incorrect selection direction.
-    if (selection.isForward != change.value.selection.isForward) {
-        change.flip();
-    }
+  // There's a chance that the selection points moved "through" each other,
+  // resulting in a now-incorrect selection direction.
+  if (selection.isForward != change.value.selection.isForward) {
+    change.flip();
+  }
 };
 
 /**
