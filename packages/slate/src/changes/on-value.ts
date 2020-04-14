@@ -1,4 +1,4 @@
-import Value from '../models/value'
+import Value from "../models/value";
 
 /**
  * Changes.
@@ -7,7 +7,7 @@ import Value from '../models/value'
  */
 
 const Changes: {
-  setValue
+  setValue;
 } = {} as any;
 
 /**
@@ -19,18 +19,18 @@ const Changes: {
  */
 
 Changes.setValue = (change, properties, options = {}) => {
-  properties = Value.createProperties(properties)
-  const { value } = change
+  properties = Value.createProperties(properties);
+  const { value } = change;
 
   change.applyOperation(
     {
-      type: 'set_value',
+      type: "set_value",
       properties,
       value,
     },
     options
-  )
-}
+  );
+};
 
 /**
  * Export.
@@ -38,4 +38,4 @@ Changes.setValue = (change, properties, options = {}) => {
  * @type {Object}
  */
 
-export default Changes
+export default Changes;

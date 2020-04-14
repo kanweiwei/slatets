@@ -51,7 +51,7 @@ Changes.normalizeNodeByKey = (change, key, options = {}) => {
 
   const { value } = change;
   const { document, schema } = value;
-  const node = document.assertNode(key);
+  const node = document.getNode(key);
 
   normalizeNodeAndChildren(change, node, schema);
 
@@ -71,7 +71,7 @@ Changes.normalizeAncestorsByKey = (change, key) => {
   const ancestors = document.getAncestors(key);
   if (!ancestors) return;
 
-  ancestors.forEach(ancestor => {
+  ancestors.forEach((ancestor) => {
     if (change.value.document.getDescendant(ancestor.key)) {
       normalizeNode(change, ancestor, schema);
     }
@@ -106,7 +106,7 @@ Changes.normalizeNodeByPath = (change, path, options = {}) => {
   const ancestors = document.getAncestors(path);
   if (!ancestors) return;
 
-  ancestors.forEach(ancestor => {
+  ancestors.forEach((ancestor) => {
     if (change.value.document.getDescendant(ancestor.key)) {
       normalizeNode(change, ancestor, schema);
     }

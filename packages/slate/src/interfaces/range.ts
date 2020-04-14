@@ -7,6 +7,7 @@ import PathUtils from "../utils/path-utils";
 import Point from "../models/point";
 import Range from "../models/range";
 import Selection from "../models/selection";
+import { isEqual } from "lodash-es";
 
 /**
  * The interface that `Decoration`, `Range` and `Selection` all implement, to make
@@ -24,7 +25,7 @@ class RangeInterface {
   get isCollapsed() {
     return (
       this.anchor === this.focus ||
-      (this.anchor.key === this.focus.key &&
+      (isEqual(this.anchor.key, this.focus.key) &&
         this.anchor.offset === this.focus.offset)
     );
   }
@@ -52,7 +53,7 @@ class RangeInterface {
       return null;
     }
 
-    if (anchor.key === focus.key) {
+    if (isEqual(anchor.key, focus.key)) {
       return anchor.offset > focus.offset;
     }
 
@@ -133,7 +134,7 @@ class RangeInterface {
    */
 
   moveForward(n) {
-    return this.updatePoints(point => point.moveForward(n));
+    return this.updatePoints((point) => point.moveForward(n));
   }
 
   /**
@@ -144,7 +145,7 @@ class RangeInterface {
    */
 
   moveBackward(n) {
-    return this.updatePoints(point => point.moveBackward(n));
+    return this.updatePoints((point) => point.moveBackward(n));
   }
 
   /**
@@ -411,7 +412,7 @@ class RangeInterface {
    */
 
   moveTo(path, offset) {
-    return this.updatePoints(point => point.moveTo(path, offset));
+    return this.updatePoints((point) => point.moveTo(path, offset));
   }
 
   /**
@@ -444,7 +445,7 @@ class RangeInterface {
    */
 
   moveToEndOfNode(node) {
-    return this.updatePoints(point => point.moveToEndOfNode(node));
+    return this.updatePoints((point) => point.moveToEndOfNode(node));
   }
 
   /**
@@ -469,7 +470,7 @@ class RangeInterface {
   moveToRangeOfNode(start, end = start) {
     const range = this.setPoints([
       this.anchor.moveToStartOfNode(start),
-      this.focus.moveToEndOfNode(end)
+      this.focus.moveToEndOfNode(end),
     ]);
 
     return range;
@@ -494,7 +495,7 @@ class RangeInterface {
    */
 
   moveToStartOfNode(node) {
-    return this.updatePoints(point => point.moveToStartOfNode(node));
+    return this.updatePoints((point) => point.moveToStartOfNode(node));
   }
 
   /**
@@ -506,7 +507,7 @@ class RangeInterface {
    */
 
   normalize(node) {
-    return this.updatePoints(point => point.normalize(node));
+    return this.updatePoints((point) => point.normalize(node));
   }
 
   /**
@@ -622,7 +623,7 @@ class RangeInterface {
     const object = {
       object: this.object,
       anchor: this.anchor.toJSON(options),
-      focus: this.focus.toJSON(options)
+      focus: this.focus.toJSON(options),
     };
 
     return object;
@@ -647,7 +648,7 @@ class RangeInterface {
    */
 
   unset() {
-    const range = this.updatePoints(p => p.unset());
+    const range = this.updatePoints((p) => p.unset());
     return range;
   }
 
@@ -1205,11 +1206,11 @@ const ALIAS_METHODS = [
   ["extend", "moveFocus"],
   ["extendTo", "moveFocusTo"],
   ["extendToStartOf", "moveFocusToStartOfNode"],
-  ["extendToEndOf", "moveFocusToEndOfNode"]
+  ["extendToEndOf", "moveFocusToEndOfNode"],
 ];
 
 ALIAS_METHODS.forEach(([alias, method]) => {
-  RangeInterface.prototype[alias] = function(...args) {
+  RangeInterface.prototype[alias] = function (...args) {
     logger.deprecate(
       "0.37.0",
       `The \`Range.${alias}\` method is deprecated, please use \`Range.${method}\` instead.`

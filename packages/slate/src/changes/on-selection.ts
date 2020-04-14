@@ -150,20 +150,20 @@ const Changes: {
   moveOffsetsTo;
 } = {} as any;
 
-Changes.blur = change => {
+Changes.blur = (change) => {
   change.select({ isFocused: false });
 };
 
-Changes.deselect = change => {
+Changes.deselect = (change) => {
   const range = Selection.create();
   change.select(range);
 };
 
-Changes.focus = change => {
+Changes.focus = (change) => {
   change.select({ isFocused: true });
 };
 
-Changes.flip = change => {
+Changes.flip = (change) => {
   change.call(proxy, "flip");
 };
 
@@ -179,27 +179,27 @@ Changes.moveAnchorTo = (change, ...args) => {
   change.call(proxy, "moveAnchorTo", ...args);
 };
 
-Changes.moveAnchorToEndOfBlock = change => {
+Changes.moveAnchorToEndOfBlock = (change) => {
   change.call(pointEdgeObject, "anchor", "end", "block");
 };
 
-Changes.moveAnchorToEndOfInline = change => {
+Changes.moveAnchorToEndOfInline = (change) => {
   change.call(pointEdgeObject, "anchor", "end", "inline");
 };
 
-Changes.moveAnchorToEndOfDocument = change => {
+Changes.moveAnchorToEndOfDocument = (change) => {
   change.moveAnchorToEndOfNode(change.value.document).moveToAnchor();
 };
 
-Changes.moveAnchorToEndOfNextBlock = change => {
+Changes.moveAnchorToEndOfNextBlock = (change) => {
   change.call(pointEdgeSideObject, "anchor", "end", "next", "block");
 };
 
-Changes.moveAnchorToEndOfNextInline = change => {
+Changes.moveAnchorToEndOfNextInline = (change) => {
   change.call(pointEdgeSideObject, "anchor", "end", "next", "inline");
 };
 
-Changes.moveAnchorToEndOfNextText = change => {
+Changes.moveAnchorToEndOfNextText = (change) => {
   change.call(pointEdgeSideObject, "anchor", "end", "next", "text");
 };
 
@@ -207,43 +207,43 @@ Changes.moveAnchorToEndOfNode = (change, ...args) => {
   change.call(proxy, "moveAnchorToEndOfNode", ...args);
 };
 
-Changes.moveAnchorToEndOfPreviousBlock = change => {
+Changes.moveAnchorToEndOfPreviousBlock = (change) => {
   change.call(pointEdgeSideObject, "anchor", "end", "previous", "block");
 };
 
-Changes.moveAnchorToEndOfPreviousInline = change => {
+Changes.moveAnchorToEndOfPreviousInline = (change) => {
   change.call(pointEdgeSideObject, "anchor", "end", "previous", "inline");
 };
 
-Changes.moveAnchorToEndOfPreviousText = change => {
+Changes.moveAnchorToEndOfPreviousText = (change) => {
   change.call(pointEdgeSideObject, "anchor", "end", "previous", "text");
 };
 
-Changes.moveAnchorToEndOfText = change => {
+Changes.moveAnchorToEndOfText = (change) => {
   change.call(pointEdgeObject, "anchor", "end", "text");
 };
 
-Changes.moveAnchorToStartOfBlock = change => {
+Changes.moveAnchorToStartOfBlock = (change) => {
   change.call(pointEdgeObject, "anchor", "start", "block");
 };
 
-Changes.moveAnchorToStartOfDocument = change => {
+Changes.moveAnchorToStartOfDocument = (change) => {
   change.moveAnchorToStartOfNode(change.value.document).moveToAnchor();
 };
 
-Changes.moveAnchorToStartOfInline = change => {
+Changes.moveAnchorToStartOfInline = (change) => {
   change.call(pointEdgeObject, "anchor", "start", "inline");
 };
 
-Changes.moveAnchorToStartOfNextBlock = change => {
+Changes.moveAnchorToStartOfNextBlock = (change) => {
   change.call(pointEdgeSideObject, "anchor", "start", "next", "block");
 };
 
-Changes.moveAnchorToStartOfNextInline = change => {
+Changes.moveAnchorToStartOfNextInline = (change) => {
   change.call(pointEdgeSideObject, "anchor", "start", "next", "inline");
 };
 
-Changes.moveAnchorToStartOfNextText = change => {
+Changes.moveAnchorToStartOfNextText = (change) => {
   change.call(pointEdgeSideObject, "anchor", "start", "next", "text");
 };
 
@@ -251,19 +251,19 @@ Changes.moveAnchorToStartOfNode = (change, ...args) => {
   change.call(proxy, "moveAnchorToStartOfNode", ...args);
 };
 
-Changes.moveAnchorToStartOfPreviousBlock = change => {
+Changes.moveAnchorToStartOfPreviousBlock = (change) => {
   change.call(pointEdgeSideObject, "anchor", "start", "previous", "block");
 };
 
-Changes.moveAnchorToStartOfPreviousInline = change => {
+Changes.moveAnchorToStartOfPreviousInline = (change) => {
   change.call(pointEdgeSideObject, "anchor", "start", "previous", "inline");
 };
 
-Changes.moveAnchorToStartOfPreviousText = change => {
+Changes.moveAnchorToStartOfPreviousText = (change) => {
   change.call(pointEdgeSideObject, "anchor", "start", "previous", "text");
 };
 
-Changes.moveAnchorToStartOfText = change => {
+Changes.moveAnchorToStartOfText = (change) => {
   change.call(pointEdgeObject, "anchor", "start", "text");
 };
 
@@ -283,27 +283,27 @@ Changes.moveEndTo = (change, ...args) => {
   change.call(proxy, "moveEndTo", ...args);
 };
 
-Changes.moveEndToEndOfBlock = change => {
+Changes.moveEndToEndOfBlock = (change) => {
   change.call(pointEdgeObject, "end", "end", "block");
 };
 
-Changes.moveEndToEndOfDocument = change => {
+Changes.moveEndToEndOfDocument = (change) => {
   change.moveEndToEndOfNode(change.value.document).moveToEnd();
 };
 
-Changes.moveEndToEndOfInline = change => {
+Changes.moveEndToEndOfInline = (change) => {
   change.call(pointEdgeObject, "end", "end", "inline");
 };
 
-Changes.moveEndToEndOfNextBlock = change => {
+Changes.moveEndToEndOfNextBlock = (change) => {
   change.call(pointEdgeSideObject, "end", "end", "next", "block");
 };
 
-Changes.moveEndToEndOfNextInline = change => {
+Changes.moveEndToEndOfNextInline = (change) => {
   change.call(pointEdgeSideObject, "end", "end", "next", "inline");
 };
 
-Changes.moveEndToEndOfNextText = change => {
+Changes.moveEndToEndOfNextText = (change) => {
   change.call(pointEdgeSideObject, "end", "end", "next", "text");
 };
 
@@ -311,43 +311,43 @@ Changes.moveEndToEndOfNode = (change, ...args) => {
   change.call(proxy, "moveEndToEndOfNode", ...args);
 };
 
-Changes.moveEndToEndOfPreviousBlock = change => {
+Changes.moveEndToEndOfPreviousBlock = (change) => {
   change.call(pointEdgeSideObject, "end", "end", "previous", "block");
 };
 
-Changes.moveEndToEndOfPreviousInline = change => {
+Changes.moveEndToEndOfPreviousInline = (change) => {
   change.call(pointEdgeSideObject, "end", "end", "previous", "inline");
 };
 
-Changes.moveEndToEndOfPreviousText = change => {
+Changes.moveEndToEndOfPreviousText = (change) => {
   change.call(pointEdgeSideObject, "end", "end", "previous", "text");
 };
 
-Changes.moveEndToEndOfText = change => {
+Changes.moveEndToEndOfText = (change) => {
   change.call(pointEdgeObject, "end", "end", "text");
 };
 
-Changes.moveEndToStartOfBlock = change => {
+Changes.moveEndToStartOfBlock = (change) => {
   change.call(pointEdgeObject, "end", "start", "block");
 };
 
-Changes.moveEndToStartOfDocument = change => {
+Changes.moveEndToStartOfDocument = (change) => {
   change.moveEndToStartOfNode(change.value.document).moveToEnd();
 };
 
-Changes.moveEndToStartOfInline = change => {
+Changes.moveEndToStartOfInline = (change) => {
   change.call(pointEdgeObject, "end", "start", "inline");
 };
 
-Changes.moveEndToStartOfNextBlock = change => {
+Changes.moveEndToStartOfNextBlock = (change) => {
   change.call(pointEdgeSideObject, "end", "start", "next", "block");
 };
 
-Changes.moveEndToStartOfNextInline = change => {
+Changes.moveEndToStartOfNextInline = (change) => {
   change.call(pointEdgeSideObject, "end", "start", "next", "inline");
 };
 
-Changes.moveEndToStartOfNextText = change => {
+Changes.moveEndToStartOfNextText = (change) => {
   change.call(pointEdgeSideObject, "end", "start", "next", "text");
 };
 
@@ -355,19 +355,19 @@ Changes.moveEndToStartOfNode = (change, ...args) => {
   change.call(proxy, "moveEndToStartOfNode", ...args);
 };
 
-Changes.moveEndToStartOfPreviousBlock = change => {
+Changes.moveEndToStartOfPreviousBlock = (change) => {
   change.call(pointEdgeSideObject, "end", "start", "previous", "block");
 };
 
-Changes.moveEndToStartOfPreviousInline = change => {
+Changes.moveEndToStartOfPreviousInline = (change) => {
   change.call(pointEdgeSideObject, "end", "start", "previous", "inline");
 };
 
-Changes.moveEndToStartOfPreviousText = change => {
+Changes.moveEndToStartOfPreviousText = (change) => {
   change.call(pointEdgeSideObject, "end", "start", "previous", "text");
 };
 
-Changes.moveEndToStartOfText = change => {
+Changes.moveEndToStartOfText = (change) => {
   change.call(pointEdgeObject, "end", "start", "text");
 };
 
@@ -383,27 +383,27 @@ Changes.moveFocusTo = (change, ...args) => {
   change.call(proxy, "moveFocusTo", ...args);
 };
 
-Changes.moveFocusToEndOfBlock = change => {
+Changes.moveFocusToEndOfBlock = (change) => {
   change.call(pointEdgeObject, "focus", "end", "block");
 };
 
-Changes.moveFocusToEndOfDocument = change => {
+Changes.moveFocusToEndOfDocument = (change) => {
   change.moveFocusToEndOfNode(change.value.document).moveToFocus();
 };
 
-Changes.moveFocusToEndOfInline = change => {
+Changes.moveFocusToEndOfInline = (change) => {
   change.call(pointEdgeObject, "focus", "end", "inline");
 };
 
-Changes.moveFocusToEndOfNextBlock = change => {
+Changes.moveFocusToEndOfNextBlock = (change) => {
   change.call(pointEdgeSideObject, "focus", "end", "next", "block");
 };
 
-Changes.moveFocusToEndOfNextInline = change => {
+Changes.moveFocusToEndOfNextInline = (change) => {
   change.call(pointEdgeSideObject, "focus", "end", "next", "inline");
 };
 
-Changes.moveFocusToEndOfNextText = change => {
+Changes.moveFocusToEndOfNextText = (change) => {
   change.call(pointEdgeSideObject, "focus", "end", "next", "text");
 };
 
@@ -411,43 +411,43 @@ Changes.moveFocusToEndOfNode = (change, ...args) => {
   change.call(proxy, "moveFocusToEndOfNode", ...args);
 };
 
-Changes.moveFocusToEndOfPreviousBlock = change => {
+Changes.moveFocusToEndOfPreviousBlock = (change) => {
   change.call(pointEdgeSideObject, "focus", "end", "previous", "block");
 };
 
-Changes.moveFocusToEndOfPreviousInline = change => {
+Changes.moveFocusToEndOfPreviousInline = (change) => {
   change.call(pointEdgeSideObject, "focus", "end", "previous", "inline");
 };
 
-Changes.moveFocusToEndOfPreviousText = change => {
+Changes.moveFocusToEndOfPreviousText = (change) => {
   change.call(pointEdgeSideObject, "focus", "end", "previous", "text");
 };
 
-Changes.moveFocusToEndOfText = change => {
+Changes.moveFocusToEndOfText = (change) => {
   change.call(pointEdgeObject, "focus", "end", "text");
 };
 
-Changes.moveFocusToStartOfBlock = change => {
+Changes.moveFocusToStartOfBlock = (change) => {
   change.call(pointEdgeObject, "focus", "start", "block");
 };
 
-Changes.moveFocusToStartOfDocument = change => {
+Changes.moveFocusToStartOfDocument = (change) => {
   change.moveFocusToStartOfNode(change.value.document).moveToFocus();
 };
 
-Changes.moveFocusToStartOfInline = change => {
+Changes.moveFocusToStartOfInline = (change) => {
   change.call(pointEdgeObject, "focus", "start", "inline");
 };
 
-Changes.moveFocusToStartOfNextBlock = change => {
+Changes.moveFocusToStartOfNextBlock = (change) => {
   change.call(pointEdgeSideObject, "focus", "start", "next", "block");
 };
 
-Changes.moveFocusToStartOfNextInline = change => {
+Changes.moveFocusToStartOfNextInline = (change) => {
   change.call(pointEdgeSideObject, "focus", "start", "next", "inline");
 };
 
-Changes.moveFocusToStartOfNextText = change => {
+Changes.moveFocusToStartOfNextText = (change) => {
   change.call(pointEdgeSideObject, "focus", "start", "next", "text");
 };
 
@@ -455,19 +455,19 @@ Changes.moveFocusToStartOfNode = (change, ...args) => {
   change.call(proxy, "moveFocusToStartOfNode", ...args);
 };
 
-Changes.moveFocusToStartOfPreviousBlock = change => {
+Changes.moveFocusToStartOfPreviousBlock = (change) => {
   change.call(pointEdgeSideObject, "focus", "start", "previous", "block");
 };
 
-Changes.moveFocusToStartOfPreviousInline = change => {
+Changes.moveFocusToStartOfPreviousInline = (change) => {
   change.call(pointEdgeSideObject, "focus", "start", "previous", "inline");
 };
 
-Changes.moveFocusToStartOfPreviousText = change => {
+Changes.moveFocusToStartOfPreviousText = (change) => {
   change.call(pointEdgeSideObject, "focus", "start", "previous", "text");
 };
 
-Changes.moveFocusToStartOfText = change => {
+Changes.moveFocusToStartOfText = (change) => {
   change.call(pointEdgeObject, "focus", "start", "text");
 };
 
@@ -487,27 +487,27 @@ Changes.moveStartTo = (change, ...args) => {
   change.call(proxy, "moveStartTo", ...args);
 };
 
-Changes.moveStartToEndOfBlock = change => {
+Changes.moveStartToEndOfBlock = (change) => {
   change.call(pointEdgeObject, "start", "end", "block");
 };
 
-Changes.moveStartToEndOfDocument = change => {
+Changes.moveStartToEndOfDocument = (change) => {
   change.moveStartToEndOfNode(change.value.document).moveToStart();
 };
 
-Changes.moveStartToEndOfInline = change => {
+Changes.moveStartToEndOfInline = (change) => {
   change.call(pointEdgeObject, "start", "end", "inline");
 };
 
-Changes.moveStartToEndOfNextBlock = change => {
+Changes.moveStartToEndOfNextBlock = (change) => {
   change.call(pointEdgeSideObject, "start", "end", "next", "block");
 };
 
-Changes.moveStartToEndOfNextInline = change => {
+Changes.moveStartToEndOfNextInline = (change) => {
   change.call(pointEdgeSideObject, "start", "end", "next", "inline");
 };
 
-Changes.moveStartToEndOfNextText = change => {
+Changes.moveStartToEndOfNextText = (change) => {
   change.call(pointEdgeSideObject, "start", "end", "next", "text");
 };
 
@@ -515,43 +515,43 @@ Changes.moveStartToEndOfNode = (change, ...args) => {
   change.call(proxy, "moveStartToEndOfNode", ...args);
 };
 
-Changes.moveStartToEndOfPreviousBlock = change => {
+Changes.moveStartToEndOfPreviousBlock = (change) => {
   change.call(pointEdgeSideObject, "start", "end", "previous", "block");
 };
 
-Changes.moveStartToEndOfPreviousInline = change => {
+Changes.moveStartToEndOfPreviousInline = (change) => {
   change.call(pointEdgeSideObject, "start", "end", "previous", "inline");
 };
 
-Changes.moveStartToEndOfPreviousText = change => {
+Changes.moveStartToEndOfPreviousText = (change) => {
   change.call(pointEdgeSideObject, "start", "end", "previous", "text");
 };
 
-Changes.moveStartToEndOfText = change => {
+Changes.moveStartToEndOfText = (change) => {
   change.call(pointEdgeObject, "start", "end", "text");
 };
 
-Changes.moveStartToStartOfBlock = change => {
+Changes.moveStartToStartOfBlock = (change) => {
   change.call(pointEdgeObject, "start", "start", "block");
 };
 
-Changes.moveStartToStartOfDocument = change => {
+Changes.moveStartToStartOfDocument = (change) => {
   change.moveStartToStartOfNode(change.value.document).moveToStart();
 };
 
-Changes.moveStartToStartOfInline = change => {
+Changes.moveStartToStartOfInline = (change) => {
   change.call(pointEdgeObject, "start", "start", "inline");
 };
 
-Changes.moveStartToStartOfNextBlock = change => {
+Changes.moveStartToStartOfNextBlock = (change) => {
   change.call(pointEdgeSideObject, "start", "start", "next", "block");
 };
 
-Changes.moveStartToStartOfNextInline = change => {
+Changes.moveStartToStartOfNextInline = (change) => {
   change.call(pointEdgeSideObject, "start", "start", "next", "inline");
 };
 
-Changes.moveStartToStartOfNextText = change => {
+Changes.moveStartToStartOfNextText = (change) => {
   change.call(pointEdgeSideObject, "start", "start", "next", "text");
 };
 
@@ -559,19 +559,19 @@ Changes.moveStartToStartOfNode = (change, ...args) => {
   change.call(proxy, "moveStartToStartOfNode", ...args);
 };
 
-Changes.moveStartToStartOfPreviousBlock = change => {
+Changes.moveStartToStartOfPreviousBlock = (change) => {
   change.call(pointEdgeSideObject, "start", "start", "previous", "block");
 };
 
-Changes.moveStartToStartOfPreviousInline = change => {
+Changes.moveStartToStartOfPreviousInline = (change) => {
   change.call(pointEdgeSideObject, "start", "start", "previous", "inline");
 };
 
-Changes.moveStartToStartOfPreviousText = change => {
+Changes.moveStartToStartOfPreviousText = (change) => {
   change.call(pointEdgeSideObject, "start", "start", "previous", "text");
 };
 
-Changes.moveStartToStartOfText = change => {
+Changes.moveStartToStartOfText = (change) => {
   change.call(pointEdgeObject, "start", "start", "text");
 };
 
@@ -579,35 +579,35 @@ Changes.moveTo = (change, ...args) => {
   change.call(proxy, "moveTo", ...args);
 };
 
-Changes.moveToAnchor = change => {
+Changes.moveToAnchor = (change) => {
   change.call(proxy, "moveToAnchor");
 };
 
-Changes.moveToEnd = change => {
+Changes.moveToEnd = (change) => {
   change.call(proxy, "moveToEnd");
 };
 
-Changes.moveToEndOfBlock = change => {
+Changes.moveToEndOfBlock = (change) => {
   change.moveEndToEndOfBlock().moveToEnd();
 };
 
-Changes.moveToEndOfDocument = change => {
+Changes.moveToEndOfDocument = (change) => {
   change.moveEndToEndOfNode(change.value.document).moveToEnd();
 };
 
-Changes.moveToEndOfInline = change => {
+Changes.moveToEndOfInline = (change) => {
   change.moveEndToEndOfInline().moveToEnd();
 };
 
-Changes.moveToEndOfNextBlock = change => {
+Changes.moveToEndOfNextBlock = (change) => {
   change.moveEndToEndOfNextBlock().moveToEnd();
 };
 
-Changes.moveToEndOfNextInline = change => {
+Changes.moveToEndOfNextInline = (change) => {
   change.moveEndToEndOfNextInline().moveToEnd();
 };
 
-Changes.moveToEndOfNextText = change => {
+Changes.moveToEndOfNextText = (change) => {
   change.moveEndToEndOfNextText().moveToEnd();
 };
 
@@ -615,27 +615,27 @@ Changes.moveToEndOfNode = (change, ...args) => {
   change.call(proxy, "moveToEndOfNode", ...args);
 };
 
-Changes.moveToEndOfPreviousBlock = change => {
+Changes.moveToEndOfPreviousBlock = (change) => {
   change.moveStartToEndOfPreviousBlock().moveToStart();
 };
 
-Changes.moveToEndOfPreviousInline = change => {
+Changes.moveToEndOfPreviousInline = (change) => {
   change.moveStartToEndOfPreviousInline().moveToStart();
 };
 
-Changes.moveToEndOfPreviousText = change => {
+Changes.moveToEndOfPreviousText = (change) => {
   change.moveStartToEndOfPreviousText().moveToStart();
 };
 
-Changes.moveToEndOfText = change => {
+Changes.moveToEndOfText = (change) => {
   change.moveEndToEndOfText().moveToEnd();
 };
 
-Changes.moveToFocus = change => {
+Changes.moveToFocus = (change) => {
   change.call(proxy, "moveToFocus");
 };
 
-Changes.moveToRangeOfDocument = change => {
+Changes.moveToRangeOfDocument = (change) => {
   change.moveToRangeOfNode(change.value.document);
 };
 
@@ -643,31 +643,31 @@ Changes.moveToRangeOfNode = (change, ...args) => {
   change.call(proxy, "moveToRangeOfNode", ...args);
 };
 
-Changes.moveToStart = change => {
+Changes.moveToStart = (change) => {
   change.call(proxy, "moveToStart");
 };
 
-Changes.moveToStartOfBlock = change => {
+Changes.moveToStartOfBlock = (change) => {
   change.moveStartToStartOfBlock().moveToStart();
 };
 
-Changes.moveToStartOfDocument = change => {
+Changes.moveToStartOfDocument = (change) => {
   change.moveStartToStartOfNode(change.value.document).moveToStart();
 };
 
-Changes.moveToStartOfInline = change => {
+Changes.moveToStartOfInline = (change) => {
   change.moveStartToStartOfInline().moveToStart();
 };
 
-Changes.moveToStartOfNextBlock = change => {
+Changes.moveToStartOfNextBlock = (change) => {
   change.moveEndToStartOfNextBlock().moveToEnd();
 };
 
-Changes.moveToStartOfNextInline = change => {
+Changes.moveToStartOfNextInline = (change) => {
   change.moveEndToStartOfNextInline().moveToEnd();
 };
 
-Changes.moveToStartOfNextText = change => {
+Changes.moveToStartOfNextText = (change) => {
   change.moveEndToStartOfNextText().moveToEnd();
 };
 
@@ -675,19 +675,19 @@ Changes.moveToStartOfNode = (change, ...args) => {
   change.call(proxy, "moveToStartOfNode", ...args);
 };
 
-Changes.moveToStartOfPreviousBlock = change => {
+Changes.moveToStartOfPreviousBlock = (change) => {
   change.moveStartToStartOfPreviousBlock().moveToStart();
 };
 
-Changes.moveToStartOfPreviousInline = change => {
+Changes.moveToStartOfPreviousInline = (change) => {
   change.moveStartToStartOfPreviousInline().moveToStart();
 };
 
-Changes.moveToStartOfPreviousText = change => {
+Changes.moveToStartOfPreviousText = (change) => {
   change.moveStartToStartOfPreviousText().moveToStart();
 };
 
-Changes.moveToStartOfText = change => {
+Changes.moveToStartOfText = (change) => {
   change.moveStartToStartOfText().moveToStart();
 };
 
@@ -727,7 +727,7 @@ Changes.select = (change, properties, options: any = {}) => {
       type: "set_selection",
       value,
       properties: props,
-      selection: selection.toJSON()
+      selection: selection.toJSON(),
     },
     snapshot ? { skip: false, merge: false } : {}
   );
@@ -749,7 +749,7 @@ Changes.setStart = (change, ...args) => {
   change.call(proxy, "setStart", ...args);
 };
 
-Changes.snapshotSelection = change => {
+Changes.snapshotSelection = (change) => {
   change.select(change.value.selection, { snapshot: true });
 };
 
@@ -946,7 +946,7 @@ const DEPRECATEDS = [
   ["moveToEndOf", "moveToEndOfNode"],
   ["moveToRangeOf", "moveToRangeOfNode"],
   ["moveToStartOf", "moveToStartOfNode"],
-  ["selectAll", "moveToRangeOfDocument"]
+  ["selectAll", "moveToRangeOfDocument"],
 ];
 
 DEPRECATEDS.forEach(([deprecated, method]) => {
