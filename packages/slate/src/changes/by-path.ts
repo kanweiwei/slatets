@@ -397,7 +397,7 @@ Changes.replaceNodeByPath = (change, path, newNode, options) => {
   const parentPath = PathUtils.lift(path);
   change.removeNodeByPath(path, { normalize: false });
   change.insertNodeByPath(parentPath, index, newNode, { normalize: false });
-  change.normalizeParentByPath(path, options);
+  // change.normalizeParentByPath(path, options);
 };
 
 /**
@@ -696,7 +696,7 @@ Changes.unwrapNodeByPath = (change, path, options) => {
       normalize: false,
     });
 
-    change.normalizeNodeByPath(grandPath, options);
+    // change.normalizeNodeByPath(grandPath, options);
   }
 };
 
