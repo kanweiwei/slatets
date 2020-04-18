@@ -5,6 +5,7 @@ import { Record, List } from "immutable";
 import Key from "../utils/key-utils";
 import PathUtils from "../utils/path-utils";
 import MODEL_TYPES from "../constants/model-types";
+import { isEqual } from "lodash-es";
 
 /**
  * default properties
@@ -16,7 +17,7 @@ const DEFAULTS: any = {
 };
 
 class Point extends Record(DEFAULTS) {
-  public key: string | null;
+  public key: Key | null;
   public offset: number | null;
   public path: List<number> | null;
 
@@ -101,7 +102,7 @@ class Point extends Record(DEFAULTS) {
   isAtEndOfNode(node: any): boolean {
     if (this.isUnset) return false;
     const last = node.getLastText();
-    const is = this.key === last.key && this.offset === last.text.length;
+    const is = isEqual(this.key, last.key) && this.offset === last.text.length;
     return is;
   }
 
@@ -112,13 +113,13 @@ class Point extends Record(DEFAULTS) {
     if (this.offset != 0) return false;
 
     const first = node.getFirstText();
-    const is = this.key === first.key;
+    const is = isEqual(this.key, first.key);
     return is;
   }
 
   isInNode(node: any): boolean {
     if (this.isUnset) return false;
-    if (node.object === "text" && node.key === this.key) return true;
+    if (node.object === "text" && isEqual(node.key, this.key)) return true;
     if (node.hasNode(this.key)) return true;
     return false;
   }
@@ -137,15 +138,15 @@ class Point extends Record(DEFAULTS) {
     return point;
   }
 
-  moveTo(path: number | string | List<number> | null, offset = 0): Point {
+  moveTo(path: number | Key | List<number> | null, offset = 0): Point {
     let key = this.key;
 
     if (typeof path === "number") {
       offset = path;
       path = this.path;
-    } else if (typeof path === "string") {
+    } else if (path instanceof Key) {
       key = path;
-      path = key === this.key ? this.path : null;
+      path = isEqual(key, this.key) ? this.path : null;
     } else {
       key = this.path && path && path.equals(this.path) ? this.key : null;
     }
@@ -169,7 +170,7 @@ class Point extends Record(DEFAULTS) {
   normalize(node): Point {
     // If both the key and path are null, there's no reference to a node, so
     // make sure it is entirely unset.
-    if (this.key == null && this.path == null) {
+    if (this.key == null) {
       return this.setOffset(null) as Point;
     }
 
@@ -223,7 +224,7 @@ class Point extends Record(DEFAULTS) {
       return point;
     }
 
-    if (target && path && key && key !== target.key) {
+    if (target && path && key && !isEqual(key, target.key)) {
       logger.warn("A point's `key` did not match its `path`:", this, target);
     }
 
@@ -263,7 +264,7 @@ class Point extends Record(DEFAULTS) {
     options: any = {}
   ): {
     object: "point";
-    key: string;
+    key: Key;
     offset: number;
     path: List<number>;
   } {

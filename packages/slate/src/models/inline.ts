@@ -4,6 +4,7 @@ import { List, Map, Record } from "immutable";
 import MODEL_TYPES from "../constants/model-types";
 import Key from "../utils/key-utils";
 import Node from "./node";
+import Text from "./text";
 /**
  * 默认属性
  */
@@ -82,7 +83,10 @@ class Inline extends Record(DEFAULTS) {
       type,
       isVoid: !!isVoid,
       data: Map(data),
-      nodes: Node.createList(nodes),
+      nodes:
+        nodes.length === 0 && !!isVoid
+          ? List([Text.create("")])
+          : Node.createList(nodes),
     });
 
     return inline;

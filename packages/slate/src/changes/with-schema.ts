@@ -98,7 +98,7 @@ Changes.normalizeNodeByPath = (change, path, options = {}) => {
 
   const { value } = change;
   let { document, schema } = value;
-  const node = document.assertNode(path);
+  const node = document.getNode(path);
 
   normalizeNodeAndChildren(change, node, schema);
 

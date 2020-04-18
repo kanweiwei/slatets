@@ -6,22 +6,20 @@
  * @return {Node|Null}
  */
 
-function findNode(element, value) {
-    const closest = element.closest('[data-key]')
-    if (!closest) return null
-  
-    const key = closest.getAttribute('data-key')
-    if (!key) return null
-  
-    const node = value.document.getNode(key)
-    return node || null
-  }
-  
-  /**
-   * Export.
-   *
-   * @type {Function}
-   */
-  
-  export default findNode
-  
+import { ELEMENT_TO_NODE } from "@zykj/slate";
+
+function findNode(element) {
+  const closest = element.closest("[data-key]");
+  if (!closest) return null;
+
+  const node = ELEMENT_TO_NODE.get(closest);
+  return node || null;
+}
+
+/**
+ * Export.
+ *
+ * @type {Function}
+ */
+
+export default findNode;

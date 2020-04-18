@@ -1,6 +1,7 @@
 import Debug from "debug";
 
 import Operation from "../models/operation";
+import Value from "../models/value";
 
 /**
  * Debug.
@@ -18,7 +19,7 @@ const debug = Debug("slate:operation:apply");
  * @return {Value} value
  */
 
-function applyOperation(value, op) {
+function applyOperation(value: Value, op) {
   op = Operation.create(op);
   const { type } = op;
   debug(type, op);

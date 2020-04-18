@@ -9,22 +9,22 @@ import { List } from "immutable";
  */
 
 function compare(a: List<any>, b: List<any>) {
-    // PERF: if the paths are the same we can exit early.
-    if (a.size !== b.size) return null;
+  // PERF: if the paths are the same we can exit early.
+  if (a.size !== b.size) return null;
 
-    for (let i = 0; i < a.size; i++) {
-        const av = a.get(i);
-        const bv = b.get(i);
+  for (let i = 0; i < a.size; i++) {
+    const av = a.get(i);
+    const bv = b.get(i);
 
-        // If a's value is ever less than b's, it's before.
-        if (av < bv) return -1;
+    // If a's value is ever less than b's, it's before.
+    if (av < bv) return -1;
 
-        // If b's value is ever less than a's, it's after.
-        if (av > bv) return 1;
-    }
+    // If b's value is ever less than a's, it's after.
+    if (av > bv) return 1;
+  }
 
-    // Otherwise they were equal the whole way, it's the same.
-    return 0;
+  // Otherwise they were equal the whole way, it's the same.
+  return 0;
 }
 
 /**
@@ -35,21 +35,21 @@ function compare(a: List<any>, b: List<any>) {
  */
 
 function create(attrs: List<any> | any[]): List<any> {
-    if (attrs == null) {
-        return List();
-    }
+  if (attrs == null) {
+    return List();
+  }
 
-    if (List.isList(attrs)) {
-        return attrs as List<any>;
-    }
+  if (List.isList(attrs)) {
+    return attrs as List<any>;
+  }
 
-    if (Array.isArray(attrs)) {
-        return List(attrs);
-    }
+  if (Array.isArray(attrs)) {
+    return List(attrs);
+  }
 
-    throw new Error(
-        `Paths can only be created from arrays or lists, but you passed: ${attrs}`
-    );
+  throw new Error(
+    `Paths can only be created from arrays or lists, but you passed: ${attrs}`
+  );
 }
 
 /**
@@ -60,9 +60,9 @@ function create(attrs: List<any> | any[]): List<any> {
  */
 
 function crop(a, b, size = min(a, b)) {
-    const ca = a.slice(0, size);
-    const cb = b.slice(0, size);
-    return [ca, cb];
+  const ca = a.slice(0, size);
+  const cb = b.slice(0, size);
+  return [ca, cb];
 }
 
 /**
@@ -74,7 +74,7 @@ function crop(a, b, size = min(a, b)) {
  */
 
 function decrement(path, n = 1, index = path.size - 1) {
-    return increment(path, 0 - n, index);
+  return increment(path, 0 - n, index);
 }
 
 /**
@@ -86,10 +86,10 @@ function decrement(path, n = 1, index = path.size - 1) {
  */
 
 function increment(path, n = 1, index = path.size - 1) {
-    const value = path.get(index);
-    const newValue = value + n;
-    const newPath = path.set(index, newValue);
-    return newPath;
+  const value = path.get(index);
+  const newValue = value + n;
+  const newPath = path.set(index, newValue);
+  return newPath;
 }
 
 /**
@@ -101,8 +101,8 @@ function increment(path, n = 1, index = path.size - 1) {
  */
 
 function isAbove(path, target) {
-    const [p, t] = crop(path, target);
-    return path.size < target.size && compare(p, t) === 0;
+  const [p, t] = crop(path, target);
+  return path.size < target.size && compare(p, t) === 0;
 }
 
 /**
@@ -114,8 +114,8 @@ function isAbove(path, target) {
  */
 
 function isAfter(path, target) {
-    const [p, t] = crop(path, target);
-    return compare(p, t) === 1;
+  const [p, t] = crop(path, target);
+  return compare(p, t) === 1;
 }
 
 /**
@@ -127,8 +127,8 @@ function isAfter(path, target) {
  */
 
 function isBefore(path, target) {
-    const [p, t] = crop(path, target);
-    return compare(p, t) === -1;
+  const [p, t] = crop(path, target);
+  return compare(p, t) === -1;
 }
 
 /**
@@ -139,8 +139,8 @@ function isBefore(path, target) {
  */
 
 function lift(path) {
-    const parent = path.slice(0, -1);
-    return parent;
+  const parent = path.slice(0, -1);
+  return parent;
 }
 
 /**
@@ -152,8 +152,8 @@ function lift(path) {
  */
 
 function max(a, b) {
-    const n = Math.max(a.size, b.size);
-    return n;
+  const n = Math.max(a.size, b.size);
+  return n;
 }
 
 /**
@@ -165,8 +165,8 @@ function max(a, b) {
  */
 
 function min(a, b) {
-    const n = Math.min(a.size, b.size);
-    return n;
+  const n = Math.min(a.size, b.size);
+  return n;
 }
 
 /**
@@ -178,21 +178,21 @@ function min(a, b) {
  */
 
 function relate(a, b) {
-    const array: any[] = [];
+  const array: any[] = [];
 
-    for (let i = 0; i < a.size && i < b.size; i++) {
-        const av = a.get(i);
-        const bv = b.get(i);
+  for (let i = 0; i < a.size && i < b.size; i++) {
+    const av = a.get(i);
+    const bv = b.get(i);
 
-        // If the values aren't equal, they've diverged and don't share an ancestor.
-        if (av !== bv) break;
+    // If the values aren't equal, they've diverged and don't share an ancestor.
+    if (av !== bv) break;
 
-        // Otherwise, the current value is still a common ancestor.
-        array.push(av);
-    }
+    // Otherwise, the current value is still a common ancestor.
+    array.push(av);
+  }
 
-    const path = create(array);
-    return path;
+  const path = create(array);
+  return path;
 }
 
 /**
@@ -202,16 +202,16 @@ function relate(a, b) {
  */
 
 export default {
-    compare,
-    create,
-    crop,
-    decrement,
-    increment,
-    isAbove,
-    isAfter,
-    isBefore,
-    lift,
-    max,
-    min,
-    relate
+  compare,
+  create,
+  crop,
+  decrement,
+  increment,
+  isAbove,
+  isAfter,
+  isBefore,
+  lift,
+  max,
+  min,
+  relate,
 };

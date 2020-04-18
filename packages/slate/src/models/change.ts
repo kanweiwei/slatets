@@ -49,7 +49,7 @@ class Change {
 
     this.flags = {
       normalize: true,
-      ...pick(attrs, ["merge", "save", "normalize"])
+      ...pick(attrs, ["merge", "save", "normalize"]),
     };
   }
 
@@ -88,7 +88,7 @@ class Change {
     const {
       merge = operations.size == 0 ? null : true,
       save = true,
-      skip = null
+      skip = null,
     } = options;
 
     // Apply the operation to the value.
@@ -115,7 +115,7 @@ class Change {
    * @return {Change}
    */
   applyOperations(operations: any, options: any) {
-    operations.forEach(op => this.applyOperation(op, options));
+    operations.forEach((op) => this.applyOperation(op, options));
     return this;
   }
 
@@ -441,8 +441,8 @@ Change.prototype[MODEL_TYPES.CHANGE] = true;
  * Add a change method for each of the changes.
  */
 
-Object.keys(Changes).forEach(type => {
-  Change.prototype[type] = function(...args) {
+Object.keys(Changes).forEach((type) => {
+  Change.prototype[type] = function (...args) {
     debug(type, { args });
     this.call(Changes[type], ...args);
     return this;

@@ -1,8 +1,21 @@
-import React from "react";
+import React, { useRef } from "react";
 
 import Leaf from "./leaf";
-import { Block, Decoration, PathUtils } from "@zykj/slate";
+import {
+  Block,
+  Decoration,
+  PathUtils,
+  KEY_TO_ELEMENT,
+  NODE_TO_ELEMENT,
+  ELEMENT_TO_NODE,
+  NODE_TO_PARENT,
+  NODE_TO_INDEX,
+  NODE_TO_KEY,
+  KEY_TO_NODE,
+} from "@zykj/slate";
 import { List } from "immutable";
+import { isEqual } from "lodash-es";
+import { useIsomorphicLayoutEffect } from "../hooks";
 
 interface TextInterface {
   block: Block;
@@ -10,6 +23,7 @@ interface TextInterface {
   editor: any;
   node: any;
   parent: any;
+  index: number;
   readOnly?: boolean;
   style?: any;
 }
@@ -21,7 +35,7 @@ const Text = (props: TextInterface) => {
 
     return (
       <Leaf
-        key={`${node.key}-${index}`}
+        key={`${node.key.id}-${index}`}
         block={block}
         editor={editor}
         index={index}
@@ -35,7 +49,7 @@ const Text = (props: TextInterface) => {
     );
   };
 
-  const { decorations, editor, node, style = null } = props;
+  const { decorations, editor, node, style = null, index } = props;
   const { value } = editor;
   const { document } = value;
   const { key } = node;
@@ -44,13 +58,13 @@ const Text = (props: TextInterface) => {
     const { start, end } = d;
 
     // If either of the decoration's keys match, include it.
-    if (start.key === key || end.key === key) return true;
+    if (isEqual(start.key, key) || isEqual(end.key, key)) return true;
 
     // Otherwise, if the decoration is in a single node, it's not ours.
-    if (start.key === end.key) return false;
+    if (isEqual(start.key, key)) return false;
 
     // If the node's path is before the start path, ignore it.
-    const path = document.assertPath(key);
+    const path = document.getPath(key);
     if (PathUtils.compare(path, start.path) === -1) return false;
 
     // If the node's path is after the end path, ignore it.
@@ -70,8 +84,26 @@ const Text = (props: TextInterface) => {
     return child;
   });
 
+  const ref = useRef<HTMLSpanElement>(null);
+
+  useIsomorphicLayoutEffect(() => {
+    if (ref.current) {
+      KEY_TO_ELEMENT.set(key, ref.current);
+      NODE_TO_ELEMENT.set(node, ref.current);
+      ELEMENT_TO_NODE.set(ref.current, node);
+      NODE_TO_INDEX.set(node, index);
+
+      NODE_TO_PARENT.set(node, props.parent);
+      NODE_TO_KEY.set(node, key);
+      KEY_TO_NODE.set(key, node);
+    } else {
+      KEY_TO_ELEMENT.delete(key);
+      NODE_TO_ELEMENT.delete(node);
+    }
+  });
+
   return (
-    <span data-key={key} style={style}>
+    <span data-key={key.id} style={style} ref={ref}>
       {children}
     </span>
   );

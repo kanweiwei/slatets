@@ -20,7 +20,7 @@ function getEventRange(event, value) {
   if (x == null || y == null) return null;
 
   const { document, schema } = value;
-  const node = findNode(target, value);
+  const node = findNode(target);
   if (!node) return null;
 
   // If the drop target is inside a void node, move it into either the next or

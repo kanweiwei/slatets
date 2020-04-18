@@ -10,16 +10,6 @@ import setEventTransfer from "./utils/set-event-transfer";
 import AfterPlugin from "./plugins/after";
 import BeforePlugin from "./plugins/before";
 
-import {
-  KEY_TO_ELEMENT,
-  ELEMENT_TO_NODE,
-  NODE_TO_INDEX,
-  NODE_TO_KEY,
-  NODE_TO_ELEMENT,
-  NODE_TO_PARENT,
-  EDITOR_TO_ELEMENT,
-} from "./utils/weak-maps";
-
 /**
  * Export.
  *
@@ -38,13 +28,6 @@ export {
   setEventTransfer,
   AfterPlugin,
   BeforePlugin,
-  KEY_TO_ELEMENT,
-  ELEMENT_TO_NODE,
-  NODE_TO_INDEX,
-  NODE_TO_KEY,
-  NODE_TO_ELEMENT,
-  NODE_TO_PARENT,
-  EDITOR_TO_ELEMENT,
 };
 
 export default {
@@ -59,11 +42,4 @@ export default {
   setEventTransfer,
   AfterPlugin,
   BeforePlugin,
-  KEY_TO_ELEMENT,
-  ELEMENT_TO_NODE,
-  NODE_TO_INDEX,
-  NODE_TO_KEY,
-  NODE_TO_ELEMENT,
-  NODE_TO_PARENT,
-  EDITOR_TO_ELEMENT,
 };

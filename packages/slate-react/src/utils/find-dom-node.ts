@@ -1,5 +1,5 @@
 import { Node } from "@zykj/slate";
-import { KEY_TO_ELEMENT } from "./weak-maps";
+import { KEY_TO_ELEMENT } from "@zykj/slate";
 
 /**
  * Find the DOM node for a `key`.

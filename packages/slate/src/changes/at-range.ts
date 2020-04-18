@@ -6,6 +6,9 @@ import Mark from "../models/mark";
 import Node from "../models/node";
 import TextUtils from "../utils/text-utils";
 import { isEqual } from "lodash-es";
+import { NODE_TO_INDEX } from "../utils/weak-maps";
+import Document from "../models/document";
+import Change from "../models/change";
 
 /**
  * Changes.
@@ -99,8 +102,7 @@ Changes.addMarksAtRange = (change, range, marks, options = {}) => {
  * @param {Object} options
  *   @property {Boolean} normalize
  */
-
-Changes.deleteAtRange = (change, range, options = {}) => {
+Changes.deleteAtRange = (change: Change, range: any, options = {}) => {
   // Snapshot the selection, which creates an extra undo save point, so that
   // when you undo a delete, the expanded selection will be retained.
   change.snapshotSelection();
@@ -210,7 +212,7 @@ Changes.deleteAtRange = (change, range, options = {}) => {
     // but inside the end child, and remove them.
     child = startText;
 
-    while (!isEqual(child.key, startChild.key)) {
+    while (!isEqual(child.key, startChild.key) && !Document.isDocument(child)) {
       const parent = document.getParent(child.key);
       const index = parent.nodes.indexOf(child);
       const afters = parent.nodes.slice(index + 1);
@@ -234,13 +236,16 @@ Changes.deleteAtRange = (change, range, options = {}) => {
     // Remove the nodes before the end text node in the tree.
     child = endText;
 
-    while (!isEqual(child.key, endChild.key)) {
+    while (!isEqual(child.key, endChild.key) && !Document.isDocument(child)) {
       const parent = document.getParent(child.key);
       const index = parent.nodes.indexOf(child);
       const befores = parent.nodes.slice(0, index);
 
       befores.reverse().forEach((node) => {
         change.removeNodeByKey(node.key, { normalize: false });
+        let i: number = NODE_TO_INDEX.get(child);
+        i--;
+        NODE_TO_INDEX.set(child, i);
       });
 
       child = parent;
@@ -288,9 +293,9 @@ Changes.deleteAtRange = (change, range, options = {}) => {
     }
 
     // If we should normalize, do it now after everything.
-    if (normalize) {
-      change.normalizeNodeByKey(ancestor.key);
-    }
+    // if (normalize) {
+    //   change.normalizeNodeByKey(ancestor.key);
+    // }
   }
 };
 
@@ -861,7 +866,7 @@ Changes.insertInlineAtRange = (change, range, inline, options = {}) => {
   const { document, schema } = value;
   const { start } = range;
   const parent = document.getParent(start.key);
-  const startText = document.assertDescendant(start.key);
+  const startText = document.getDescendant(start.key);
   const index = parent.nodes.indexOf(startText);
 
   if (schema.isVoid(parent)) return;

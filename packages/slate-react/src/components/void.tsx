@@ -23,7 +23,7 @@ const Void: React.FC<VoidInterface> = (props: VoidInterface) => {
         block={node.object == "block" ? node : block}
         decorations={decorations}
         editor={editor}
-        key={child.key}
+        key={child.key.id}
         node={child}
         parent={node}
         readOnly={readOnly}
@@ -53,7 +53,7 @@ const Void: React.FC<VoidInterface> = (props: VoidInterface) => {
   return (
     <Tag
       data-slate-void
-      data-key={node.key}
+      data-key={node.key.id}
       contentEditable={readOnly || node.object == "block" ? void 0 : false}
     >
       {readOnly ? null : spacer}

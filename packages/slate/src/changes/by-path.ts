@@ -4,6 +4,9 @@ import Mark from "../models/mark";
 import Node from "../models/node";
 import PathUtils from "../utils/path-utils";
 import { isEqual } from "lodash-es";
+import Change from "../models/change";
+import { Key } from "..";
+import { List } from "immutable";
 
 /**
  * Changes.
@@ -54,7 +57,7 @@ Changes.addMarkByPath = (change, path, offset, length, mark, options) => {
   mark = Mark.create(mark);
   const { value } = change;
   const { document } = value;
-  const node = document.assertNode(path);
+  const node = document.getNode(path);
   const leaves = node.getLeaves();
 
   const operations: any[] = [];
@@ -170,7 +173,7 @@ Changes.insertTextByPath = (change, path, offset, text, marks, options) => {
  * @param {Object} options
  */
 
-Changes.mergeNodeByPath = (change, path, options) => {
+Changes.mergeNodeByPath = (change: Change, path, options) => {
   const { value } = change;
   const { document } = value;
   const original = document.getDescendant(path);
@@ -307,8 +310,11 @@ Changes.removeAllMarksByPath = (change, path, options) => {
  * @param {Array} path
  * @param {Object} options
  */
-
-Changes.removeNodeByPath = (change, path, options) => {
+Changes.removeNodeByPath = (
+  change: Change,
+  path: List<number> | Key,
+  options
+) => {
   const { value } = change;
   const { document } = value;
   const node = document.getNode(path);
@@ -507,7 +513,7 @@ Changes.setNodeByPath = (change, path, properties, options) => {
     properties,
   });
 
-  change.normalizeNodeByPath(path, options);
+  // change.normalizeNodeByPath(path, options);
 };
 
 /**
@@ -660,7 +666,7 @@ Changes.unwrapBlockByPath = (change, path, properties, options) => {
 Changes.unwrapNodeByPath = (change, path, options) => {
   const { value } = change;
   const { document } = value;
-  document.assertNode(path);
+  document.getNode(path);
 
   const parentPath = PathUtils.lift(path);
   const parent = document.getNode(parentPath);

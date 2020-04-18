@@ -27,7 +27,7 @@ function findRange(native, value) {
       anchorNode: native.startContainer,
       anchorOffset: native.startOffset,
       focusNode: native.endContainer,
-      focusOffset: native.endOffset
+      focusOffset: native.endOffset,
     };
   }
 
@@ -36,7 +36,7 @@ function findRange(native, value) {
     anchorOffset,
     focusNode,
     focusOffset,
-    isCollapsed
+    isCollapsed,
   } = native;
   const anchor = findPoint(anchorNode, anchorOffset, value);
   const focus = isCollapsed ? anchor : findPoint(focusNode, focusOffset, value);
@@ -53,14 +53,14 @@ function findRange(native, value) {
       anchorNode: domAnchor.node,
       anchorOffset: domAnchor.offset,
       focusNode: domFocus.node,
-      focusOffset: domFocus.offset
+      focusOffset: domFocus.offset,
     };
   }
 
   const { document } = value;
   const range = document.createRange({
     anchor,
-    focus
+    focus,
   });
 
   return range;

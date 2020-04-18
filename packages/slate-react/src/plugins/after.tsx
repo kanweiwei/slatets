@@ -16,6 +16,7 @@ import findRange from "../utils/find-range";
 import getEventRange from "../utils/get-event-range";
 import getEventTransfer from "../utils/get-event-transfer";
 import setEventTransfer from "../utils/set-event-transfer";
+import { isEqual } from "lodash-es";
 
 /**
  * Debug.
@@ -162,10 +163,10 @@ function AfterPlugin() {
 
     const { value } = change;
     const { document, schema } = value;
-    const node = findNode(event.target, value);
+    const node = findNode(event.target);
     const ancestors = document.getAncestors(node.key);
     const isVoid =
-      node && (schema.isVoid(node) || ancestors.some(a => schema.isVoid(a)));
+      node && (schema.isVoid(node) || ancestors.some((a) => schema.isVoid(a)));
 
     if (isVoid) {
       // COMPAT: In Chrome & Safari, selections that are at the zero offset of
@@ -215,11 +216,11 @@ function AfterPlugin() {
       const isVoidInline = endInline && schema.isVoid(endInline) && isCollapsed;
 
       if (isVoidBlock) {
-        editor.change(c => c.removeNodeByKey(endBlock.key));
+        editor.change((c) => c.removeNodeByKey(endBlock.key));
       } else if (isVoidInline) {
-        editor.change(c => c.removeNodeByKey(endInline.key));
+        editor.change((c) => c.removeNodeByKey(endInline.key));
       } else {
-        editor.change(c => c.delete());
+        editor.change((c) => c.delete());
       }
     });
   }
@@ -265,13 +266,13 @@ function AfterPlugin() {
 
     const { value } = change;
     const { document, schema } = value;
-    const node = findNode(event.target, value);
+    const node = findNode(event.target);
     const ancestors = document.getAncestors(node.key);
     const isVoid =
-      node && (schema.isVoid(node) || ancestors.some(a => schema.isVoid(a)));
+      node && (schema.isVoid(node) || ancestors.some((a) => schema.isVoid(a)));
 
-    const selectionIncludesNode = value.blocks.some(
-      block => block.key === node.key
+    const selectionIncludesNode = value.blocks.some((block) =>
+      isEqual(block.key, node.key)
     );
 
     // If a void block is dragged and is not selected, select it (necessary for local drags).
@@ -310,11 +311,11 @@ function AfterPlugin() {
     // needs to account for the selection's content being deleted.
     if (
       isDraggingInternally &&
-      selection.end.key == target.end.key &&
+      isEqual(selection.end.key, target.end.key) &&
       selection.end.offset < target.end.offset
     ) {
       target = target.moveForward(
-        selection.start.key == selection.end.key
+        isEqual(selection.start.key, selection.end.key)
           ? 0 - selection.end.offset + selection.start.offset
           : 0 - selection.end.offset
       );
@@ -366,7 +367,7 @@ function AfterPlugin() {
       new MouseEvent("mouseup", {
         view: window,
         bubbles: true,
-        cancelable: true
+        cancelable: true,
       })
     );
   }
@@ -668,7 +669,6 @@ function AfterPlugin() {
       const next = block.getNextText(focus.key);
       if (next) range = range.moveFocusTo(next.key, 0);
     }
-
     let selection = document.createSelection(range);
     selection = selection.setIsFocused(true);
     change.select(selection);
@@ -743,7 +743,7 @@ function AfterPlugin() {
       width: "0",
       maxWidth: "100%",
       whiteSpace: "nowrap",
-      opacity: "0.333"
+      opacity: "0.333",
     };
 
     return (
@@ -775,7 +775,7 @@ function AfterPlugin() {
     onSelect,
     renderEditor,
     renderNode,
-    renderPlaceholder
+    renderPlaceholder,
   };
 }
 

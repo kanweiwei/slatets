@@ -21,8 +21,20 @@ import Stack from "./models/stack";
 import Text from "./models/text";
 import TextUtils from "./utils/text-utils";
 import Value from "./models/value";
-import { resetKeyGenerator, setKeyGenerator } from "./utils/generate-key";
+import Key from "./utils/key-utils";
 import { resetMemoization, useMemoization } from "./utils/memoize";
+
+import {
+  KEY_TO_ELEMENT,
+  ELEMENT_TO_NODE,
+  NODE_TO_INDEX,
+  NODE_TO_KEY,
+  NODE_TO_ELEMENT,
+  NODE_TO_PARENT,
+  EDITOR_TO_ELEMENT,
+  KEY_TO_NODE,
+} from "./utils/weak-maps";
+
 import "./interfaces/common";
 import "./interfaces/node";
 import "./interfaces/range";
@@ -52,16 +64,32 @@ export {
   PathUtils,
   Point,
   Range,
-  resetKeyGenerator,
   resetMemoization,
   Schema,
-  setKeyGenerator,
+  Key,
   Stack,
   Text,
   TextUtils,
   useMemoization,
   Value,
+  KEY_TO_ELEMENT,
+  ELEMENT_TO_NODE,
+  NODE_TO_INDEX,
+  NODE_TO_KEY,
+  NODE_TO_ELEMENT,
+  NODE_TO_PARENT,
+  EDITOR_TO_ELEMENT,
+  KEY_TO_NODE,
 };
+
+window.KEY_TO_ELEMENT = KEY_TO_ELEMENT;
+window.ELEMENT_TO_NODE = ELEMENT_TO_NODE;
+window.NODE_TO_INDEX = NODE_TO_INDEX;
+window.NODE_TO_KEY = NODE_TO_KEY;
+window.NODE_TO_ELEMENT = NODE_TO_ELEMENT;
+window.NODE_TO_PARENT = NODE_TO_PARENT;
+window.EDITOR_TO_ELEMENT = EDITOR_TO_ELEMENT;
+window.KEY_TO_NODE = KEY_TO_NODE;
 
 export default {
   Block,
@@ -81,13 +109,20 @@ export default {
   PathUtils,
   Point,
   Range,
-  resetKeyGenerator,
   resetMemoization,
   Schema,
-  setKeyGenerator,
+  Key,
   Stack,
   Text,
   TextUtils,
   useMemoization,
   Value,
+  KEY_TO_ELEMENT,
+  ELEMENT_TO_NODE,
+  NODE_TO_INDEX,
+  NODE_TO_KEY,
+  NODE_TO_ELEMENT,
+  NODE_TO_PARENT,
+  EDITOR_TO_ELEMENT,
+  KEY_TO_NODE,
 };

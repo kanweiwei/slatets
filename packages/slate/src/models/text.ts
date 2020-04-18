@@ -7,6 +7,7 @@ import MODEL_TYPES from "../constants/model-types";
 import Key from "../utils/key-utils";
 import memoize from "../utils/memoize";
 import Mark from "./mark";
+import { isEqual } from "lodash-es";
 
 const DEFAULTS = {
   leaves: List(),
@@ -204,8 +205,8 @@ class Text extends Record(DEFAULTS) {
 
     decorations.forEach((dec: any) => {
       const { start, end, mark } = dec;
-      const hasStart = start.key == key;
-      const hasEnd = end.key == key;
+      const hasStart = isEqual(start.key, key);
+      const hasEnd = isEqual(end.key, key);
 
       if (hasStart && hasEnd) {
         const index = hasStart ? start.offset : 0;
@@ -381,7 +382,7 @@ class Text extends Record(DEFAULTS) {
    */
 
   getNode(key: Key) {
-    return this.key == key ? this : null;
+    return isEqual(this.key, key) ? this : null;
   }
 
   /**
@@ -677,7 +678,6 @@ memoize(Text.prototype, [
   "getMarksAsArray",
   "validate",
   "getText",
-  "getKeysToPathsTable",
 ]);
 
 export default Text;

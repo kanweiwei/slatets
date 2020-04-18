@@ -11,6 +11,7 @@ import Document from "./document";
 import History from "./history";
 import Selection from "./selection";
 import Schema from "./schema";
+import { isEqual } from "lodash-es";
 
 /**
  * Default properties.
@@ -24,7 +25,7 @@ const DEFAULTS = {
   document: Document.create(),
   history: History.create(),
   schema: Schema.create(),
-  selection: Selection.create()
+  selection: Selection.create(),
 };
 
 /**
@@ -75,7 +76,7 @@ class Value extends Record(DEFAULTS) {
       return {
         data: a.data,
         decorations: a.decorations,
-        schema: a.schema
+        schema: a.schema,
       };
     }
 
@@ -133,9 +134,9 @@ class Value extends Record(DEFAULTS) {
     selection = document.createSelection(selection);
 
     if (selection.isUnset) {
-      const text = document.getFirstText();
-      if (text) selection = selection.moveToStartOfNode(text);
-      selection = document.createSelection(selection);
+      // const text = document.getFirstText();
+      // if (text) selection = selection.moveToStartOfNode(text);
+      // selection = document.createSelection(selection);
     }
 
     selection = document.createSelection(selection);
@@ -145,12 +146,12 @@ class Value extends Record(DEFAULTS) {
       document,
       selection,
       schema,
-      history
+      history,
     });
 
-    if (options.normalize !== false) {
-      value = value.change({ save: false }).normalize().value;
-    }
+    // if (options.normalize !== false) {
+    //   value = value.change({ save: false }).normalize().value;
+    // }
 
     return value;
   }
@@ -432,7 +433,7 @@ class Value extends Record(DEFAULTS) {
     return this.selection.isUnset
       ? Set()
       : this.selection.marks ||
-      this.document.getActiveMarksAtRange(this.selection);
+          this.document.getActiveMarksAtRange(this.selection);
   }
 
   /**
@@ -519,15 +520,14 @@ class Value extends Record(DEFAULTS) {
    * @param {Node} node
    * @return {Value}
    */
-
   insertNode(path, node) {
     let value: any = this;
     let { document } = value;
     document = document.insertNode(path, node);
     value = value.set("document", document);
 
-    value = value.mapRanges(range =>
-      range.updatePoints(point => point.setPath(null))
+    value = value.mapRanges((range) =>
+      range.updatePoints((point) => point.setPath(null))
     );
 
     return value;
@@ -550,15 +550,15 @@ class Value extends Record(DEFAULTS) {
     value = value.set("document", document);
 
     // Update any ranges that were affected.
-    const node = document.assertNode(path);
+    const node = document.getNode(path);
 
-    value = value.mapRanges(range => {
+    value = value.mapRanges((range) => {
       const { anchor, focus, isBackward } = range;
       const isAtomic =
         Decoration.isDecoration(range) && schema.isAtomic(range.mark);
 
       if (
-        anchor.key === node.key &&
+        isEqual(anchor.key, node.key) &&
         (anchor.offset > offset ||
           (anchor.offset === offset && (!isAtomic || !isBackward)))
       ) {
@@ -566,7 +566,7 @@ class Value extends Record(DEFAULTS) {
       }
 
       if (
-        focus.key === node.key &&
+        isEqual(focus.key, node.key) &&
         (focus.offset > offset ||
           (focus.offset == offset && (!isAtomic || isBackward)))
       ) {
@@ -597,20 +597,20 @@ class Value extends Record(DEFAULTS) {
     const two = document.getNode(path);
     value = value.set("document", newDocument);
 
-    value = value.mapRanges(range => {
+    value = value.mapRanges((range) => {
       if (two.object === "text") {
         const max = one.text.length;
 
-        if (range.anchor.key === two.key) {
+        if (isEqual(range.anchor.key, two.key)) {
           range = range.moveAnchorTo(one.key, max + range.anchor.offset);
         }
 
-        if (range.focus.key === two.key) {
+        if (isEqual(range.focus.key, two.key)) {
           range = range.moveFocusTo(one.key, max + range.focus.offset);
         }
       }
 
-      range = range.updatePoints(point => point.setPath(null));
+      range = range.updatePoints((point) => point.setPath(null));
 
       return range;
     });
@@ -636,8 +636,8 @@ class Value extends Record(DEFAULTS) {
     document = document.moveNode(path, newPath, newIndex);
     value = value.set("document", document);
 
-    value = value.mapRanges(range =>
-      range.updatePoints(point => point.setPath(null))
+    value = value.mapRanges((range) =>
+      range.updatePoints((point) => point.setPath(null))
     );
 
     return value;
@@ -661,17 +661,11 @@ class Value extends Record(DEFAULTS) {
     return value;
   }
 
-  /**
-   * Remove a node by `path`.
-   *
-   * @param {List|String} path
-   * @return {Value}
-   */
-
-  removeNode(path) {
-    let value: any = this;
+  // Remove a node by `path`.
+  removeNode(path: List<number> | Key): Value {
+    let value: Value = this;
     let { document } = value;
-    const node = document.assertNode(path);
+    const node = document.getNode(path);
     const first = node.object == "text" ? node : node.getFirstText() || node;
     const last = node.object == "text" ? node : node.getLastText() || node;
     const prev = document.getPreviousText(first.key);
@@ -680,26 +674,26 @@ class Value extends Record(DEFAULTS) {
     document = document.removeNode(path);
     value = value.set("document", document);
 
-    value = value.mapRanges(range => {
+    value = value.mapRanges((range) => {
       const { start, end } = range;
 
       if (node.hasNode(start.key)) {
         range = prev
           ? range.moveStartTo(prev.key, prev.text.length)
           : next
-            ? range.moveStartTo(next.key, 0)
-            : range.unset();
+          ? range.moveStartTo(next.key, 0)
+          : range.unset();
       }
 
       if (node.hasNode(end.key)) {
         range = prev
           ? range.moveEndTo(prev.key, prev.text.length)
           : next
-            ? range.moveEndTo(next.key, 0)
-            : range.unset();
+          ? range.moveEndTo(next.key, 0)
+          : range.unset();
       }
 
-      range = range.updatePoints(point => point.setPath(null));
+      range = range.updatePoints((point) => point.setPath(null));
 
       return range;
     });
@@ -722,30 +716,30 @@ class Value extends Record(DEFAULTS) {
     document = document.removeText(path, offset, text);
     value = value.set("document", document);
 
-    const node = document.assertNode(path);
+    const node = document.getNode(path);
     const { length } = text;
     const rangeOffset = offset + length;
     value = value.clearAtomicRanges(node.key, offset, offset + length);
 
-    value = value.mapRanges(range => {
+    value = value.mapRanges((range) => {
       const { anchor, focus } = range;
 
-      if (anchor.key === node.key) {
+      if (isEqual(anchor.key, node.key)) {
         range =
           anchor.offset >= rangeOffset
             ? range.moveAnchorBackward(length)
             : anchor.offset > offset
-              ? range.moveAnchorTo(anchor.key, offset)
-              : range;
+            ? range.moveAnchorTo(anchor.key, offset)
+            : range;
       }
 
-      if (focus.key === node.key) {
+      if (isEqual(focus.key, node.key)) {
         range =
           focus.offset >= rangeOffset
             ? range.moveFocusBackward(length)
             : focus.offset > offset
-              ? range.moveFocusTo(focus.key, offset)
-              : range;
+            ? range.moveFocusTo(focus.key, offset)
+            : range;
       }
 
       return range;
@@ -815,7 +809,7 @@ class Value extends Record(DEFAULTS) {
     }
 
     if (decorations) {
-      props.decorations = decorations.map(d => {
+      props.decorations = decorations.map((d) => {
         return d.isSet ? d : document.resolveDecoration(d);
       });
     }
@@ -855,24 +849,24 @@ class Value extends Record(DEFAULTS) {
     let value: any = this;
     const { document } = value;
     const newDocument = document.splitNode(path, position, properties);
-    const node = document.assertNode(path);
+    const node = document.getNode(path);
     value = value.set("document", newDocument);
 
-    value = value.mapRanges(range => {
+    value = value.mapRanges((range) => {
       const next = newDocument.getNextText(node.key);
       const { start, end } = range;
 
       // If the start was after the split, move it to the next node.
-      if (node.key === start.key && position <= start.offset) {
+      if (isEqual(node.key, start.key) && position <= start.offset) {
         range = range.moveStartTo(next.key, start.offset - position);
       }
 
       // If the end was after the split, move it to the next node.
-      if (node.key === end.key && position <= end.offset) {
+      if (isEqual(node.key, end.key) && position <= end.offset) {
         range = range.moveEndTo(next.key, end.offset - position);
       }
 
-      range = range.updatePoints(point => point.setPath(null));
+      range = range.updatePoints((point) => point.setPath(null));
 
       return range;
     });
@@ -895,13 +889,13 @@ class Value extends Record(DEFAULTS) {
     if (!sel) sel = selection.unset();
     if (sel !== selection) sel = document.createSelection(sel);
     value = value.set("selection", sel);
-    let decs = decorations.map(decoration => {
+    let decs = decorations.map((decoration) => {
       let n = decoration.isSet ? iterator(decoration) : decoration;
       if (n && n !== decoration) n = document.createDecoration(n);
       return n;
     });
 
-    decs = decs.filter(decoration => !!decoration);
+    decs = decs.filter((decoration) => !!decoration);
     value = value.set("decorations", decs);
 
     return value;
@@ -920,7 +914,7 @@ class Value extends Record(DEFAULTS) {
     let value = this;
     const { schema } = value;
 
-    value = this.mapRanges(range => {
+    value = this.mapRanges((range) => {
       if (!Decoration.isDecoration(range)) return range;
       const { start, end, mark } = range;
       const isAtomic = schema.isAtomic(mark);
@@ -955,7 +949,7 @@ class Value extends Record(DEFAULTS) {
   toJSON(options: any = {}) {
     const object: any = {
       object: this.object,
-      document: this.document.toJSON(options)
+      document: this.document.toJSON(options),
     };
 
     if (options.preserveData) {
@@ -965,7 +959,7 @@ class Value extends Record(DEFAULTS) {
     if (options.preserveDecorations) {
       object.decorations = this.decorations
         .toArray()
-        .map(d => d.toJSON(options));
+        .map((d) => d.toJSON(options));
     }
 
     if (options.preserveHistory) {

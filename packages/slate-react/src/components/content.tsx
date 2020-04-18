@@ -1,10 +1,10 @@
 import Debug from "debug";
 import React from "react";
-import Types from "prop-types";
+import Types, { node } from "prop-types";
 import getWindow from "get-window";
 import {
   IS_FIREFOX,
-  HAS_INPUT_EVENTS_LEVEL_2
+  HAS_INPUT_EVENTS_LEVEL_2,
 } from "@zykj/slate-dev-environment";
 import logger from "slate-dev-logger";
 import throttle from "lodash/throttle";
@@ -16,6 +16,13 @@ import findRange from "../utils/find-range";
 import getChildrenDecorations from "../utils/get-children-decorations";
 import scrollToSelection from "../utils/scroll-to-selection";
 import removeAllRanges from "../utils/remove-all-ranges";
+import {
+  KEY_TO_ELEMENT,
+  ELEMENT_TO_NODE,
+  NODE_TO_ELEMENT,
+  NODE_TO_KEY,
+  KEY_TO_NODE,
+} from "@zykj/slate";
 
 /**
  * Debug.
@@ -49,7 +56,7 @@ class Content extends React.Component<any, any> {
     spellCheck: Types.bool.isRequired,
     style: Types.object,
     tabIndex: Types.number,
-    tagName: Types.string
+    tagName: Types.string,
   };
 
   /**
@@ -60,7 +67,7 @@ class Content extends React.Component<any, any> {
 
   static defaultProps = {
     style: {},
-    tagName: "div"
+    tagName: "div",
   };
 
   /**
@@ -70,7 +77,7 @@ class Content extends React.Component<any, any> {
    */
 
   tmp = {
-    isUpdatingSelection: false
+    isUpdatingSelection: false,
   };
 
   /**
@@ -80,7 +87,7 @@ class Content extends React.Component<any, any> {
    */
 
   handlers: any = EVENT_HANDLERS.reduce((obj, handler) => {
-    obj[handler] = event => this.onEvent(handler, event);
+    obj[handler] = (event) => this.onEvent(handler, event);
     return obj;
   }, {});
 
@@ -123,6 +130,21 @@ class Content extends React.Component<any, any> {
     }
 
     this.updateSelection();
+
+    const { props } = this;
+    const { editor } = props;
+    const { value } = editor;
+    const { document } = value;
+    if (this.element) {
+      KEY_TO_ELEMENT.set(document.key, this.element);
+      NODE_TO_ELEMENT.set(document, this.element);
+      ELEMENT_TO_NODE.set(this.element, document);
+      NODE_TO_KEY.set(document, document.key);
+      KEY_TO_NODE.set(document.key, document);
+    } else {
+      KEY_TO_ELEMENT.delete(document.key);
+      NODE_TO_ELEMENT.delete(document);
+    }
   }
 
   /**
@@ -154,6 +176,18 @@ class Content extends React.Component<any, any> {
 
   componentDidUpdate() {
     this.updateSelection();
+    const { props } = this;
+    const { editor } = props;
+    const { value } = editor;
+    const { document } = value;
+    if (this.element) {
+      KEY_TO_ELEMENT.set(document.key, this.element);
+      NODE_TO_ELEMENT.set(document, this.element);
+      ELEMENT_TO_NODE.set(this.element, document);
+    } else {
+      KEY_TO_ELEMENT.delete(document.key);
+      NODE_TO_ELEMENT.delete(document);
+    }
   }
 
   /**
@@ -276,7 +310,7 @@ class Content extends React.Component<any, any> {
    * @param {Element} element
    */
 
-  ref = element => {
+  ref = (element) => {
     this.element = element;
   };
 
@@ -288,7 +322,7 @@ class Content extends React.Component<any, any> {
    * @param {Element} target
    */
 
-  isInEditor = target => {
+  isInEditor = (target) => {
     const { element } = this;
     // COMPAT: Text nodes don't have `isContentEditable` property. So, when
     // `target` is a text node use its parent node for check.
@@ -383,7 +417,7 @@ class Content extends React.Component<any, any> {
    * @param {Event} event
    */
 
-  onNativeSelectionChange = throttle(event => {
+  onNativeSelectionChange = throttle((event) => {
     if (this.props.readOnly) return;
 
     const window = getWindow(event.target);
@@ -407,7 +441,7 @@ class Content extends React.Component<any, any> {
       tabIndex,
       role,
       tagName,
-      spellCheck
+      spellCheck,
     } = props;
     const { value, stack } = editor;
     const Container = tagName;
@@ -419,7 +453,7 @@ class Content extends React.Component<any, any> {
     const children = document.nodes.toArray().map((child, i) => {
       const isSelected = !!indexes && indexes.start <= i && i < indexes.end;
 
-      return this.renderNode(child, isSelected, childrenDecorations[i]);
+      return this.renderNode(child, i, isSelected, childrenDecorations[i]);
     });
 
     const style = {
@@ -434,7 +468,7 @@ class Content extends React.Component<any, any> {
       // weird ways. This hides that. (2016/06/21)
       ...(readOnly ? {} : { WebkitUserModify: "read-write-plaintext-only" }),
       // Allow for passed-in styles to override anything.
-      ...props.style
+      ...props.style,
     };
 
     debug("render", { props });
@@ -444,7 +478,7 @@ class Content extends React.Component<any, any> {
         {...handlers}
         data-slate-editor
         ref={this.ref}
-        data-key={document.key}
+        data-key={document.key.id}
         contentEditable={readOnly ? null : true}
         suppressContentEditableWarning
         className={className}
@@ -471,12 +505,11 @@ class Content extends React.Component<any, any> {
    * @param {Boolean} isSelected
    */
 
-  renderNode = (child, isSelected, decorations) => {
+  renderNode = (child, index, isSelected, decorations) => {
     const { editor, readOnly } = this.props;
     const { value } = editor;
     const { document, selection } = value;
     const { isFocused } = selection;
-
     return (
       <Node
         block={null}
@@ -484,9 +517,10 @@ class Content extends React.Component<any, any> {
         decorations={decorations}
         isSelected={isSelected}
         isFocused={isFocused && isSelected}
-        key={child.key}
+        key={child.key.id}
         node={child}
         parent={document}
+        index={index}
         readOnly={readOnly}
       />
     );
@@ -497,7 +531,7 @@ class Content extends React.Component<any, any> {
  * Mix in handler prop types.
  */
 
-EVENT_HANDLERS.forEach(handler => {
+EVENT_HANDLERS.forEach((handler) => {
   Content.propTypes[handler] = Types.func.isRequired;
 });
 

@@ -6,7 +6,7 @@ import {
   IS_FIREFOX,
   IS_IE,
   IS_IOS,
-  HAS_INPUT_EVENTS_LEVEL_2
+  HAS_INPUT_EVENTS_LEVEL_2,
 } from "@zykj/slate-dev-environment";
 
 import findNode from "../utils/find-node";
@@ -93,7 +93,7 @@ function BeforePlugin() {
       // COMPAT: The event should be ignored if the focus is moving to a non-
       // editable section of an element that isn't a void node (eg. a list item
       // of the check list example).
-      const node = findNode(relatedTarget, value);
+      const node = findNode(relatedTarget);
       if (el.contains(relatedTarget) && node && !schema.isVoid(node))
         return true;
     }
@@ -115,7 +115,7 @@ function BeforePlugin() {
     // happen on the initialization of the editor, or if the schema changes.
     // This change isn't save into history since only schema is updated.
     if (value.schema != editor.schema) {
-      change.setValue({ schema: editor.schema }, { save: false }).normalize();
+      change.setValue({ schema: editor.schema }, { save: false });
     }
 
     debug("onChange");
@@ -273,7 +273,7 @@ function BeforePlugin() {
     // default, and calling `preventDefault` hides the cursor.
     const { value } = editor;
     const { schema } = value;
-    const node = findNode(event.target, editor.value);
+    const node = findNode(event.target);
     if (schema.isVoid(node)) event.preventDefault();
 
     // COMPAT: IE won't call onDrop on contentEditables unless the
@@ -477,7 +477,7 @@ function BeforePlugin() {
     onInput,
     onKeyDown,
     onPaste,
-    onSelect
+    onSelect,
   };
 }
 

@@ -10,7 +10,11 @@ import {
   KEY_TO_ELEMENT,
   NODE_TO_ELEMENT,
   ELEMENT_TO_NODE,
-} from "../utils/weak-maps";
+  NODE_TO_PARENT,
+  NODE_TO_INDEX,
+  NODE_TO_KEY,
+  KEY_TO_NODE,
+} from "@zykj/slate";
 
 /**
  * Debug.
@@ -34,6 +38,7 @@ interface NodeProps {
   isSelected: boolean;
   node: any;
   parent: any;
+  index: number;
   readOnly: any;
 }
 
@@ -52,6 +57,7 @@ const Node = (props: NodeProps) => {
     node,
     decorations,
     parent,
+    index,
     readOnly,
   } = props;
 
@@ -61,16 +67,20 @@ const Node = (props: NodeProps) => {
 
   useIsomorphicLayoutEffect(() => {
     if (ref.current) {
-      // KEY_TO_ELEMENT.set(key, ref.current);
+      KEY_TO_ELEMENT.set(key, ref.current);
       NODE_TO_ELEMENT.set(node, ref.current);
       ELEMENT_TO_NODE.set(ref.current, node);
+      NODE_TO_INDEX.set(node, index);
+      NODE_TO_PARENT.set(node, parent);
+      NODE_TO_KEY.set(node, key);
+      KEY_TO_NODE.set(key, node);
     } else {
-      // KEY_TO_ELEMENT.delete(key);
+      KEY_TO_ELEMENT.delete(key);
       NODE_TO_ELEMENT.delete(node);
     }
   });
 
-  const renderNode = (child, isSelected, decorations) => {
+  const renderNode = (child, index, isSelected, decorations) => {
     const { block, editor, node, readOnly, isFocused } = props;
     const Component = child.object == "text" ? Text : MemoNode;
 
@@ -81,9 +91,10 @@ const Node = (props: NodeProps) => {
         editor={editor}
         isSelected={isSelected}
         isFocused={isFocused && isSelected}
-        key={child.key}
+        key={child.key.id}
         node={child}
         parent={node}
+        index={index}
         readOnly={readOnly}
       />
     );
@@ -101,14 +112,19 @@ const Node = (props: NodeProps) => {
   node.nodes.forEach((child, i) => {
     const isChildSelected = !!indexes && indexes.start <= i && i < indexes.end;
 
-    children.push(renderNode(child, isChildSelected, childrenDecorations[i]));
+    children.push(
+      renderNode(child, i, isChildSelected, childrenDecorations[i])
+    );
   });
-
-  const attributes: any = { "data-key": node.key, ref };
+  const attributes: any = { "data-key": node.key.id, ref };
 
   // If it's a block node with inline children, add the proper `dir` attribute
   // for text direction.
-  if (node.object == "block" && node.nodes.first().object != "block") {
+  if (
+    node.object == "block" &&
+    node.nodes.first() &&
+    node.nodes.first().object != "block"
+  ) {
     const direction = node.getTextDirection();
     if (direction == "rtl") attributes.dir = "rtl";
   }
@@ -127,7 +143,7 @@ const Node = (props: NodeProps) => {
 
   if (placeholder) {
     placeholder = React.cloneElement(placeholder, {
-      key: `${node.key}-placeholder`,
+      key: `${node.key.id}-placeholder`,
     });
 
     children = [placeholder, ...children];

@@ -21,8 +21,6 @@ class Node {
 
   public object: "document" | "block" | "inline" | "text";
 
-  __dict: any;
-
   /**
    * craete a new Node width attrs
    * @param attrs

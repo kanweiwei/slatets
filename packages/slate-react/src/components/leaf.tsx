@@ -85,7 +85,7 @@ const Leaf = (props: LeafInterface) => {
 
   const { node, index } = props;
   const offsetKey = OffsetKey.stringify({
-    key: node.key,
+    key: node.key.id,
     index,
   });
 
