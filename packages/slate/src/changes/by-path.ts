@@ -379,7 +379,7 @@ Changes.removeTextByPath = (change, path, offset, length, options) => {
   change.applyOperations(removals.reverse());
 
   const block = document.getClosestBlock(node.key);
-  change.normalizeNodeByKey(block.key, options);
+  // change.normalizeNodeByKey(block.key, options);
 };
 
 /**

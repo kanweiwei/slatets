@@ -103,200 +103,205 @@ Changes.addMarksAtRange = (change, range, marks, options = {}) => {
  *   @property {Boolean} normalize
  */
 Changes.deleteAtRange = (change: Change, range: any, options = {}) => {
-  // Snapshot the selection, which creates an extra undo save point, so that
-  // when you undo a delete, the expanded selection will be retained.
-  change.snapshotSelection();
+  change.withoutNormalization(() => {
+    // Snapshot the selection, which creates an extra undo save point, so that
+    // when you undo a delete, the expanded selection will be retained.
+    change.snapshotSelection();
 
-  const normalize = change.getFlag("normalize", options);
-  const { value } = change;
-  const { start, end } = range;
-  let startKey = start.key;
-  let startOffset = start.offset;
-  let endKey = end.key;
-  let endOffset = end.offset;
-  let { document, schema } = value;
-  let isStartVoid = document.hasVoidParent(startKey, schema);
-  let isEndVoid = document.hasVoidParent(endKey, schema);
-  let startBlock = document.getClosestBlock(startKey, schema);
-  let endBlock = document.getClosestBlock(endKey, schema);
+    const normalize = change.getFlag("normalize", options);
+    const { value } = change;
+    const { start, end } = range;
+    let startKey = start.key;
+    let startOffset = start.offset;
+    let endKey = end.key;
+    let endOffset = end.offset;
+    let { document, schema } = value;
+    let isStartVoid = document.hasVoidParent(startKey, schema);
+    let isEndVoid = document.hasVoidParent(endKey, schema);
+    let startBlock = document.getClosestBlock(startKey, schema);
+    let endBlock = document.getClosestBlock(endKey, schema);
 
-  // Check if we have a "hanging" selection case where the even though the
-  // selection extends into the start of the end node, we actually want to
-  // ignore that for UX reasons.
-  const isHanging =
-    startOffset == 0 &&
-    endOffset == 0 &&
-    isStartVoid == false &&
-    isEqual(startKey, startBlock.getFirstText().key) &&
-    isEqual(endKey, endBlock.getFirstText().key);
+    // Check if we have a "hanging" selection case where the even though the
+    // selection extends into the start of the end node, we actually want to
+    // ignore that for UX reasons.
+    const isHanging =
+      startOffset == 0 &&
+      endOffset == 0 &&
+      isStartVoid == false &&
+      isEqual(startKey, startBlock.getFirstText().key) &&
+      isEqual(endKey, endBlock.getFirstText().key);
 
-  // If it's a hanging selection, nudge it back to end in the previous text.
-  if (isHanging && isEndVoid) {
-    const prevText = document.getPreviousText(endKey);
-    endKey = prevText.key;
-    endOffset = prevText.text.length;
-    isEndVoid = document.hasVoidParent(endKey, schema);
-  }
-
-  // If the start node is inside a void node, remove the void node and update
-  // the starting point to be right after it, continuously until the start point
-  // is not a void, or until the entire range is handled.
-  while (isStartVoid) {
-    const startVoid = document.getClosestVoid(startKey, schema);
-    const nextText = document.getNextText(startKey);
-    change.removeNodeByKey(startVoid.key, { normalize: false });
-
-    // If the start and end keys are the same, we're done.
-    if (isEqual(startKey, endKey)) return;
-
-    // If there is no next text node, we're done.
-    if (!nextText) return;
-
-    // Continue...
-    document = change.value.document;
-    startKey = nextText.key;
-    startOffset = 0;
-    isStartVoid = document.hasVoidParent(startKey, schema);
-  }
-
-  // If the end node is inside a void node, do the same thing but backwards. But
-  // we don't need any aborting checks because if we've gotten this far there
-  // must be a non-void node that will exit the loop.
-  while (isEndVoid) {
-    const endVoid = document.getClosestVoid(endKey, schema);
-    const prevText = document.getPreviousText(endKey);
-    change.removeNodeByKey(endVoid.key, { normalize: false });
-
-    // Continue...
-    document = change.value.document;
-    endKey = prevText.key;
-    endOffset = prevText.text.length;
-    isEndVoid = document.hasVoidParent(endKey, schema);
-  }
-
-  // If the start and end key are the same, and it was a hanging selection, we
-  // can just remove the entire block.
-  if (isEqual(startKey, endKey) && isHanging) {
-    change.removeNodeByKey(startBlock.key, { normalize });
-    return;
-  } else if (isEqual(startKey, endKey)) {
-    // Otherwise, if it wasn't hanging, we're inside a single text node, so we can
-    // simply remove the text in the range.
-    const index = startOffset;
-    const length = endOffset - startOffset;
-    change.removeTextByKey(startKey, index, length, { normalize });
-    return;
-  } else {
-    // Otherwise, we need to recursively remove text and nodes inside the start
-    // block after the start offset and inside the end block before the end
-    // offset. Then remove any blocks that are in between the start and end
-    // blocks. Then finally merge the start and end nodes.
-    startBlock = document.getClosestBlock(startKey);
-    endBlock = document.getClosestBlock(endKey);
-    const startText = document.getNode(startKey);
-    const endText = document.getNode(endKey);
-    const startLength = startText.text.length - startOffset;
-    const endLength = endOffset;
-
-    const ancestor = document.getCommonAncestor(startKey, endKey);
-    const startChild = ancestor.getFurthestAncestor(startKey);
-    const endChild = ancestor.getFurthestAncestor(endKey);
-
-    const startParent = document.getParent(startBlock.key);
-    const startParentIndex = startParent.nodes.indexOf(startBlock);
-    const endParentIndex = startParent.nodes.indexOf(endBlock);
-
-    let child;
-
-    // Iterate through all of the nodes in the tree after the start text node
-    // but inside the end child, and remove them.
-    child = startText;
-
-    while (!isEqual(child.key, startChild.key) && !Document.isDocument(child)) {
-      const parent = document.getParent(child.key);
-      const index = parent.nodes.indexOf(child);
-      const afters = parent.nodes.slice(index + 1);
-
-      afters.reverse().forEach((node) => {
-        change.removeNodeByKey(node.key, { normalize: false });
-      });
-
-      child = parent;
+    // If it's a hanging selection, nudge it back to end in the previous text.
+    if (isHanging && isEndVoid) {
+      const prevText = document.getPreviousText(endKey);
+      endKey = prevText.key;
+      endOffset = prevText.text.length;
+      isEndVoid = document.hasVoidParent(endKey, schema);
     }
 
-    // Remove all of the middle children.
-    const startChildIndex = ancestor.nodes.indexOf(startChild);
-    const endChildIndex = ancestor.nodes.indexOf(endChild);
-    const middles = ancestor.nodes.slice(startChildIndex + 1, endChildIndex);
+    // If the start node is inside a void node, remove the void node and update
+    // the starting point to be right after it, continuously until the start point
+    // is not a void, or until the entire range is handled.
+    while (isStartVoid) {
+      const startVoid = document.getClosestVoid(startKey, schema);
+      const nextText = document.getNextText(startKey);
+      change.removeNodeByKey(startVoid.key, { normalize: false });
 
-    middles.reverse().forEach((node) => {
-      change.removeNodeByKey(node.key, { normalize: false });
-    });
+      // If the start and end keys are the same, we're done.
+      if (isEqual(startKey, endKey)) return;
 
-    // Remove the nodes before the end text node in the tree.
-    child = endText;
+      // If there is no next text node, we're done.
+      if (!nextText) return;
 
-    while (!isEqual(child.key, endChild.key) && !Document.isDocument(child)) {
-      const parent = document.getParent(child.key);
-      const index = parent.nodes.indexOf(child);
-      const befores = parent.nodes.slice(0, index);
-
-      befores.reverse().forEach((node) => {
-        change.removeNodeByKey(node.key, { normalize: false });
-        let i: number = NODE_TO_INDEX.get(child);
-        i--;
-        NODE_TO_INDEX.set(child, i);
-      });
-
-      child = parent;
-    }
-
-    // Remove any overlapping text content from the leaf text nodes.
-    if (startLength != 0) {
-      change.removeTextByKey(startKey, startOffset, startLength, {
-        normalize: false,
-      });
-    }
-
-    if (endLength != 0) {
-      change.removeTextByKey(endKey, 0, endOffset, { normalize: false });
-    }
-
-    // If the start and end blocks aren't the same, move and merge the end block
-    // into the start block.
-    if (!isEqual(startBlock.key, endBlock.key)) {
+      // Continue...
       document = change.value.document;
-      const lonely = document.getFurthestOnlyChildAncestor(endBlock.key);
-
-      // Move the end block to be right after the start block.
-      if (endParentIndex != startParentIndex + 1) {
-        change.moveNodeByKey(
-          endBlock.key,
-          startParent.key,
-          startParentIndex + 1,
-          { normalize: false }
-        );
-      }
-
-      // If the selection is hanging, just remove the start block, otherwise
-      // merge the end block into it.
-      if (isHanging) {
-        change.removeNodeByKey(startBlock.key, { normalize: false });
-      } else {
-        change.mergeNodeByKey(endBlock.key, { normalize: false });
-      }
-
-      // If nested empty blocks are left over above the end block, remove them.
-      if (lonely) {
-        change.removeNodeByKey(lonely.key, { normalize: false });
-      }
+      startKey = nextText.key;
+      startOffset = 0;
+      isStartVoid = document.hasVoidParent(startKey, schema);
     }
 
-    // If we should normalize, do it now after everything.
-    // if (normalize) {
-    //   change.normalizeNodeByKey(ancestor.key);
-    // }
-  }
+    // If the end node is inside a void node, do the same thing but backwards. But
+    // we don't need any aborting checks because if we've gotten this far there
+    // must be a non-void node that will exit the loop.
+    while (isEndVoid) {
+      const endVoid = document.getClosestVoid(endKey, schema);
+      const prevText = document.getPreviousText(endKey);
+      change.removeNodeByKey(endVoid.key, { normalize: false });
+
+      // Continue...
+      document = change.value.document;
+      endKey = prevText.key;
+      endOffset = prevText.text.length;
+      isEndVoid = document.hasVoidParent(endKey, schema);
+    }
+
+    // If the start and end key are the same, and it was a hanging selection, we
+    // can just remove the entire block.
+    if (isEqual(startKey, endKey) && isHanging) {
+      change.removeNodeByKey(startBlock.key, { normalize });
+      return;
+    } else if (isEqual(startKey, endKey)) {
+      // Otherwise, if it wasn't hanging, we're inside a single text node, so we can
+      // simply remove the text in the range.
+      const index = startOffset;
+      const length = endOffset - startOffset;
+      change.removeTextByKey(startKey, index, length, { normalize });
+      return;
+    } else {
+      // Otherwise, we need to recursively remove text and nodes inside the start
+      // block after the start offset and inside the end block before the end
+      // offset. Then remove any blocks that are in between the start and end
+      // blocks. Then finally merge the start and end nodes.
+      startBlock = document.getClosestBlock(startKey);
+      endBlock = document.getClosestBlock(endKey);
+      const startText = document.getNode(startKey);
+      const endText = document.getNode(endKey);
+      const startLength = startText.text.length - startOffset;
+      const endLength = endOffset;
+
+      const ancestor = document.getCommonAncestor(startKey, endKey);
+      const startChild = ancestor.getFurthestAncestor(startKey);
+      const endChild = ancestor.getFurthestAncestor(endKey);
+
+      const startParent = document.getParent(startBlock.key);
+      const startParentIndex = startParent.nodes.indexOf(startBlock);
+      const endParentIndex = startParent.nodes.indexOf(endBlock);
+
+      let child;
+
+      // Iterate through all of the nodes in the tree after the start text node
+      // but inside the end child, and remove them.
+      child = startText;
+
+      while (
+        !isEqual(child.key, startChild.key) &&
+        !Document.isDocument(child)
+      ) {
+        const parent = document.getParent(child.key);
+        const index = parent.nodes.indexOf(child);
+        const afters = parent.nodes.slice(index + 1);
+
+        afters.reverse().forEach((node) => {
+          change.removeNodeByKey(node.key, { normalize: false });
+        });
+
+        child = parent;
+      }
+
+      // Remove all of the middle children.
+      const startChildIndex = ancestor.nodes.indexOf(startChild);
+      const endChildIndex = ancestor.nodes.indexOf(endChild);
+      const middles = ancestor.nodes.slice(startChildIndex + 1, endChildIndex);
+
+      middles.reverse().forEach((node) => {
+        change.removeNodeByKey(node.key, { normalize: false });
+      });
+
+      // Remove the nodes before the end text node in the tree.
+      child = endText;
+
+      while (!isEqual(child.key, endChild.key) && !Document.isDocument(child)) {
+        const parent = document.getParent(child.key);
+        const index = parent.nodes.indexOf(child);
+        const befores = parent.nodes.slice(0, index);
+
+        befores.reverse().forEach((node) => {
+          change.removeNodeByKey(node.key, { normalize: false });
+          let i: number = NODE_TO_INDEX.get(child);
+          i--;
+          NODE_TO_INDEX.set(child, i);
+        });
+
+        child = parent;
+      }
+
+      // Remove any overlapping text content from the leaf text nodes.
+      if (startLength != 0) {
+        change.removeTextByKey(startKey, startOffset, startLength, {
+          normalize: false,
+        });
+      }
+
+      if (endLength != 0) {
+        change.removeTextByKey(endKey, 0, endOffset, { normalize: false });
+      }
+
+      // If the start and end blocks aren't the same, move and merge the end block
+      // into the start block.
+      if (!isEqual(startBlock.key, endBlock.key)) {
+        document = change.value.document;
+        const lonely = document.getFurthestOnlyChildAncestor(endBlock.key);
+
+        // Move the end block to be right after the start block.
+        if (endParentIndex != startParentIndex + 1) {
+          change.moveNodeByKey(
+            endBlock.key,
+            startParent.key,
+            startParentIndex + 1,
+            { normalize: false }
+          );
+        }
+
+        // If the selection is hanging, just remove the start block, otherwise
+        // merge the end block into it.
+        if (isHanging) {
+          change.removeNodeByKey(startBlock.key, { normalize: false });
+        } else {
+          change.mergeNodeByKey(endBlock.key, { normalize: false });
+        }
+
+        // If nested empty blocks are left over above the end block, remove them.
+        if (lonely) {
+          change.removeNodeByKey(lonely.key, { normalize: false });
+        }
+      }
+
+      // If we should normalize, do it now after everything.
+      // if (normalize) {
+      //   change.normalizeNodeByKey(ancestor.key);
+      // }
+    }
+  });
 };
 
 /**
