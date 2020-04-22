@@ -8,6 +8,7 @@ import Key from "../utils/key-utils";
 import memoize from "../utils/memoize";
 import Mark from "./mark";
 import { isEqual } from "lodash-es";
+import Schema from "./schema";
 
 const DEFAULTS = {
   leaves: List(),
@@ -480,7 +481,6 @@ class Text extends Record(DEFAULTS) {
   /**
    * Remove text from the text node at `start` for `length`.
    */
-
   removeText(start: number, length: number): Text {
     if (length <= 0) return this;
     if (start >= this.text.length) return this;
@@ -527,13 +527,7 @@ class Text extends Record(DEFAULTS) {
     return this.set("leaves", leaves) as Text;
   }
 
-  /**
-   * Return a JSON representation of the text.
-   *
-   * @param {Object} options
-   * @return {Object}
-   */
-
+  // Return a JSON representation of the text.
   toJSON(
     options: any = {}
   ): {
@@ -554,10 +548,7 @@ class Text extends Record(DEFAULTS) {
     return object;
   }
 
-  /**
-   * Update a `mark` at `index` and `length` with `properties`.
-   */
-
+  // Update a `mark` at `index` and `length` with `properties`.
   updateMark(index: number, length: number, mark: Mark, properties: any): Text {
     const newMark = mark.merge(properties) as Mark;
 
@@ -586,10 +577,7 @@ class Text extends Record(DEFAULTS) {
     return this.setLeaves(leaves);
   }
 
-  /**
-   * Split this text and return two different texts
-   */
-
+  // Split this text and return two different texts
   splitText(offset: number): Text[] {
     const splitted = Leaf.splitLeaves(this.leaves, offset);
     const one = this.set("leaves", splitted[0]) as Text;
@@ -600,59 +588,28 @@ class Text extends Record(DEFAULTS) {
     return [one, two];
   }
 
-  /**
-   * merge this text and another text at the end
-   */
-
+  // merge this text and another text at the end
   mergeText(text: Text): Text {
     const leaves = this.leaves.concat(text.leaves).toList();
     return this.setLeaves(leaves);
   }
 
-  /**
-   * Normalize the text node with a `schema`.
-   *
-   * @param {Schema} schema
-   * @return {Function|Void}
-   */
-
-  normalize(schema) {
+  // Normalize the text node with a `schema`.
+  normalize(schema: Schema): any {
     return schema.normalizeNode(this);
   }
-  /**
-   * Validate the text node against a `schema`.
-   *
-   * @param {Schema} schema
-   * @return {Error|Void}
-   */
 
-  validate(schema) {
+  // Validate the text node against a `schema`.
+  validate(schema: Schema): any {
     return schema.validateNode(this);
   }
-  /**
-   * Get the first invalid descendant
-   * PERF: Do not cache this method; because it can cause cycle reference
-   *
-   * @param {Schema} schema
-   * @returns {Text|Null}
-   */
 
-  getFirstInvalidNode(schema): Text | null {
+  // Get the first invalid descendant. PERF: Do not cache this method; because it can cause cycle reference
+  getFirstInvalidNode(schema: Schema): Text | null {
     return this.validate(schema) ? this : null;
   }
 
-  getFirstInvalidDescendant(schema) {
-    logger.deprecate(
-      "0.39.0",
-      "The `Node.getFirstInvalidDescendant` method is deprecated, please use `Node.getFirstInvalidNode` instead."
-    );
-
-    return this.getFirstInvalidNode(schema);
-  }
-
-  /**
-   * Set leaves with normalized `leaves`
-   */
+  // Set leaves with normalized `leaves`
   setLeaves(leaves: List<Leaf>): Text {
     const result = Leaf.createLeaves(leaves);
 

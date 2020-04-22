@@ -110,7 +110,6 @@ class Document extends Record(DEFAULTS) {
   getDecorations;
   getDepth;
   getDescendant;
-  getFirstInvalidDescendant;
   getFirstText;
   getFragmentAtRange;
   getFurthest;
