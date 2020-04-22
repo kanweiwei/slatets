@@ -1,29 +1,23 @@
 import Debug from "debug";
-import isEqual from "lodash/isEqual";
 import isPlainObject from "is-plain-object";
 import { List, Record, Stack } from "immutable";
 
 import MODEL_TYPES from "../constants/model-types";
+import Operation from "./operation";
 
 const debug = Debug("slate:history");
 
 const DEFAULTS = {
   redos: Stack(),
-  undos: Stack()
+  undos: Stack(),
 };
 
 class History extends Record(DEFAULTS) {
-  public redos: Stack<any>;
-  public undos: Stack<any>;
+  public redos: Stack<List<Operation>>;
+  public undos: Stack<List<Operation>>;
 
-  /**
-   * Create a new `History` with `attrs`.
-   *
-   * @param {Object|History} attrs
-   * @return {History}
-   */
-
-  static create(attrs = {}) {
+  // Create a new `History` with `attrs`.
+  static create(attrs: any | History = {}) {
     if (History.isHistory(attrs)) {
       return attrs;
     }
@@ -37,14 +31,8 @@ class History extends Record(DEFAULTS) {
     );
   }
 
-  /**
-   * Create a list of `Operations` from `operations`.
-   *
-   * @param {Array<Object>|List<Object>} operations
-   * @return {List<Object>}
-   */
-
-  static createOperationsList(operations = []) {
+  // Create a list of `Operations` from `operations`.
+  static createOperationsList(operations: any[] | List<any> = []) {
     if (List.isList(operations)) {
       return operations;
     }
@@ -58,54 +46,28 @@ class History extends Record(DEFAULTS) {
     );
   }
 
-  /**
-   * Create a `History` from a JSON `object`.
-   *
-   * @param {Object} object
-   * @return {History}
-   */
-
-  static fromJSON(object) {
+  // Create a `History` from a JSON `object`.
+  static fromJSON(object: any) {
     const { redos = [], undos = [] } = object;
 
     const history = new History({
       redos: Stack(redos.map(this.createOperationsList)),
-      undos: Stack(undos.map(this.createOperationsList))
+      undos: Stack(undos.map(this.createOperationsList)),
     });
 
     return history;
   }
 
-  /**
-   * Check if `any` is a `History`.
-   *
-   * @param {Any} any
-   * @return {Boolean}
-   */
-
-  static isHistory(obj) {
+  static isHistory(obj: any) {
     return !!(obj && obj[MODEL_TYPES.HISTORY]);
   }
-
-  /**
-   * Object.
-   *
-   * @return {String}
-   */
 
   get object() {
     return "history";
   }
 
-  /**
-   * Save an `operation` into the history.
-   *
-   * @param {Object} operation
-   * @param {Object} options
-   * @return {History}
-   */
-
-  save(operation, options: any = {}) {
+  // Save an `operation` into the history.
+  save(operation: any, options: any = {}) {
     let history = this as History;
     let { undos, redos } = history;
     let { merge, skip } = options;
@@ -135,7 +97,7 @@ class History extends Record(DEFAULTS) {
 
     // Constrain the history to 100 entries for memory's sake.
     if (undos.size > 100) {
-      undos = undos.take(100) as Stack<any>;
+      undos = undos.take(100).toStack();
     }
 
     // Clear the redos and update the history.
@@ -144,32 +106,20 @@ class History extends Record(DEFAULTS) {
     return history;
   }
 
-  /**
-   * Return a JSON representation of the history.
-   *
-   * @return {Object}
-   */
-
-  toJSON(options: any = {}) {
+  // Return a JSON representation of the history.
+  toJSON() {
     const object = {
       object: this.object,
       redos: (this.redos as any).toJSON(),
-      undos: (this.undos as any).toJSON()
+      undos: (this.undos as any).toJSON(),
     };
 
     return object;
   }
 }
 
-/**
- * Check whether to merge a new operation `o` into the previous operation `p`.
- *
- * @param {Object} o
- * @param {Object} p
- * @return {Boolean}
- */
-
-function shouldMerge(o, p) {
+// Check whether to merge a new operation `o` into the previous operation `p`.
+function shouldMerge(o: any, p: any) {
   if (!p) return false;
 
   const merge =
@@ -177,11 +127,11 @@ function shouldMerge(o, p) {
     (o.type == "insert_text" &&
       p.type == "insert_text" &&
       o.offset == p.offset + p.text.length &&
-      isEqual(o.path, p.path)) ||
+      o.path.equals(p.path)) ||
     (o.type == "remove_text" &&
       p.type == "remove_text" &&
       o.offset + o.text.length == p.offset &&
-      isEqual(o.path, p.path));
+      o.path.equals(p.path));
 
   return merge;
 }
