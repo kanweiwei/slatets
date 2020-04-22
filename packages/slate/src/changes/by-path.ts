@@ -92,7 +92,7 @@ Changes.addMarkByPath = (change, path, offset, length, mark, options) => {
   });
 
   change.applyOperations(operations);
-  change.normalizeParentByPath(path, options);
+  // change.normalizeParentByPath(path, options);
 };
 
 /**
@@ -110,7 +110,7 @@ Changes.insertFragmentByPath = (change, path, index, fragment, options) => {
     change.insertNodeByPath(path, index + i, node);
   });
 
-  change.normalizeNodeByPath(path, options);
+  // change.normalizeNodeByPath(path, options);
 };
 
 /**
@@ -133,7 +133,7 @@ Changes.insertNodeByPath = (change, path, index, node, options) => {
     node,
   });
 
-  change.normalizeNodeByPath(path, options);
+  // change.normalizeNodeByPath(path, options);
 };
 
 /**
@@ -162,7 +162,7 @@ Changes.insertTextByPath = (change, path, offset, text, marks, options) => {
     marks,
   });
 
-  change.normalizeParentByPath(path, options);
+  // change.normalizeParentByPath(path, options);
 };
 
 /**
@@ -202,7 +202,7 @@ Changes.mergeNodeByPath = (change: Change, path, options) => {
     target: null,
   });
 
-  change.normalizeParentByPath(path, options);
+  // change.normalizeParentByPath(path, options);
 };
 
 /**
@@ -226,7 +226,7 @@ Changes.moveNodeByPath = (change, path, newPath, newIndex, options) => {
   });
 
   const ancestorPath = PathUtils.relate(path, newPath);
-  change.normalizeNodeByPath(ancestorPath, options);
+  // change.normalizeNodeByPath(ancestorPath, options);
 };
 
 /**
@@ -279,7 +279,7 @@ Changes.removeMarkByPath = (change, path, offset, length, mark, options) => {
   });
 
   change.applyOperations(operations);
-  change.normalizeParentByPath(path, options);
+  // change.normalizeParentByPath(path, options);
 };
 
 /**
@@ -326,7 +326,7 @@ Changes.removeNodeByPath = (
     node,
   });
 
-  change.normalizeParentByPath(path, options);
+  // change.normalizeParentByPath(path, options);
 };
 
 /**
@@ -374,12 +374,14 @@ Changes.removeTextByPath = (change, path, offset, length, options) => {
       marks: leaf.marks,
     });
   });
+  console.log(node.getLeaves());
 
   // Apply in reverse order, so subsequent removals don't impact previous ones.
   change.applyOperations(removals.reverse());
+  let block = change.value.document.getClosestBlock(node.key);
 
-  const block = document.getClosestBlock(node.key);
-  // change.normalizeNodeByKey(block.key, options);
+  // const block = document.getClosestBlock(node.key);
+  change.normalizeNodeByKey(block.key, options);
 };
 
 /**
@@ -487,7 +489,7 @@ Changes.setMarkByPath = (
     properties,
   });
 
-  change.normalizeParentByPath(path, options);
+  // change.normalizeParentByPath(path, options);
 };
 
 /**
@@ -561,7 +563,7 @@ Changes.splitNodeByPath = (change, path, position, options: any = {}) => {
     target,
   });
 
-  change.normalizeParentByPath(path, options);
+  // change.normalizeParentByPath(path, options);
 };
 
 /**
@@ -610,7 +612,7 @@ Changes.splitDescendantsByPath = (
     });
   });
 
-  change.normalizeParentByPath(path, options);
+  // change.normalizeParentByPath(path, options);
 };
 
 /**

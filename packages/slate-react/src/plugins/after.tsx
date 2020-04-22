@@ -17,6 +17,7 @@ import getEventRange from "../utils/get-event-range";
 import getEventTransfer from "../utils/get-event-transfer";
 import setEventTransfer from "../utils/set-event-transfer";
 import { isEqual } from "lodash-es";
+import slateEditor from "./slate-editor";
 
 /**
  * Debug.
@@ -164,7 +165,7 @@ function AfterPlugin() {
     const { value } = change;
     const { document, schema } = value;
     const node = findNode(event.target);
-    const ancestors = document.getAncestors(node.key);
+    const ancestors = document.getAncestors(slateEditor.findPath(node));
     const isVoid =
       node && (schema.isVoid(node) || ancestors.some((a) => schema.isVoid(a)));
 
@@ -267,7 +268,7 @@ function AfterPlugin() {
     const { value } = change;
     const { document, schema } = value;
     const node = findNode(event.target);
-    const ancestors = document.getAncestors(node.key);
+    const ancestors = document.getAncestors(slateEditor.findPath(node));
     const isVoid =
       node && (schema.isVoid(node) || ancestors.some((a) => schema.isVoid(a)));
 
@@ -622,12 +623,12 @@ function AfterPlugin() {
     if (!range) return;
 
     const { anchor, focus } = range;
-    const anchorText = document.getNode(anchor.key);
-    const focusText = document.getNode(focus.key);
-    const anchorInline = document.getClosestInline(anchor.key);
-    const focusInline = document.getClosestInline(focus.key);
-    const focusBlock = document.getClosestBlock(focus.key);
-    const anchorBlock = document.getClosestBlock(anchor.key);
+    const anchorText = document.getNode(anchor.path);
+    const focusText = document.getNode(focus.path);
+    const anchorInline = document.getClosestInline(anchor.path);
+    const focusInline = document.getClosestInline(focus.path);
+    const focusBlock = document.getClosestBlock(focus.path);
+    const anchorBlock = document.getClosestBlock(anchor.path);
 
     // COMPAT: If the anchor point is at the start of a non-void, and the
     // focus point is inside a void node with an offset that isn't `0`, set
@@ -655,9 +656,9 @@ function AfterPlugin() {
       !schema.isVoid(anchorInline) &&
       anchor.offset == anchorText.text.length
     ) {
-      const block = document.getClosestBlock(anchor.key);
-      const next = block.getNextText(anchor.key);
-      if (next) range = range.moveAnchorTo(next.key, 0);
+      const block = document.getClosestBlock(anchor.path);
+      const next = block.getNextText(anchor.path);
+      if (next) range = range.moveAnchorTo(next.path, 0);
     }
 
     if (
@@ -665,9 +666,9 @@ function AfterPlugin() {
       !focusInline.isVoid &&
       focus.offset == focusText.text.length
     ) {
-      const block = document.getClosestBlock(focus.key);
-      const next = block.getNextText(focus.key);
-      if (next) range = range.moveFocusTo(next.key, 0);
+      const block = document.getClosestBlock(focus.path);
+      const next = block.getNextText(focus.path);
+      if (next) range = range.moveFocusTo(next.path, 0);
     }
     let selection = document.createSelection(range);
     selection = selection.setIsFocused(true);

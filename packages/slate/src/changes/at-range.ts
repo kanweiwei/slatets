@@ -317,7 +317,7 @@ Changes.deleteCharBackwardAtRange = (change, range, options) => {
   const { value } = change;
   const { document } = value;
   const { start } = range;
-  const startBlock = document.getClosestBlock(start.key);
+  const startBlock = document.getClosestBlock(start.path);
   const offset = startBlock.getOffset(start.key);
   const o = offset + start.offset;
   const { text } = startBlock;

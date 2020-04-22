@@ -1287,12 +1287,7 @@ class NodeInterface {
     ret = ret.removeNode(path);
     ret = ret.removeNode(withPath);
     ret = ret.insertNode(withPath, newNode);
-    if (newNode.object !== "text" && newNode.nodes.size > 0) {
-      newNode.nodes.forEach((n, i) => {
-        NODE_TO_INDEX.set(n, i);
-        NODE_TO_PARENT.set(n, newNode);
-      });
-    }
+
     return ret;
   }
 
@@ -1377,7 +1372,14 @@ class NodeInterface {
   removeText(path: List<number> | Key, offset: number, text: string) {
     let node = this.getDescendant(path);
     node = node.removeText(offset, text.length);
+
     const ret = this.replaceNode(path, node);
+    const parentPath = PathUtils.lift(path);
+    const parent = this.getNode(parentPath);
+    NODE_TO_PARENT.set(node, parent);
+    ret.nodes.forEach((n) => {
+      NODE_TO_PARENT.set(n, ret);
+    });
     return ret;
   }
 
