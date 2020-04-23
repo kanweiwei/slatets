@@ -6,7 +6,7 @@ import Mark from "./mark";
 
 const DEFAULTS: any = {
   marks: Set(),
-  text: ""
+  text: "",
 };
 
 class Leaf extends Record(DEFAULTS) {
@@ -44,7 +44,7 @@ class Leaf extends Record(DEFAULTS) {
     let invalid = false;
 
     // TODO: we can make this faster with [List] and then flatten
-    const result = List().withMutations(cache => {
+    const result = List().withMutations((cache) => {
       // Search from the leaves left end to find invalid node;
       leaves.findLast((leaf: Leaf): any => {
         const firstLeaf = cache.first() as Leaf;
@@ -130,7 +130,7 @@ class Leaf extends Record(DEFAULTS) {
 
     return [
       List(leaves.take(index)).push(left) as List<Leaf>,
-      List(leaves.skip(index + 1)).unshift(right) as List<Leaf>
+      List(leaves.skip(index + 1)).unshift(right) as List<Leaf>,
     ];
   }
 
@@ -153,7 +153,7 @@ class Leaf extends Record(DEFAULTS) {
 
     const leaf = new Leaf({
       text,
-      marks: Set(marks.map(Mark.fromJSON))
+      marks: Set(marks.map(Mark.fromJSON)),
     });
 
     return leaf;
@@ -164,13 +164,9 @@ class Leaf extends Record(DEFAULTS) {
   }
 
   static isLeafList(any): boolean {
-    return List.isList(any) && any.every(item => Leaf.isLeaf(item));
+    return List.isList(any) && any.every((item) => Leaf.isLeaf(item));
   }
-  /**
-   * Object.
-   *
-   * @return {String}
-   */
+
   get object() {
     return "leaf";
   }
@@ -179,27 +175,19 @@ class Leaf extends Record(DEFAULTS) {
     const { marks } = this;
     if (newMark.equals(mark)) return this;
     if (!marks.has(mark)) return this;
-    const newMarks = marks.withMutations(collection => {
+    const newMarks = marks.withMutations((collection) => {
       collection.remove(mark).add(newMark);
     });
     return this.set("marks", newMarks) as this;
   }
-  /**
-   * Add a `set` of marks at `index` and `length`.	   * Add a `mark` to the leaf.
-   *
-   * @param {Mark} mark
-   * @returns {Text}
-   */
-  addMark(mark) {
+
+  addMark(mark: Mark) {
     const { marks } = this;
     return this.set("marks", marks.add(mark));
   }
 
-  /**
-   * Add a `set` of marks to the leaf.
-   *
-   */
-  addMarks(set: Array<Mark>): this {
+  // Add a `set` of marks to the leaf.
+  addMarks(set: Set<Mark>): this {
     const { marks } = this;
     return this.set("marks", marks.union(set)) as this;
   }
@@ -213,7 +201,7 @@ class Leaf extends Record(DEFAULTS) {
     const object = {
       object: this.object,
       text: this.text,
-      marks: this.marks.toArray().map(m => m.toJSON())
+      marks: this.marks.toArray().map((m) => m.toJSON()),
     };
 
     return object;
