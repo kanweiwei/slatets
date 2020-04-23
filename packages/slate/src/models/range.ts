@@ -63,6 +63,7 @@ class Range extends Record(DEFAULTS) {
   static createList(elements = []): List<Range> {
     if (List.isList(elements) || Array.isArray(elements)) {
       const list = List(elements.map(Range.create));
+      // @ts-ignore
       return list;
     }
 
