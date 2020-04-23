@@ -28,12 +28,6 @@ import {
 import Mark from "../models/mark";
 import Schema from "../models/schema";
 
-/**
- * The interface that `Document`, `Block` and `Inline` all implement, to make
- * working with the recursive node tree easier.
- *
- * @type {Class}
- */
 class NodeInterface {
   // Get the concatenated text of all the block's children.
   get text(): string {
@@ -48,8 +42,6 @@ class NodeInterface {
     mark: Mark
   ): NodeInterface {
     let node = this.getDescendant(path);
-
-    path = this.resolvePath(path);
     node = node.addMark(offset, length, mark);
     const ret = this.replaceNode(path, node);
     return ret;
@@ -58,29 +50,25 @@ class NodeInterface {
   // Create a decoration with `properties` relative to the node.
   createDecoration(properties: any | Decoration): Decoration {
     properties = Decoration.createProperties(properties);
-    const decoration = this.resolveDecoration(properties);
-    return decoration;
+    return Decoration.create(decoration);
   }
 
   // Create a point with `properties` relative to the node.
   createPoint(properties: any | Point): Point {
     properties = Point.createProperties(properties);
-    const point = this.resolvePoint(properties);
-    return point;
+    return Point.create(properties);
   }
 
   // Create a range with `properties` relative to the node.
   createRange(properties: any | Range): Range {
     properties = Range.createProperties(properties);
-    const range = this.resolveRange(properties);
-    return range;
+    return Range.create(properties);
   }
 
   // Create a selection with `properties` relative to the node.
   createSelection(properties: any | Selection): Selection {
     properties = Selection.createProperties(properties);
-    const selection = this.resolveSelection(properties);
-    return selection as Selection;
+    return Selection.create(properties);
   }
 
   // Recursively filter all descendant nodes with `iterator`.
@@ -128,22 +116,19 @@ class NodeInterface {
 
   // Get a set of the active marks in a `range`.
   getActiveMarksAtRange(range: Range): Set<Mark> {
-    range = this.resolveRange(range);
     if (range.isUnset) return Set();
 
     if (range.isCollapsed) {
       const { start } = range;
-      return this.getMarksAtPosition(start.key, start.offset).toSet();
+      return this.getMarksAtPosition(start.path, start.offset).toSet();
     }
 
     const { start, end } = range;
-    let startKey = start.key;
     let startOffset = start.offset;
-    let endKey = end.key;
     let endOffset = end.offset;
-    let startText = this.getDescendant(startKey);
+    let startText = this.getDescendant(start.path);
 
-    if (!isEqual(startKey, endKey)) {
+    if (!isEqual(start.path, endKey)) {
       while (!isEqual(startKey, endKey) && endOffset === 0) {
         const endText = this.getPreviousText(endKey);
         endKey = endText.key;
@@ -390,9 +375,6 @@ class NodeInterface {
 
   // Get a descendant node.
   getDescendant(path: List<number> | Key): NodeInterface | null {
-    path = this.resolvePath(path);
-    if (!path) return null;
-
     const deep = path.flatMap((x) => ["nodes", x]);
 
     const ret = this.getIn(deep);
@@ -1405,18 +1387,11 @@ class NodeInterface {
     return decoration;
   }
 
-  resolvePath(path: List<number> | Key, index?: number): List<number> {
-    if (path instanceof Key) {
-      path = this.getPath(path);
-
-      if (index != null) {
-        path = path.concat(index);
-      }
-    } else {
-      path = PathUtils.create(path);
+  resolvePath(path: List<number>, index?: number): List<number> {
+    if (index != null) {
+      path = path.concat(index);
     }
-
-    return path;
+    return PathUtils.create(path);
   }
 
   resolvePoint(point: Point | any): Point {

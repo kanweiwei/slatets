@@ -507,7 +507,7 @@ class RangeInterface {
    */
 
   normalize(node) {
-    return this.updatePoints((point) => point.normalize(node));
+    return this.updatePoints((point: Point) => point.normalize(node));
   }
 
   /**
