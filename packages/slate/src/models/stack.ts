@@ -4,13 +4,10 @@ import MODEL_TYPES from "../constants/model-types";
 import memoize from "../utils/memoize";
 
 const DEFAULTS = {
-  plugins: []
+  plugins: [],
 };
 
 class Stack extends Record(DEFAULTS) {
-  /**
-   * 属性
-   */
   public plugins: any[];
 
   static create(attrs: any = {}) {
@@ -28,7 +25,7 @@ class Stack extends Record(DEFAULTS) {
   }
 
   getPluginsWith(property: string) {
-    return this.plugins.filter(plugin => plugin[property] != null);
+    return this.plugins.filter((plugin) => plugin[property] != null);
   }
 
   $$find(property: string, ...args: any[]) {
