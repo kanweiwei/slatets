@@ -1,5 +1,4 @@
 import isPlainObject from "is-plain-object";
-import logger from "slate-dev-logger";
 import { Record, Set } from "immutable";
 
 import MODEL_TYPES from "../constants/model-types";
@@ -31,13 +30,8 @@ class Selection extends Record(DEFAULTS) {
   public focus: Point;
   public isFocused: boolean;
   public marks: Set<Mark>;
-  /**
-   * Create a new `Selection` with `attrs`.
-   *
-   * @param {Object|Selection} attrs
-   * @return {Selection}
-   */
 
+  // Create a new `Selection` with `attrs`.
   static create(attrs: Selection | Range | any = {}): Selection {
     if (Selection.isSelection(attrs)) {
       return attrs;
@@ -56,13 +50,7 @@ class Selection extends Record(DEFAULTS) {
     );
   }
 
-  /**
-   * Create a dictionary of settable selection properties from `attrs`.
-   *
-   * @param {Object|String|Selection} attrs
-   * @return {Object}
-   */
-
+  // Create a dictionary of settable selection properties from `attrs`.
   static createProperties(a: any | Selection = {}) {
     if (Selection.isSelection(a)) {
       return {
@@ -95,46 +83,9 @@ class Selection extends Record(DEFAULTS) {
     );
   }
 
-  /**
-   * Create a `Selection` from a JSON `object`.
-   *
-   * @param {Object} object
-   * @return {Selection}
-   */
-
-  static fromJSON(object) {
+  // Create a `Selection` from a JSON `object`.
+  static fromJSON(object: any) {
     let { anchor, focus, isFocused = false, marks = null } = object;
-
-    if (
-      !anchor &&
-      (object.anchorKey || object.anchorOffset || object.anchorPath)
-    ) {
-      logger.deprecate(
-        "0.37.0",
-        "`Selection` objects now take a `Point` object as an `anchor` instead of taking `anchorKey/Offset/Path` properties. But you passed:",
-        object
-      );
-
-      anchor = {
-        key: object.anchorKey,
-        offset: object.anchorOffset,
-        path: object.anchorPath,
-      };
-    }
-
-    if (!focus && (object.focusKey || object.focusOffset || object.focusPath)) {
-      logger.deprecate(
-        "0.37.0",
-        "`Selection` objects now take a `Point` object as a `focus` instead of taking `focusKey/Offset/Path` properties. But you passed:",
-        object
-      );
-
-      focus = {
-        key: object.focusKey,
-        offset: object.focusOffset,
-        path: object.focusPath,
-      };
-    }
 
     const selection = new Selection({
       anchor: Point.fromJSON(anchor || {}),
@@ -146,69 +97,34 @@ class Selection extends Record(DEFAULTS) {
     return selection;
   }
 
-  /**
-   * Check if an `obj` is a `Selection`.
-   *
-   * @param {Any} obj
-   * @return {Boolean}
-   */
-
-  static isSelection(obj) {
+  // Check if an `obj` is a `Selection`.
+  static isSelection(obj: any) {
     return !!(obj && obj[MODEL_TYPES.SELECTION]);
   }
-
-  /**
-   * Object.
-   *
-   * @return {String}
-   */
 
   get object() {
     return "selection";
   }
 
-  /**
-   * Check whether the selection is blurred.
-   *
-   * @return {Boolean}
-   */
-
+  // Check whether the selection is blurred.
   get isBlurred() {
     return !this.isFocused;
   }
 
-  /**
-   * Set the `isFocused` property to a new `value`.
-   *
-   * @param {Boolean} value
-   * @return {Selection}
-   */
-
-  setIsFocused(value) {
+  // Set the `isFocused` property to a new `value`.
+  setIsFocused(value: boolean) {
     const selection = this.set("isFocused", value);
     return selection;
   }
 
-  /**
-   * Set the `marks` property to a new set of `marks`.
-   *
-   * @param {Set} marks
-   * @return {Selection}
-   */
-
-  setMarks(marks) {
+  // Set the `marks` property to a new set of `marks`.
+  setMarks(marks: Set<Mark>) {
     const selection = this.set("marks", marks);
     return selection;
   }
 
-  /**
-   * Set new `properties` on the selection.
-   *
-   * @param {Object|Range|Selection} properties
-   * @return {Range}
-   */
-
-  setProperties(properties) {
+  // Set new `properties` on the selection.
+  setProperties(properties: any) {
     properties = Selection.createProperties(properties);
     const { anchor, focus, ...props } = properties;
 
@@ -224,14 +140,8 @@ class Selection extends Record(DEFAULTS) {
     return selection;
   }
 
-  /**
-   * Return a JSON representation of the selection.
-   *
-   * @param {Object} options
-   * @return {Object}
-   */
-
-  toJSON(options = {}) {
+  // Return a JSON representation of the selection.
+  toJSON(options: any = {}) {
     const object = {
       object: this.object,
       anchor: this.anchor.toJSON(options),
@@ -245,16 +155,6 @@ class Selection extends Record(DEFAULTS) {
   }
 }
 
-/**
- * Attach a pseudo-symbol for type checking.
- */
-
 Selection.prototype[MODEL_TYPES.SELECTION] = true;
-
-/**
- * Export.
- *
- * @type {Selection}
- */
 
 export default Selection;

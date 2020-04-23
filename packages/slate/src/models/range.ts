@@ -16,8 +16,8 @@ class Range extends Record(DEFAULTS) {
   /**
    * 属性
    */
-  public anchor: Point = Point.create();
-  public focus: Point = Point.create();
+  public anchor: Point;
+  public focus: Point;
 
   /**
    * 静态方法
