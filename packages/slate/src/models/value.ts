@@ -12,6 +12,7 @@ import History from "./history";
 import Selection from "./selection";
 import Schema from "./schema";
 import { isEqual } from "lodash-es";
+import Mark from "./mark";
 
 /**
  * Default properties.
@@ -44,13 +45,8 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Create a new `Value` with `attrs`.
-   *
-   * @param {Object|Value} attrs
-   * @param {Object} options
-   * @return {Value}
    */
-
-  static create(attrs = {}, options = {}) {
+  static create(attrs: any = {}, options: any = {}) {
     if (Value.isValue(attrs)) {
       return attrs;
     }
@@ -66,11 +62,7 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Create a dictionary of settable value properties from `attrs`.
-   *
-   * @param {Object|Value} attrs
-   * @return {Object}
    */
-
   static createProperties(a: any = {}) {
     if (Value.isValue(a)) {
       return {
@@ -103,8 +95,7 @@ class Value extends Record(DEFAULTS) {
    *   @property {Array} plugins
    * @return {Value}
    */
-
-  static fromJSON(object, options: any = {}) {
+  static fromJSON(object: any, options: any = {}) {
     let { document = {}, selection = {}, schema = {}, history = {} } = object;
     let data = Map();
     document = Document.fromJSON(document);
@@ -156,22 +147,9 @@ class Value extends Record(DEFAULTS) {
     return value;
   }
 
-  /**
-   * Check if a `value` is a `Value`.
-   *
-   * @param {Any} value
-   * @return {Boolean}
-   */
-
-  static isValue(value) {
+  static isValue(value: any) {
     return !!(value && value[MODEL_TYPES.VALUE]);
   }
-
-  /**
-   * Object.
-   *
-   * @return {String}
-   */
 
   get object() {
     return "value";
@@ -179,11 +157,8 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Get the current start text node's closest block parent.
-   *
-   * @return {Block}
    */
-
-  get startBlock() {
+  get startBlock(): Block {
     return (
       this.selection.start.key &&
       this.document.getClosestBlock(this.selection.start.key)
@@ -192,11 +167,8 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Get the current end text node's closest block parent.
-   *
-   * @return {Block}
    */
-
-  get endBlock() {
+  get endBlock(): Block {
     return (
       this.selection.end.key &&
       this.document.getClosestBlock(this.selection.end.key)
@@ -205,11 +177,8 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Get the current anchor text node's closest block parent.
-   *
-   * @return {Block}
    */
-
-  get anchorBlock() {
+  get anchorBlock(): Block {
     return (
       this.selection.anchor.key &&
       this.document.getClosestBlock(this.selection.anchor.key)
@@ -218,11 +187,8 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Get the current focus text node's closest block parent.
-   *
-   * @return {Block}
    */
-
-  get focusBlock() {
+  get focusBlock(): Block {
     return (
       this.selection.focus.key &&
       this.document.getClosestBlock(this.selection.focus.key)
@@ -231,11 +197,8 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Get the current start text node's closest inline parent.
-   *
-   * @return {Inline}
    */
-
-  get startInline() {
+  get startInline(): Inline {
     return (
       this.selection.start.key &&
       this.document.getClosestInline(this.selection.start.key)
@@ -244,11 +207,8 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Get the current end text node's closest inline parent.
-   *
-   * @return {Inline}
    */
-
-  get endInline() {
+  get endInline(): Inline {
     return (
       this.selection.end.key &&
       this.document.getClosestInline(this.selection.end.key)
@@ -257,11 +217,8 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Get the current anchor text node's closest inline parent.
-   *
-   * @return {Inline}
    */
-
-  get anchorInline() {
+  get anchorInline(): Inline {
     return (
       this.selection.anchor.key &&
       this.document.getClosestInline(this.selection.anchor.key)
@@ -270,11 +227,8 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Get the current focus text node's closest inline parent.
-   *
-   * @return {Inline}
    */
-
-  get focusInline() {
+  get focusInline(): Inline {
     return (
       this.selection.focus.key &&
       this.document.getClosestInline(this.selection.focus.key)
@@ -283,11 +237,8 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Get the current start text node.
-   *
-   * @return {Text}
    */
-
-  get startText() {
+  get startText(): Text {
     return (
       this.selection.start.key &&
       this.document.getDescendant(this.selection.start.key)
@@ -296,11 +247,8 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Get the current end node.
-   *
-   * @return {Text}
    */
-
-  get endText() {
+  get endText(): Text {
     return (
       this.selection.end.key &&
       this.document.getDescendant(this.selection.end.key)
@@ -309,11 +257,8 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Get the current anchor node.
-   *
-   * @return {Text}
    */
-
-  get anchorText() {
+  get anchorText(): Text {
     return (
       this.selection.anchor.key &&
       this.document.getDescendant(this.selection.anchor.key)
@@ -322,11 +267,8 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Get the current focus node.
-   *
-   * @return {Text}
    */
-
-  get focusText() {
+  get focusText(): Text {
     return (
       this.selection.focus.key &&
       this.document.getDescendant(this.selection.focus.key)
@@ -335,11 +277,8 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Get the next block node.
-   *
-   * @return {Block}
    */
-
-  get nextBlock() {
+  get nextBlock(): Block {
     return (
       this.selection.end.key &&
       this.document.getNextBlock(this.selection.end.key)
@@ -348,11 +287,8 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Get the previous block node.
-   *
-   * @return {Block}
    */
-
-  get previousBlock() {
+  get previousBlock(): Block {
     return (
       this.selection.start.key &&
       this.document.getPreviousBlock(this.selection.start.key)
@@ -387,11 +323,8 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Get the next text node.
-   *
-   * @return {Text}
    */
-
-  get nextText() {
+  get nextText(): Text {
     return (
       this.selection.end.key &&
       this.document.getNextText(this.selection.end.key)
@@ -400,11 +333,8 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Get the previous text node.
-   *
-   * @return {Text}
    */
-
-  get previousText() {
+  get previousText(): Text {
     return (
       this.selection.start.key &&
       this.document.getPreviousText(this.selection.start.key)
@@ -413,11 +343,8 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Get the marks of the current selection.
-   *
-   * @return {Set<Mark>}
    */
-
-  get marks() {
+  get marks(): Set<Mark> {
     return this.selection.isUnset
       ? Set()
       : this.selection.marks || this.document.getMarksAtRange(this.selection);
@@ -425,11 +352,8 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Get the active marks of the current selection.
-   *
-   * @return {Set<Mark>}
    */
-
-  get activeMarks() {
+  get activeMarks(): Set<Mark> {
     return this.selection.isUnset
       ? Set()
       : this.selection.marks ||
@@ -438,11 +362,8 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Get the block nodes in the current selection.
-   *
-   * @return {List<Block>}
    */
-
-  get blocks() {
+  get blocks(): List<Block> {
     return this.selection.isUnset
       ? List()
       : this.document.getBlocksAtRange(this.selection);
@@ -450,11 +371,8 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Get the fragment of the current selection.
-   *
-   * @return {Document}
    */
-
-  get fragment() {
+  get fragment(): Document {
     return this.selection.isUnset
       ? Document.create()
       : this.document.getFragmentAtRange(this.selection);
@@ -462,11 +380,8 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Get the inline nodes in the current selection.
-   *
-   * @return {List<Inline>}
    */
-
-  get inlines() {
+  get inlines(): List<Inline> {
     return this.selection.isUnset
       ? List()
       : this.document.getInlinesAtRange(this.selection);
@@ -474,22 +389,12 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Get the text nodes in the current selection.
-   *
-   * @return {List<Text>}
    */
-
-  get texts() {
+  get texts(): List<Text> {
     return this.selection.isUnset
       ? List()
       : this.document.getTextsAtRange(this.selection);
   }
-
-  /**
-   * Create a new `Change` with the current value as a starting point.
-   *
-   * @param {Object} attrs
-   * @return {Change}
-   */
 
   change(attrs = {}) {
     return new Change({ ...attrs, value: this });
@@ -497,15 +402,13 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Add mark to text at `offset` and `length` in node by `path`.
-   *
-   * @param {List|String} path
-   * @param {Number} offset
-   * @param {Number} length
-   * @param {Mark} mark
-   * @return {Value}
    */
-  // todo
-  addMark(path, offset, length, mark) {
+  addMark(
+    path: List<number> | Key,
+    offset: number,
+    length: number,
+    mark: Mark
+  ) {
     let value = this;
     let { document } = value;
     document = document.addMark(path, offset, length, mark);
@@ -515,12 +418,8 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Insert a `node`.
-   *
-   * @param {List|String} path
-   * @param {Node} node
-   * @return {Value}
    */
-  insertNode(path, node) {
+  insertNode(path: List<number> | Key, node: any) {
     let value: any = this;
     let { document } = value;
     document = document.insertNode(path, node);
@@ -535,15 +434,13 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Insert `text` at `offset` in node by `path`.
-   *
-   * @param {List|String} path
-   * @param {Number} offset
-   * @param {String} text
-   * @param {Set} marks
-   * @return {Value}
    */
-
-  insertText(path, offset, text, marks) {
+  insertText(
+    path: List<number> | Key,
+    offset: number,
+    text: string,
+    marks: Set<Mark>
+  ) {
     let value: any = this;
     let { document, schema } = value;
     document = document.insertText(path, offset, text, marks);
@@ -582,12 +479,8 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Merge a node backwards its previous sibling.
-   *
-   * @param {List|Key} path
-   * @return {Value}
    */
-
-  mergeNode(path) {
+  mergeNode(path: List<number> | Key) {
     let value: any = this;
     const { document } = value;
     const newDocument = document.mergeNode(path);
@@ -623,14 +516,12 @@ class Value extends Record(DEFAULTS) {
    *
    * A `newIndex` can be provided when move nodes by `key`, to account for not
    * being able to have a key for a location in the tree that doesn't exist yet.
-   *
-   * @param {List|Key} path
-   * @param {List|Key} newPath
-   * @param {Number} newIndex
-   * @return {Value}
    */
-
-  moveNode(path, newPath, newIndex = 0) {
+  moveNode(
+    path: List<number> | Key,
+    newPath: List<number> | Key,
+    newIndex: number = 0
+  ) {
     let value: any = this;
     let { document } = value;
     document = document.moveNode(path, newPath, newIndex);
@@ -645,15 +536,13 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Remove mark from text at `offset` and `length` in node.
-   *
-   * @param {List|String} path
-   * @param {Number} offset
-   * @param {Number} length
-   * @param {Mark} mark
-   * @return {Value}
    */
-
-  removeMark(path, offset, length, mark) {
+  removeMark(
+    path: List<number> | Key,
+    offset: number,
+    length: number,
+    mark: Mark
+  ) {
     let value: any = this;
     let { document } = value;
     document = document.removeMark(path, offset, length, mark);
@@ -703,14 +592,8 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Remove `text` at `offset` in node by `path`.
-   *
-   * @param {List|Key} path
-   * @param {Number} offset
-   * @param {String} text
-   * @return {Value}
    */
-
-  removeText(path, offset, text) {
+  removeText(path: List<number> | Key, offset: number, text: string) {
     let value: any = this;
     let { document } = value;
     document = document.removeText(path, offset, text);
@@ -750,13 +633,8 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Set `properties` on a node.
-   *
-   * @param {List|String} path
-   * @param {Object} properties
-   * @return {Value}
    */
-
-  setNode(path, properties) {
+  setNode(path: List<number> | Key, properties: any) {
     let value: any = this;
     let { document } = value;
     document = document.setNode(path, properties);
@@ -766,16 +644,14 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Set `properties` on `mark` on text at `offset` and `length` in node.
-   *
-   * @param {List|String} path
-   * @param {Number} offset
-   * @param {Number} length
-   * @param {Mark} mark
-   * @param {Object} properties
-   * @return {Value}
    */
-
-  setMark(path, offset, length, mark, properties) {
+  setMark(
+    path: List<number> | Key,
+    offset: number,
+    length: number,
+    mark: Mark,
+    properties: any
+  ) {
     let value: any = this;
     let { document } = value;
     document = document.setMark(path, offset, length, mark, properties);
@@ -785,12 +661,8 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Set `properties` on the value.
-   *
-   * @param {Object} properties
-   * @return {Value}
    */
-
-  setProperties(properties) {
+  setProperties(properties: any) {
     let value = this;
     const { document } = value;
     const { data, decorations, history, schema } = properties;
@@ -820,13 +692,8 @@ class Value extends Record(DEFAULTS) {
 
   /**
    * Set `properties` on the selection.
-   *
-   * @param {Value} value
-   * @param {Operation} operation
-   * @return {Value}
    */
-
-  setSelection(properties) {
+  setSelection(properties: any) {
     let value: any = this;
     let { document, selection } = value;
     const next = selection.setProperties(properties);
@@ -838,14 +705,8 @@ class Value extends Record(DEFAULTS) {
   /**
    * Split a node by `path` at `position` with optional `properties` to apply
    * to the newly split node.
-   *
-   * @param {List|String} path
-   * @param {Number} position
-   * @param {Object} properties
-   * @return {Value}
    */
-
-  splitNode(path, position, properties) {
+  splitNode(path: List<number> | Key, position: number, properties: any) {
     let value: any = this;
     const { document } = value;
     const newDocument = document.splitNode(path, position, properties);
@@ -874,14 +735,8 @@ class Value extends Record(DEFAULTS) {
     return value;
   }
 
-  /**
-   * Map all range objects to apply adjustments with an `iterator`.
-   *
-   * @param {Function} iterator
-   * @return {Value}
-   */
-
-  mapRanges(iterator) {
+  // Map all range objects to apply adjustments with an `iterator`.
+  mapRanges(iterator: Function) {
     let value: any = this;
     const { document, selection, decorations } = value;
 
@@ -901,16 +756,8 @@ class Value extends Record(DEFAULTS) {
     return value;
   }
 
-  /**
-   * Remove any atomic ranges inside a `key`, `offset` and `length`.
-   *
-   * @param {String} key
-   * @param {Number} from
-   * @param {Number?} to
-   * @return {Value}
-   */
-
-  clearAtomicRanges(key, from, to: number | null = null) {
+  // Remove any atomic ranges inside a `key`, `offset` and `length`.
+  clearAtomicRanges(key: string, from: number, to: number | null = null) {
     let value = this;
     const { schema } = value;
 
@@ -939,13 +786,7 @@ class Value extends Record(DEFAULTS) {
     return value;
   }
 
-  /**
-   * Return a JSON representation of the value.
-   *
-   * @param {Object} options
-   * @return {Object}
-   */
-
+  // Return a JSON representation of the value.
   toJSON(options: any = {}) {
     const object: any = {
       object: this.object,
@@ -977,47 +818,23 @@ class Value extends Record(DEFAULTS) {
     return object;
   }
 
-  /**
-   * Deprecated.
-   */
   get hasUndos() {
-    logger.deprecate(
-      "0.38.0",
-      "The `Value.hasUndos` property is deprecated, please use `history.undos.size` instead."
-    );
-
     return this.history.undos.size > 0;
   }
 
   get hasRedos() {
-    logger.deprecate(
-      "0.38.0",
-      "The `Value.hasRedos` property is deprecated, please use `history.redos.size` instead."
-    );
-
     return this.history.redos.size > 0;
   }
 
   get isBlurred() {
-    logger.deprecate(
-      "0.38.0",
-      "The `Value.isBlurred` property is deprecated, please use `selection.isBlurred` instead."
-    );
-
     return this.selection.isBlurred;
   }
 
   get isFocused() {
-    logger.deprecate(
-      "0.38.0",
-      "The `Value.isFocused` property is deprecated, please use `selection.isFocused` instead."
-    );
-
     return this.selection.isFocused;
   }
 
   isEmpty() {
-    logger.deprecate("0.38.0", "The `Value.isEmpty` property is deprecated.");
     if (this.selection.isCollapsed) return true;
     if (this.selection.end.offset != 0 && this.selection.start.offset != 0)
       return false;
@@ -1025,163 +842,74 @@ class Value extends Record(DEFAULTS) {
   }
 
   get isInVoid() {
-    logger.deprecate("0.38.0", "The `Value.isInVoid` property is deprecated.");
     if (this.selection.isExpanded) return false;
     return this.document.hasVoidParent(this.selection.start.key, this.schema);
   }
   get isCollapsed() {
-    logger.deprecate(
-      "0.37.0",
-      "The `value.isCollapsed` property is deprecated, please use `selection.isCollapsed` instead."
-    );
-
     return this.selection.isCollapsed;
   }
 
   get isExpanded() {
-    logger.deprecate(
-      "0.37.0",
-      "The `value.isExpanded` property is deprecated, please use `selection.isExpanded` instead."
-    );
-
     return this.selection.isExpanded;
   }
 
   get isBackward() {
-    logger.deprecate(
-      "0.37.0",
-      "The `value.isBackward` property is deprecated, please use `selection.isBackward` instead."
-    );
-
     return this.selection.isBackward;
   }
 
   get isForward() {
-    logger.deprecate(
-      "0.37.0",
-      "The `value.isForward` property is deprecated, please use `selection.isForward` instead."
-    );
-
     return this.selection.isForward;
   }
 
   get startKey() {
-    logger.deprecate(
-      "0.37.0",
-      "The `value.startKey` property is deprecated, please use `selection.start.key` instead."
-    );
-
     return this.selection.start.key;
   }
 
   get endKey() {
-    logger.deprecate(
-      "0.37.0",
-      "The `value.endKey` property is deprecated, please use `selection.end.key` instead."
-    );
-
     return this.selection.end.key;
   }
 
   get startPath() {
-    logger.deprecate(
-      "0.37.0",
-      "The `value.startPath` property is deprecated, please use `selection.start.path` instead."
-    );
-
     return this.selection.start.path;
   }
 
   get endPath() {
-    logger.deprecate(
-      "0.37.0",
-      "The `value.endPath` property is deprecated, please use `selection.end.path` instead."
-    );
-
     return this.selection.end.path;
   }
 
   get startOffset() {
-    logger.deprecate(
-      "0.37.0",
-      "The `value.startOffset` property is deprecated, please use `selection.start.offset` instead."
-    );
-
     return this.selection.start.offset;
   }
 
   get endOffset() {
-    logger.deprecate(
-      "0.37.0",
-      "The `value.endOffset` property is deprecated, please use `selection.end.offset` instead."
-    );
-
     return this.selection.end.offset;
   }
 
   get anchorKey() {
-    logger.deprecate(
-      "0.37.0",
-      "The `value.anchorKey` property is deprecated, please use `selection.anchor.key` instead."
-    );
-
     return this.selection.anchor.key;
   }
 
   get focusKey() {
-    logger.deprecate(
-      "0.37.0",
-      "The `value.focusKey` property is deprecated, please use `selection.focus.key` instead."
-    );
-
     return this.selection.focus.key;
   }
 
   get anchorPath() {
-    logger.deprecate(
-      "0.37.0",
-      "The `value.anchorPath` property is deprecated, please use `selection.anchor.path` instead."
-    );
-
     return this.selection.anchor.path;
   }
 
   get focusPath() {
-    logger.deprecate(
-      "0.37.0",
-      "The `value.focusPath` property is deprecated, please use `selection.focus.path` instead."
-    );
-
     return this.selection.focus.path;
   }
 
   get anchorOffset() {
-    logger.deprecate(
-      "0.37.0",
-      "The `value.anchorOffset` property is deprecated, please use `selection.anchor.offset` instead."
-    );
-
     return this.selection.anchor.offset;
   }
 
   get focusOffset() {
-    logger.deprecate(
-      "0.37.0",
-      "The `value.focusOffset` property is deprecated, please use `selection.focus.offset` instead."
-    );
-
     return this.selection.focus.offset;
   }
 }
 
-/**
- * Attach a pseudo-symbol for type checking.
- */
-
 Value.prototype[MODEL_TYPES.VALUE] = true;
-
-/**
- * Export.
- */
 
 export default Value;
