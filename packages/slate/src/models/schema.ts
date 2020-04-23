@@ -29,6 +29,7 @@ import Stack from "./stack";
 import Text from "./text";
 import SlateError from "../utils/slate-error";
 import { PREVIOUS_SIBLING_OBJECT_INVALID } from "@zykj/slate-schema-violations";
+import { Change } from "..";
 
 const debug = Debug("slate: schema");
 
@@ -368,7 +369,7 @@ class Schema extends Record(DEFAULTS) {
  * @param {SlateError} error
  */
 
-function defaultNormalize(change, error) {
+function defaultNormalize(change: Change, error: SlateError) {
   const { code, node, child, key, mark, next, previous } = error;
   switch (code) {
     case CHILD_OBJECT_INVALID:
