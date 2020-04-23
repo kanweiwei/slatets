@@ -17,7 +17,7 @@ const DEFAULTS = {
   anchor: Point.create(),
   focus: Point.create(),
   isFocused: false,
-  marks: null
+  marks: null,
 };
 
 /**
@@ -38,7 +38,7 @@ class Selection extends Record(DEFAULTS) {
    * @return {Selection}
    */
 
-  static create(attrs: Selection | Range | any = {}) {
+  static create(attrs: Selection | Range | any = {}): Selection {
     if (Selection.isSelection(attrs)) {
       return attrs;
     }
@@ -69,14 +69,14 @@ class Selection extends Record(DEFAULTS) {
         anchor: Point.createProperties(a.anchor),
         focus: Point.createProperties(a.focus),
         isFocused: a.isFocused,
-        marks: a.marks
+        marks: a.marks,
       };
     }
 
     if (Range.isRange(a)) {
       return {
         anchor: Point.createProperties(a.anchor),
-        focus: Point.createProperties(a.focus)
+        focus: Point.createProperties(a.focus),
       };
     }
 
@@ -118,7 +118,7 @@ class Selection extends Record(DEFAULTS) {
       anchor = {
         key: object.anchorKey,
         offset: object.anchorOffset,
-        path: object.anchorPath
+        path: object.anchorPath,
       };
     }
 
@@ -132,7 +132,7 @@ class Selection extends Record(DEFAULTS) {
       focus = {
         key: object.focusKey,
         offset: object.focusOffset,
-        path: object.focusPath
+        path: object.focusPath,
       };
     }
 
@@ -140,7 +140,7 @@ class Selection extends Record(DEFAULTS) {
       anchor: Point.fromJSON(anchor || {}),
       focus: Point.fromJSON(focus || {}),
       isFocused,
-      marks: marks == null ? null : Set(marks.map(Mark.fromJSON))
+      marks: marks == null ? null : Set(marks.map(Mark.fromJSON)),
     });
 
     return selection;
@@ -238,7 +238,7 @@ class Selection extends Record(DEFAULTS) {
       focus: this.focus.toJSON(options),
       isFocused: this.isFocused,
       marks:
-        this.marks == null ? null : this.marks.toArray().map(m => m.toJSON())
+        this.marks == null ? null : this.marks.toArray().map((m) => m.toJSON()),
     };
 
     return object;

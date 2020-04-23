@@ -10,7 +10,7 @@ import Selection from "./selection";
 
 const DEFAULTS: any = {
   anchor: Point.create(),
-  focus: Point.create()
+  focus: Point.create(),
 };
 
 class Range extends Record(DEFAULTS) {
@@ -24,10 +24,10 @@ class Range extends Record(DEFAULTS) {
   /**
    * 静态方法
    */
-  static create(attrs: any = {}): Range {
+  static create(attrs: any = {}) {
     if (Range.isRange(attrs)) {
       if (attrs.object === "range") {
-        return attrs;
+        return attrs as Range;
       } else {
         return Range.fromJSON(Range.createProperties(attrs));
       }
@@ -52,7 +52,7 @@ class Range extends Record(DEFAULTS) {
         return Decoration.create(attrs);
       }
 
-      return Range.fromJSON(attrs)
+      return Range.fromJSON(attrs);
     }
 
     throw new Error(
@@ -75,7 +75,7 @@ class Range extends Record(DEFAULTS) {
     if (Range.isRange(a)) {
       return {
         anchor: Point.createProperties(a.anchor),
-        focus: Point.createProperties(a.focus)
+        focus: Point.createProperties(a.focus),
       };
     }
 
@@ -107,7 +107,7 @@ class Range extends Record(DEFAULTS) {
       anchor = {
         key: object.anchorKey,
         offset: object.anchorOffset,
-        path: object.anchorPath
+        path: object.anchorPath,
       };
     }
 
@@ -121,19 +121,19 @@ class Range extends Record(DEFAULTS) {
       focus = {
         key: object.focusKey,
         offset: object.focusOffset,
-        path: object.focusPath
+        path: object.focusPath,
       };
     }
 
     const range = new Range({
       anchor: Point.fromJSON(anchor || {}),
-      focus: Point.fromJSON(focus || {})
+      focus: Point.fromJSON(focus || {}),
     });
 
     return range;
   }
 
-  static isRange(obj) {
+  static isRange(obj: any) {
     return (
       !!(obj && obj[MODEL_TYPES.RANGE]) ||
       Decoration.isDecoration(obj) ||
@@ -145,9 +145,6 @@ class Range extends Record(DEFAULTS) {
     return List.isList(item) && item.every((item: any) => Range.isRange(item));
   }
 
-  /**
-   * 计算属性
-   */
   get object(): "range" {
     return "range";
   }
