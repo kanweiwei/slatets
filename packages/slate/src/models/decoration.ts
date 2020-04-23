@@ -1,5 +1,4 @@
 import isPlainObject from "is-plain-object";
-import logger from "slate-dev-logger";
 import { List, Record } from "immutable";
 
 import Mark from "./mark";
@@ -7,36 +6,19 @@ import MODEL_TYPES from "../constants/model-types";
 import Point from "./point";
 import Range from "./range";
 
-/**
- * Default properties.
- *
- * @type {Object}
- */
-
 const DEFAULTS = {
   anchor: Point.create(),
   focus: Point.create(),
-  mark: undefined
+  mark: undefined,
 };
-
-/**
- * Decoration.
- *
- * @type {Decoration}
- */
 
 class Decoration extends Record(DEFAULTS) {
   anchor: Point;
   focus: Point;
-  mark: any;
-  /**
-   * Create a new `Decoration` with `attrs`.
-   *
-   * @param {Object|Decoration} attrs
-   * @return {Decoration}
-   */
+  mark: Mark;
 
-  static create(attrs: any | Decoration | Range = {}) {
+  // Create a new `Decoration` with `attrs`.
+  static create(attrs: any | Decoration | Range = {}): Decoration {
     if (Decoration.isDecoration(attrs)) {
       return attrs;
     }
@@ -54,15 +36,12 @@ class Decoration extends Record(DEFAULTS) {
     );
   }
 
-  /**
-   * Create a list of `Ranges` from `elements`.
-   *
-   * @param {Array<Decoration|Object>|List<Decoration|Object>} elements
-   * @return {List<Decoration>}
-   */
-
-  static createList(elements = []) {
+  // Create a list of `Ranges` from `elements`.
+  static createList(
+    elements: Array<Decoration | any> | List<Decoration | any> = []
+  ) {
     if (List.isList(elements) || Array.isArray(elements)) {
+      // @ts-ignore
       const list = List(elements.map(Decoration.create));
       return list;
     }
@@ -72,19 +51,13 @@ class Decoration extends Record(DEFAULTS) {
     );
   }
 
-  /**
-   * Create a dictionary of settable decoration properties from `attrs`.
-   *
-   * @param {Object|String|Decoration} attrs
-   * @return {Object}
-   */
-
+  // Create a dictionary of settable decoration properties from `attrs`.
   static createProperties(a: any | Decoration = {}) {
     if (Decoration.isDecoration(a)) {
       return {
         anchor: Point.createProperties(a.anchor),
         focus: Point.createProperties(a.focus),
-        mark: Mark.create(a.mark)
+        mark: Mark.create(a.mark),
       };
     }
 
@@ -101,64 +74,31 @@ class Decoration extends Record(DEFAULTS) {
     );
   }
 
-  /**
-   * Create a `Decoration` from a JSON `object`.
-   *
-   * @param {Object} object
-   * @return {Decoration}
-   */
-
-  static fromJSON(object) {
+  // Create a `Decoration` from a JSON `object`.
+  static fromJSON(object: any) {
     const { anchor, focus } = object;
     let { mark } = object;
-
-    if (object.marks) {
-      logger.deprecate(
-        "0.39.0",
-        "The `marks` property of decorations has been changed to a single `mark` property instead."
-      );
-
-      mark = object.marks[0];
-    }
 
     const decoration = new Decoration({
       anchor: Point.fromJSON(anchor || {}),
       focus: Point.fromJSON(focus || {}),
-      mark: Mark.fromJSON(mark)
+      mark: Mark.fromJSON(mark),
     });
 
     return decoration;
   }
 
-  /**
-   * Check if an `obj` is a `Decoration`.
-   *
-   * @param {Any} obj
-   * @return {Boolean}
-   */
-
-  static isDecoration(obj) {
+  // Check if an `obj` is a `Decoration`.
+  static isDecoration(obj: any) {
     return !!(obj && obj[MODEL_TYPES.DECORATION]);
   }
-
-  /**
-   * Object.
-   *
-   * @return {String}
-   */
 
   get object() {
     return "decoration";
   }
 
-  /**
-   * Set new `properties` on the decoration.
-   *
-   * @param {Object|Range|Selection} properties
-   * @return {Range}
-   */
-
-  setProperties(properties) {
+  // Set new `properties` on the decoration.
+  setProperties(properties: any | Range | Selection) {
     properties = Decoration.createProperties(properties);
     const { anchor, focus, mark } = properties;
     const props: any = {};
@@ -179,35 +119,19 @@ class Decoration extends Record(DEFAULTS) {
     return decoration;
   }
 
-  /**
-   * Return a JSON representation of the decoration.
-   *
-   * @param {Object} options
-   * @return {Object}
-   */
-
-  toJSON(options = {}) {
+  // Return a JSON representation of the decoration.
+  toJSON(options: any = {}) {
     const object = {
       object: this.object,
       anchor: this.anchor.toJSON(options),
       focus: this.focus.toJSON(options),
-      mark: this.mark.toJSON(options)
+      mark: this.mark.toJSON(options),
     };
 
     return object;
   }
 }
 
-/**
- * Attach a pseudo-symbol for type checking.
- */
-
 Decoration.prototype[MODEL_TYPES.DECORATION] = true;
-
-/**
- * Export.
- *
- * @type {Decoration}
- */
 
 export default Decoration;
