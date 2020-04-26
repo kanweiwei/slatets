@@ -124,28 +124,29 @@ class NodeInterface {
     }
 
     const { start, end } = range;
+    let startPath = start.path as List<number>;
+    let endPath = end.path as List<number>;
     let startOffset = start.offset;
     let endOffset = end.offset;
     let startText = this.getDescendant(start.path);
 
-    if (!isEqual(start.path, endKey)) {
-      while (!isEqual(startKey, endKey) && endOffset === 0) {
-        const endText = this.getPreviousText(endKey);
-        endKey = endText.key;
+    if (!startPath.equals(endPath)) {
+      while (!startPath.equals(endPath) && endOffset === 0) {
+        const [endText, p] = this.getPreviousText(end.path);
+        endPath = p;
         endOffset = endText.text.length;
       }
 
       while (
-        !isEqual(startKey, endKey) &&
+        !startPath.equals(endPath) &&
         startOffset === startText.text.length
       ) {
-        startText = this.getNextText(startKey);
-        startKey = startText.key;
+        [startText, startPath] = this.getNextText(startPath);
         startOffset = 0;
       }
     }
 
-    if (isEqual(startKey, endKey)) {
+    if (startPath.equals(endPath)) {
       return startText.getActiveMarksBetweenOffsets(startOffset, endOffset);
     }
 
@@ -154,28 +155,27 @@ class NodeInterface {
       startText.text.length
     );
     if (startMarks.size === 0) return Set();
-    const endText = this.getDescendant(endKey);
+    const endText = this.getDescendant(endPath);
     const endMarks = endText.getActiveMarksBetweenOffsets(0, endOffset);
     let marks = startMarks.intersect(endMarks);
     // If marks is already empty, the active marks is empty
     if (marks.size === 0) return marks;
 
-    let text = this.getNextText(startKey);
+    let [text, textPath] = this.getNextText(startPath);
 
-    while (!isEqual(text.key, endKey)) {
+    while (!textPath?.equals(endPath)) {
       if (text.text.length !== 0) {
         marks = marks.intersect(text.getActiveMarks());
         if (marks.size === 0) return Set();
       }
 
-      text = this.getNextText(text.key);
+      [text, textPath] = this.getNextText(textPath);
     }
     return marks;
   }
 
   // Get a list of the ancestors of a descendant.
-  getAncestors(path: List<number> | Key): List<NodeInterface> | null {
-    path = this.resolvePath(path);
+  getAncestors(path: List<number>): List<[NodeInterface, List<number>]> | null {
     if (!path) return null;
 
     const ancestors: any[] = [];
@@ -183,7 +183,7 @@ class NodeInterface {
     path.forEach((p, i) => {
       const current = path.slice(0, i);
       const parent = this.getNode(current);
-      ancestors.push(parent);
+      ancestors.push([parent, current]);
     });
 
     return List(ancestors);
@@ -194,7 +194,6 @@ class NodeInterface {
    *
    * @return {List<Node>}
    */
-
   getBlocks() {
     const array = this.getBlocksAsArray();
     return List(array);
@@ -229,17 +228,16 @@ class NodeInterface {
 
   // Get the leaf block descendants in a `range` as an array
   getBlocksAtRangeAsArray(range: Range): NodeInterface[] {
-    range = this.resolveRange(range);
     if (range.isUnset) return [];
 
     const { start, end } = range;
-    const startBlock = this.getClosestBlock(start.key);
+    const [startBlock, startBlockPath] = this.getClosestBlock(start.path);
 
     // PERF: the most common case is when the range is in a single block node,
     // where we can avoid a lot of iterating of the tree.
-    if (isEqual(start.key, end.key)) return [startBlock];
+    if (isEqual(start.key, end.key)) return [[startBlock, startBlockPath]];
 
-    const endBlock = this.getClosestBlock(end.key);
+    const [endBlock, endBlockPath] = this.getClosestBlock(end.path);
     const blocks = this.getBlocksAsArray();
     const startIndex = blocks.indexOf(startBlock);
     const endIndex = blocks.indexOf(endBlock);
@@ -288,13 +286,13 @@ class NodeInterface {
 
   // Get closest parent of node that matches an `iterator`.
   getClosest(
-    path: List<number> | Key,
+    path: List<number>,
     iterator: Function
-  ): NodeInterface | null {
+  ): [NodeInterface | null, List<number> | null] {
     const ancestors = this.getAncestors(path);
     if (!ancestors) return null;
 
-    const closest = ancestors.findLast((node, ...args) => {
+    const closest = ancestors.findLast(([node, p], ...args) => {
       // We never want to include the top-level node.
       if (node === this) return false;
       return iterator(node, ...args);
@@ -304,7 +302,9 @@ class NodeInterface {
   }
 
   // Get the closest block parent of a node.
-  getClosestBlock(path: List<number> | Key): NodeInterface | null {
+  getClosestBlock(
+    path: List<number>
+  ): [NodeInterface | null, List<number> | null] {
     const closest = this.getClosest(
       path,
       (n: { object: string }) => n.object === "block"
@@ -313,7 +313,9 @@ class NodeInterface {
   }
 
   // Get the closest inline parent of a node by `path`.
-  getClosestInline(path: List<number> | Key): NodeInterface | null {
+  getClosestInline(
+    path: List<number> | Key
+  ): [NodeInterface | null, List<number> | null] {
     const closest = this.getClosest(
       path,
       (n: { object: string }) => n.object === "inline"
@@ -338,7 +340,7 @@ class NodeInterface {
 
     const ancestors = this.getAncestors(path);
 
-    const ancestor = ancestors.findLast((a) => schema.isVoid(a));
+    const ancestor = ancestors.findLast(([a]) => schema.isVoid(a));
     return ancestor;
   }
 
@@ -401,18 +403,23 @@ class NodeInterface {
   }
 
   // Get the first child text node.
-  getFirstText(): Text | null {
+  getFirstText(path: List<number>): [Text | null, List<number> | null] {
     let descendant = null;
+    let descendantPath = null;
 
     const found = this.nodes.find(
       (node: { object: string; getFirstText: () => null }) => {
-        if (node.object === "text") return true;
-        descendant = node.getFirstText();
+        path = path.concat(i);
+        if (node.object === "text") {
+          descendantPath = path.concat(i);
+          return true;
+        }
+        [descendant, descendantPath] = node.getFirstText();
         return !!descendant;
       }
     );
 
-    return descendant || found;
+    return [descendant || found, descendantPath];
   }
 
   // Get a fragment of the node at a `range`.
@@ -607,18 +614,22 @@ class NodeInterface {
   }
 
   // Get the last child text node.
-  getLastText(): Text | null {
+  getLastText(path: List<number>): [Text | null, List<number> | null] {
     let descendant = null;
+    let descendantPath = null;
 
-    const found = this.nodes.findLast(
-      (node: { object: string; getLastText: () => null }) => {
-        if (node.object == "text") return true;
-        descendant = node.getLastText();
-        return descendant;
+    const found = this.nodes.findLast((node: NodeInterface, i: number) => {
+      path = path.concat(i);
+
+      if (node.object == "text") {
+        descendantPath = path.concat(i);
+        return true;
       }
-    );
+      [descendant, descendantPath] = node.getLastText(path);
+      return !!descendant;
+    });
 
-    return descendant || found;
+    return [descendant || found, descendantPath];
   }
 
   getMarks(): Set<Mark> {
@@ -703,19 +714,20 @@ class NodeInterface {
     return closest;
   }
 
-  getNextNode(path: List<number> | Key): NodeInterface | null {
-    path = this.resolvePath(path);
-    if (!path) return null;
-    if (!path.size) return null;
+  getNextNode(
+    path: List<number> | Key
+  ): [NodeInterface | null, List<number> | null] {
+    if (!path) return [null, null];
+    if (!path.size) return [null, null];
 
     for (let i = path.size; i > 0; i--) {
       const p = path.slice(0, i);
       const target = PathUtils.increment(p);
       const node = this.getNode(target);
-      if (node) return node;
+      if (node) return [node, target];
     }
 
-    return null;
+    return [null, null];
   }
 
   // Get the next sibling of a node.
@@ -729,19 +741,17 @@ class NodeInterface {
   }
 
   // Get the text node after a descendant text node.
-  getNextText(path: List<number> | Key): NodeInterface {
-    path = this.resolvePath(path);
-    if (!path) return null;
-    if (!path.size) return null;
+  getNextText(path: List<number>): [NodeInterface | null, List<number> | null] {
+    if (!path) return [null, null];
+    if (!path.size) return [null, null];
     const next = this.getNextNode(path);
-    if (!next) return null;
-    const text = next.getFirstText();
-    return text;
+    if (!next) return [null, null];
+    const [text, textPath] = next.getFirstText(path);
+    return [text, textPath];
   }
 
   // Get a node in the tree.
   getNode(path: List<number> | Key): NodeInterface | null {
-    path = this.resolvePath(path);
     if (!path) return null;
     const node = path.size ? this.getDescendant(path) : this;
     return node;
@@ -909,10 +919,11 @@ class NodeInterface {
     return closest;
   }
 
-  getPreviousNode(path: List<number> | Key): NodeInterface[] {
-    path = this.resolvePath(path);
-    if (!path) return null;
-    if (!path.size) return null;
+  getPreviousNode(
+    path: List<number>
+  ): [NodeInterface | null, List<number> | null] {
+    if (!path) return [null, null];
+    if (!path.size) return [null, null];
 
     for (let i = path.size; i > 0; i--) {
       const p = path.slice(0, i);
@@ -920,10 +931,10 @@ class NodeInterface {
 
       const target = PathUtils.decrement(p);
       const node = this.getNode(target);
-      if (node) return node;
+      if (node) return [node, target];
     }
 
-    return null;
+    return [null, null];
   }
 
   // Get the previous sibling of a node.
@@ -938,14 +949,13 @@ class NodeInterface {
   }
 
   // Get the text node after a descendant text node.
-  getPreviousText(path: List<number> | Key): Text | null {
-    path = this.resolvePath(path);
-    if (!path) return null;
-    if (!path.size) return null;
-    const previous = this.getPreviousNode(path);
-    if (!previous) return null;
-    const text = previous.getLastText();
-    return text;
+  getPreviousText(path: List<number>): [Text | null, List<number> | null] {
+    if (!path) return [null, null];
+    if (!path.size) return [null, null];
+    const [previous, previousPath] = this.getPreviousNode(path);
+    if (!previous) return [null, null];
+    const [text, textPath] = previous.getLastText(previousPath);
+    return [text, textPath];
   }
 
   /**
