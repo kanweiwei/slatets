@@ -114,8 +114,8 @@ class NodeInterface {
     return ret;
   }
 
-  // Get a set of the active marks in a `range`.
-  getActiveMarksAtRange(range: Range): Set<Mark> {
+  // Get a set of the active marks in a `Selection`.
+  getActiveMarksAtRange(range: Selection): Set<Mark> {
     if (range.isUnset) return Set();
 
     if (range.isCollapsed) {
@@ -374,7 +374,7 @@ class NodeInterface {
   }
 
   // Get a descendant node.
-  getDescendant(path: List<number> | Key): NodeInterface | null {
+  getDescendant(path: List<number>): NodeInterface | null {
     const deep = path.flatMap((x) => ["nodes", x]);
 
     const ret = this.getIn(deep);
