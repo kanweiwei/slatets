@@ -4,7 +4,7 @@ import { List, Record } from "immutable";
 import MODEL_TYPES from "../constants/model-types";
 import Mark from "./mark";
 import Node from "./node";
-import PathUtils from "../utils/path-utils";
+import { Path } from "../interfaces/path";
 import Selection from "./selection";
 import Value from "./value";
 
@@ -27,7 +27,7 @@ const OPERATION_ATTRIBUTES = {
   set_node: ["value", "path", "node", "properties"],
   set_selection: ["value", "selection", "properties"],
   set_value: ["value", "properties"],
-  split_node: ["value", "path", "position", "properties", "target"]
+  split_node: ["value", "path", "position", "properties", "target"],
 };
 
 /**
@@ -50,7 +50,7 @@ const DEFAULTS = {
   target: undefined,
   text: undefined,
   type: undefined,
-  value: undefined
+  value: undefined,
 };
 
 /**
@@ -138,7 +138,7 @@ class Operation extends Record(DEFAULTS) {
       }
 
       if (key === "path" || key === "newPath") {
-        v = PathUtils.create(v);
+        v = Path.create(v);
       }
 
       if (key === "mark") {
@@ -197,7 +197,7 @@ class Operation extends Record(DEFAULTS) {
   }
 
   static isOperationList(any) {
-    return List.isList(any) && any.every(item => Operation.isOperation(item));
+    return List.isList(any) && any.every((item) => Operation.isOperation(item));
   }
 
   get object() {

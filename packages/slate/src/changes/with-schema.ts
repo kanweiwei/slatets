@@ -1,4 +1,4 @@
-import PathUtils from "../utils/path-utils";
+import { Path } from "../interfaces/path";
 
 /**
  * Changes.
@@ -114,7 +114,7 @@ Changes.normalizeNodeByPath = (change, path, options = {}) => {
 };
 
 Changes.normalizeParentByPath = (change, path, options) => {
-  const p = PathUtils.lift(path);
+  const p = Path.lift(path);
   change.normalizeNodeByPath(p, options);
 };
 

@@ -4,7 +4,7 @@ import logger from "slate-dev-logger";
 import { Record, Set, List, Map } from "immutable";
 import Decoration from "./decoration";
 import MODEL_TYPES from "../constants/model-types";
-import PathUtils from "../utils/path-utils";
+import { Path } from "../interfaces/path";
 import Change from "./change";
 import Data from "./data";
 import Document from "./document";
@@ -485,7 +485,7 @@ class Value extends Record(DEFAULTS) {
     const { document } = value;
     const newDocument = document.mergeNode(path);
     path = document.resolvePath(path);
-    const withPath = PathUtils.decrement(path);
+    const withPath = Path.decrement(path);
     const one = document.getNode(withPath);
     const two = document.getNode(path);
     value = value.set("document", newDocument);

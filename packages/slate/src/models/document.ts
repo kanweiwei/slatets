@@ -15,9 +15,6 @@ const DEFAULTS: any = {
   nodes: List(),
 };
 
-/**
- * @type {Document}
- */
 class Document extends Record(DEFAULTS) {
   // 属性
   public key: string;

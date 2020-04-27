@@ -2,7 +2,7 @@ import Block from "../models/block";
 import Inline from "../models/inline";
 import Mark from "../models/mark";
 import Node from "../models/node";
-import PathUtils from "../utils/path-utils";
+import { Path } from "../interfaces/path";
 import { isEqual } from "lodash-es";
 import Change from "../models/change";
 import { Key } from "..";
@@ -225,7 +225,7 @@ Changes.moveNodeByPath = (change, path, newPath, newIndex, options) => {
     newPath: newPath.concat(newIndex),
   });
 
-  const ancestorPath = PathUtils.relate(path, newPath);
+  const ancestorPath = Path.relate(path, newPath);
   // change.normalizeNodeByPath(ancestorPath, options);
 };
 
@@ -396,7 +396,7 @@ Changes.removeTextByPath = (change, path, offset, length, options) => {
 Changes.replaceNodeByPath = (change, path, newNode, options) => {
   newNode = Node.create(newNode);
   const index = path.last();
-  const parentPath = PathUtils.lift(path);
+  const parentPath = Path.lift(path);
   change.removeNodeByPath(path, { normalize: false });
   change.insertNodeByPath(parentPath, index, newNode, { normalize: false });
   // change.normalizeParentByPath(path, options);
@@ -577,7 +577,7 @@ Changes.splitNodeByPath = (change, path, position, options: any = {}) => {
  */
 
 Changes.splitDescendantsByPath = (
-  change,
+  change: Change,
   path,
   textPath,
   textOffset,
@@ -670,11 +670,11 @@ Changes.unwrapNodeByPath = (change, path, options) => {
   const { document } = value;
   document.getNode(path);
 
-  const parentPath = PathUtils.lift(path);
+  const parentPath = Path.lift(path);
   const parent = document.getNode(parentPath);
   const index = path.last();
   const parentIndex = parentPath.last();
-  const grandPath = PathUtils.lift(parentPath);
+  const grandPath = Path.lift(parentPath);
   const isFirst = index === 0;
   const isLast = index === parent.nodes.size - 1;
 
@@ -691,7 +691,7 @@ Changes.unwrapNodeByPath = (change, path, options) => {
   } else {
     change.splitNodeByPath(parentPath, index, { normalize: false });
 
-    let updatedPath = PathUtils.increment(path, 1, parentPath.size - 1);
+    let updatedPath = Path.increment(path, 1, parentPath.size - 1);
     updatedPath = updatedPath.set(updatedPath.size - 1, 0);
 
     change.moveNodeByPath(updatedPath, grandPath, parentIndex + 1, {
@@ -714,9 +714,9 @@ Changes.unwrapNodeByPath = (change, path, options) => {
 Changes.wrapBlockByPath = (change, path, block, options) => {
   block = Block.create(block);
   block = block.set("nodes", block.nodes.clear());
-  const parentPath = PathUtils.lift(path);
+  const parentPath = Path.lift(path);
   const index = path.last();
-  const newPath = PathUtils.increment(path);
+  const newPath = Path.increment(path);
   change.insertNodeByPath(parentPath, index, block, { normalize: false });
   change.moveNodeByPath(newPath, path, 0, options);
 };
@@ -733,9 +733,9 @@ Changes.wrapBlockByPath = (change, path, block, options) => {
 Changes.wrapInlineByPath = (change, path, inline, options) => {
   inline = Inline.create(inline);
   inline = inline.set("nodes", inline.nodes.clear());
-  const parentPath = PathUtils.lift(path);
+  const parentPath = Path.lift(path);
   const index = path.last();
-  const newPath = PathUtils.increment(path);
+  const newPath = Path.increment(path);
   change.insertNodeByPath(parentPath, index, inline, { normalize: false });
   change.moveNodeByPath(newPath, path, 0, options);
 };

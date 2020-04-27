@@ -4,7 +4,7 @@ import Leaf from "./leaf";
 import {
   Block,
   Decoration,
-  PathUtils,
+  Path,
   KEY_TO_ELEMENT,
   NODE_TO_ELEMENT,
   ELEMENT_TO_NODE,
@@ -65,10 +65,10 @@ const Text = (props: TextInterface) => {
 
     // If the node's path is before the start path, ignore it.
     const path = document.getPath(key);
-    if (PathUtils.compare(path, start.path) === -1) return false;
+    if (Path.compare(path, start.path) === -1) return false;
 
     // If the node's path is after the end path, ignore it.
-    if (PathUtils.compare(path, end.path) === 1) return false;
+    if (Path.compare(path, end.path) === 1) return false;
 
     // Otherwise, include it.
     return true;

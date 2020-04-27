@@ -10,7 +10,7 @@ import Document from "../models/document";
 import Inline from "../models/inline";
 import Key from "../utils/key-utils";
 import memoize from "../utils/memoize";
-import PathUtils from "../utils/path-utils";
+import { Path } from "./path";
 import Point from "../models/point";
 import Range from "../models/range";
 import Selection from "../models/selection";
@@ -175,16 +175,16 @@ class NodeInterface {
   }
 
   // Get a list of the ancestors of a descendant.
-  getAncestors(path: List<number>): List<[NodeInterface, List<number>]> | null {
-    if (!path) return null;
+  getAncestors(path: Path): List<[NodeInterface, Path]> {
+    if (!path) return List();
 
     const ancestors: any[] = [];
 
-    path.forEach((p, i) => {
-      const current = path.slice(0, i);
-      const parent = this.getNode(current);
-      ancestors.push([parent, current]);
-    });
+    const paths = Path.levels(path).slice(1);
+    for (const p of paths) {
+      const parent = this.getNode(p);
+      ancestors.push([parent, p]);
+    }
 
     return List(ancestors);
   }
@@ -345,15 +345,10 @@ class NodeInterface {
   }
 
   // Get the common ancestor of nodes `a` and `b`.
-  getCommonAncestor(
-    a: List<number> | Key,
-    b: List<number> | Key
-  ): NodeInterface {
-    a = this.resolvePath(a);
-    b = this.resolvePath(b);
+  getCommonAncestor(a: List<number>, b: List<number>): NodeInterface {
     if (!a || !b) return null;
 
-    const path = PathUtils.relate(a, b);
+    const path = Path.relate(a, b);
     const node = this.getNode(path);
     return node;
   }
@@ -441,7 +436,7 @@ class NodeInterface {
 
       node = node.splitNode(targetPath, targetPosition);
       targetPosition = index + 1;
-      targetPath = PathUtils.lift(targetPath);
+      targetPath = Path.lift(targetPath);
 
       if (!targetPath.size && mode === "end") {
         targetPath = start.path;
@@ -722,7 +717,7 @@ class NodeInterface {
 
     for (let i = path.size; i > 0; i--) {
       const p = path.slice(0, i);
-      const target = PathUtils.increment(p);
+      const target = Path.increment(p);
       const node = this.getNode(target);
       if (node) return [node, target];
     }
@@ -735,7 +730,7 @@ class NodeInterface {
     path = this.resolvePath(path);
     if (!path) return null;
     if (!path.size) return null;
-    const p = PathUtils.increment(path);
+    const p = Path.increment(path);
     const sibling = this.getNode(p);
     return sibling;
   }
@@ -863,7 +858,7 @@ class NodeInterface {
     path = this.resolvePath(path);
     if (!path) return null;
     if (!path.size) return null;
-    const parentPath = PathUtils.lift(path);
+    const parentPath = Path.lift(path);
     const parent = this.getNode(parentPath);
     return parent;
   }
@@ -929,7 +924,7 @@ class NodeInterface {
       const p = path.slice(0, i);
       if (p.last() === 0) continue;
 
-      const target = PathUtils.decrement(p);
+      const target = Path.decrement(p);
       const node = this.getNode(target);
       if (node) return [node, target];
     }
@@ -943,7 +938,7 @@ class NodeInterface {
     if (!path) return null;
     if (!path.size) return null;
     if (path.last() === 0) return null;
-    const p = PathUtils.decrement(path);
+    const p = Path.decrement(path);
     const sibling = this.getNode(p);
     return sibling;
   }
@@ -1155,7 +1150,7 @@ class NodeInterface {
   insertNode(path: List<number> | Key, node: NodeInterface): NodeInterface {
     path = this.resolvePath(path);
     const index = path.last();
-    const parentPath = PathUtils.lift(path);
+    const parentPath = Path.lift(path);
     let parent = this.getNode(parentPath);
     const nodes = parent.nodes.splice(index, 0, node);
     parent = parent.set("nodes", nodes);
@@ -1261,7 +1256,7 @@ class NodeInterface {
       );
     }
 
-    const withPath = PathUtils.decrement(path);
+    const withPath = Path.decrement(path);
     const a = this.getNode(withPath);
 
     if (a.object !== b.object) {
@@ -1292,16 +1287,16 @@ class NodeInterface {
     path = this.resolvePath(path);
     newPath = this.resolvePath(newPath, newIndex);
 
-    const newParentPath = PathUtils.lift(newPath);
+    const newParentPath = Path.lift(newPath);
     this.getNode(newParentPath);
 
-    const [p, np] = PathUtils.crop(path, newPath);
-    const position = PathUtils.compare(p, np);
+    const [p, np] = Path.crop(path, newPath);
+    const position = Path.compare(p, np);
 
     // If the old path ends above and before a node in the new path, then
     // removing it will alter the target, so we need to adjust the new path.
     if (path.size < newPath.size && position === -1) {
-      newPath = PathUtils.decrement(newPath, 1, p.size - 1);
+      newPath = Path.decrement(newPath, 1, p.size - 1);
     }
 
     let ret = this;
@@ -1366,7 +1361,7 @@ class NodeInterface {
     node = node.removeText(offset, text.length);
 
     const ret = this.replaceNode(path, node);
-    const parentPath = PathUtils.lift(path);
+    const parentPath = Path.lift(path);
     const parent = this.getNode(parentPath);
     NODE_TO_PARENT.set(node, parent);
     ret.nodes.forEach((n) => {
@@ -1401,7 +1396,7 @@ class NodeInterface {
     if (index != null) {
       path = path.concat(index);
     }
-    return PathUtils.create(path);
+    return Path.create(path);
   }
 
   resolvePoint(point: Point | any): Point {

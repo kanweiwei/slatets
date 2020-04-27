@@ -13,7 +13,7 @@ import Mark from "./models/mark";
 import Node from "./models/node";
 import Operation from "./models/operation";
 import Operations from "./operations";
-import PathUtils from "./utils/path-utils";
+import { Path } from "./interfaces/path";
 import Point from "./models/point";
 import Range from "./models/range";
 import Schema from "./models/schema";
@@ -61,7 +61,7 @@ export {
   Node,
   Operation,
   Operations,
-  PathUtils,
+  Path,
   Point,
   Range,
   resetMemoization,
@@ -106,7 +106,7 @@ export default {
   Node,
   Operation,
   Operations,
-  PathUtils,
+  Path,
   Point,
   Range,
   resetMemoization,

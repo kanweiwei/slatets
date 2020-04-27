@@ -3,7 +3,7 @@ import logger from "slate-dev-logger";
 import { Record, List } from "immutable";
 
 import Key from "../utils/key-utils";
-import PathUtils from "../utils/path-utils";
+import { Path } from "../interfaces/path";
 import MODEL_TYPES from "../constants/model-types";
 import { isEqual } from "lodash-es";
 
@@ -62,7 +62,7 @@ class Point extends Record(DEFAULTS) {
       const p: any = {};
       if ("key" in a) p.key = a.key;
       if ("offset" in a) p.offset = a.offset;
-      if ("path" in a) p.path = PathUtils.create(a.path);
+      if ("path" in a) p.path = Path.create(a.path);
 
       // If only a path is set, or only a key is set, ensure that the other is
       // set to null so that it can be normalized back to the right value.
@@ -84,7 +84,7 @@ class Point extends Record(DEFAULTS) {
     const point = new Point({
       key,
       offset,
-      path: PathUtils.create(path),
+      path: Path.create(path),
     });
 
     return point;
@@ -253,7 +253,7 @@ class Point extends Record(DEFAULTS) {
 
   setPath(path: List<number>): Point {
     if (path !== null) {
-      path = PathUtils.create(path);
+      path = Path.create(path);
     }
 
     const point = this.set("path", path) as Point;

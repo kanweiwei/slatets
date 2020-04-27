@@ -3,7 +3,7 @@ import logger from "slate-dev-logger";
 
 import mixin from "../utils/mixin";
 import Decoration from "../models/decoration";
-import PathUtils from "../utils/path-utils";
+import { Path } from "./path";
 import Point from "../models/point";
 import Range from "../models/range";
 import Selection from "../models/selection";
@@ -43,7 +43,7 @@ class RangeInterface {
       return anchor.offset > focus.offset;
     }
 
-    const isBackward = PathUtils.isBefore(focus.path, anchor.path);
+    const isBackward = Path.isBefore(focus.path, anchor.path);
     return isBackward;
   }
 
