@@ -73,7 +73,7 @@ const Leaf = (props: LeafInterface) => {
 
     // COMPAT: Browsers will collapse trailing new lines at the end of blocks,
     // so we need to add an extra trailing new lines to prevent that.
-    const lastText = block.getLastText();
+    const [lastText] = block.getLastText();
     const lastChar = text.charAt(text.length - 1);
     const isLastText = node === lastText;
     const isLastLeaf = index === leaves.size - 1;

@@ -43,44 +43,6 @@ const Changes: {
   wrapText;
 } = {} as any;
 
-/**
- * Mix in the changes that pass through to their at-range equivalents because
- * they don't have any effect on the selection.
- */
-
-const PROXY_TRANSFORMS = [
-  "deleteBackward",
-  "deleteCharBackward",
-  "deleteLineBackward",
-  "deleteWordBackward",
-  "deleteForward",
-  "deleteCharForward",
-  "deleteWordForward",
-  "deleteLineForward",
-  "setBlocks",
-  "setInlines",
-  "splitInline",
-  "unwrapBlock",
-  "unwrapInline",
-  "wrapBlock",
-  "wrapInline",
-];
-
-PROXY_TRANSFORMS.forEach((method) => {
-  Changes[method] = (change: Change, ...args) => {
-    const { value } = change;
-    const { selection } = value;
-    const methodAtRange = `${method}AtRange`;
-    change[methodAtRange](selection, ...args);
-
-    if (method.match(/Backward$/)) {
-      change.moveToStart();
-    } else if (method.match(/Forward$/)) {
-      change.moveToEnd();
-    }
-  };
-});
-
 Changes.setBlock = (...args) => {
   logger.deprecate(
     "slate@0.33.0",
@@ -364,9 +326,41 @@ Changes.wrapText = (change, prefix, suffix = prefix) => {
 };
 
 /**
- * Export.
- *
- * @type {Object}
+ * Mix in the changes that pass through to their at-range equivalents because
+ * they don't have any effect on the selection.
  */
+
+const PROXY_TRANSFORMS = [
+  "deleteBackward",
+  "deleteCharBackward",
+  "deleteLineBackward",
+  "deleteWordBackward",
+  "deleteForward",
+  "deleteCharForward",
+  "deleteWordForward",
+  "deleteLineForward",
+  "setBlocks",
+  "setInlines",
+  "splitInline",
+  "unwrapBlock",
+  "unwrapInline",
+  "wrapBlock",
+  "wrapInline",
+];
+
+PROXY_TRANSFORMS.forEach((method) => {
+  Changes[method] = (change: Change, ...args) => {
+    const { value } = change;
+    const { selection } = value;
+    const methodAtRange = `${method}AtRange`;
+    change[methodAtRange](selection, ...args);
+
+    if (method.match(/Backward$/)) {
+      change.moveToStart();
+    } else if (method.match(/Forward$/)) {
+      change.moveToEnd();
+    }
+  };
+});
 
 export default Changes;

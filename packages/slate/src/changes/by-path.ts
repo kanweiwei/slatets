@@ -628,8 +628,8 @@ Changes.unwrapInlineByPath = (change, path, properties, options) => {
   const { value } = change;
   const { document, selection } = value;
   const node = document.getNode(path);
-  const first = node.getFirstText();
-  const last = node.getLastText();
+  const first = node.getFirstText(path);
+  const last = node.getLastText(path);
   const range = selection.moveToRangeOfNode(first, last);
   change.unwrapInlineAtRange(range, properties, options);
 };
@@ -647,8 +647,8 @@ Changes.unwrapBlockByPath = (change, path, properties, options) => {
   const { value } = change;
   const { document, selection } = value;
   const node = document.getNode(path);
-  const first = node.getFirstText();
-  const last = node.getLastText();
+  const first = node.getFirstText(path);
+  const last = node.getLastText(path);
   const range = selection.moveToRangeOfNode(first, last);
   change.unwrapBlockAtRange(range, properties, options);
 };

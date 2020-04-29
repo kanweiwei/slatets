@@ -17,7 +17,7 @@ interface VoidInterface {
 const Void: React.FC<VoidInterface> = (props: VoidInterface) => {
   const renderText = () => {
     const { block, decorations, node, readOnly, editor } = props;
-    const child = node.getFirstText();
+    const [child] = node.getFirstText();
     return (
       <Text
         block={node.object == "block" ? node : block}

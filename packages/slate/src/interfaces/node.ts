@@ -171,7 +171,7 @@ class NodeInterface {
 
     let [text, textPath] = this.getNextText(startPath);
 
-    while (!textPath?.equals(endPath)) {
+    while (!textPath.equals(endPath)) {
       if (text.text.length !== 0) {
         marks = marks.intersect(text.getActiveMarks());
         if (marks.size === 0) return Set();
@@ -423,13 +423,13 @@ class NodeInterface {
     let descendantPath = null;
 
     const found = this.nodes.find(
-      (node: { object: string; getFirstText: () => null }) => {
+      (node: { object: string; getFirstText: () => null }, i: number) => {
         path = path.concat(i);
         if (node.object === "text") {
           descendantPath = path.concat(i);
           return true;
         }
-        [descendant, descendantPath] = node.getFirstText();
+        [descendant, descendantPath] = node.getFirstText(path.concat(i));
         return !!descendant;
       }
     );
@@ -622,7 +622,7 @@ class NodeInterface {
   }
 
   // Get the last child text node.
-  getLastText(path: List<number>): [Text | null, List<number> | null] {
+  getLastText(path: List<number> = List()): [Text | null, List<number> | null] {
     let descendant = null;
     let descendantPath = null;
 
@@ -704,22 +704,23 @@ class NodeInterface {
   }
 
   // Get the block node before a descendant text node by `key`.
-  getNextBlock(key: List<number> | Key): NodeInterface | null {
-    const child = this.getDescendant(key);
+  getNextBlock(path: Path): NodeInterface | null {
+    const child = this.getDescendant(path);
     let last: Text | null;
+    let lastPath: Path;
 
     if (child.object == "block") {
-      last = child.getLastText();
+      [last, lastPath] = child.getLastText(path);
     } else {
-      const block = this.getClosestBlock(key);
-      last = block.getLastText();
+      const [block, p] = this.getClosestBlock(path);
+      [last, lastPath] = block.getLastText(p);
     }
 
-    const next = this.getNextText(last.key);
+    const [next, nextPath] = this.getNextText(lastPath);
     if (!next) return null;
 
-    const closest = this.getClosestBlock(next.key);
-    return closest;
+    const [closest, p] = this.getClosestBlock(nextPath);
+    return [closest, p];
   }
 
   getNextNode(
