@@ -176,4 +176,17 @@ export const Path = {
     const path = Path.create(array);
     return path;
   },
+
+  equals(path: Path, another: Path): boolean {
+    return path.size === another.size && path.every((n, i) => n === another[i]);
+  },
+
+  relative(path: Path, ancestor: Path) {
+    if (!Path.isAbove(ancestor, path) && !Path.equals(path, ancestor)) {
+      throw new Error(
+        `Cannot get the relative path of [${path}] inside ancestor [${ancestor}], because it is not above or equal to the path.`
+      );
+    }
+    return path.slice(ancestor.size);
+  },
 };

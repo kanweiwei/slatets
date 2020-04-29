@@ -167,7 +167,8 @@ function AfterPlugin() {
     const node = findNode(event.target);
     const ancestors = document.getAncestors(slateEditor.findPath(node));
     const isVoid =
-      node && (schema.isVoid(node) || ancestors.some((a) => schema.isVoid(a)));
+      node &&
+      (schema.isVoid(node) || ancestors.some(([a]) => schema.isVoid(a)));
 
     if (isVoid) {
       // COMPAT: In Chrome & Safari, selections that are at the zero offset of
@@ -270,7 +271,8 @@ function AfterPlugin() {
     const node = findNode(event.target);
     const ancestors = document.getAncestors(slateEditor.findPath(node));
     const isVoid =
-      node && (schema.isVoid(node) || ancestors.some((a) => schema.isVoid(a)));
+      node &&
+      (schema.isVoid(node) || ancestors.some(([a]) => schema.isVoid(a)));
 
     const selectionIncludesNode = value.blocks.some((block) =>
       isEqual(block.key, node.key)

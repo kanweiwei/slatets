@@ -101,7 +101,7 @@ class NodeInterface {
       }
     }, path);
 
-    return [found, p];
+    return [found, foundPath];
   }
 
   forEachDescendant(iterator: Function, path: Path = List()) {
@@ -356,7 +356,10 @@ class NodeInterface {
     const ancestors = this.getAncestors(path);
 
     const ancestor = ancestors.findLast(([a]) => schema.isVoid(a));
-    return ancestor;
+    if (ancestor) {
+      return ancestor;
+    }
+    return [null, null];
   }
 
   // Get the common ancestor of nodes `a` and `b`.
@@ -767,11 +770,14 @@ class NodeInterface {
   }
 
   // Get the offset for a descendant text node by `key`.
-  getOffset(key: List<number> | Key): number {
-    this.getDescendant(key);
+  getOffset(change: any, path: Path, targetPath: Path): number {
+    const { value } = change;
+    const { document } = value;
+    const targetChild = document.getDescendant(targetPath);
 
     // Calculate the offset of the nodes before the highest child.
-    const child = this.getFurthestAncestor(key);
+    const relativePath = Path.relative(targetPath, path);
+    const child = this.getFurthestAncestor(relativePath);
 
     const offset = this.nodes
       .takeUntil((n: NodeInterface | null) => n == child)
@@ -781,14 +787,19 @@ class NodeInterface {
       );
 
     // Recurse if need be.
-    const ret = this.hasChild(key) ? offset : offset + child.getOffset(key);
+    const ret = this.nodes.some((n) => n === targetChild)
+      ? offset
+      : offset +
+        child.getOffset(
+          change,
+          path.concat(relativePath.slice(0, 1)),
+          targetPath
+        );
     return ret;
   }
 
   // Get the offset from a `range`.
   getOffsetAtRange(range: Range): number {
-    range = this.resolveRange(range);
-
     if (range.isUnset) {
       throw new Error("The range cannot be unset to calculcate its offset.");
     }
@@ -798,7 +809,7 @@ class NodeInterface {
     }
 
     const { start } = range;
-    const offset = this.getOffset(start.key) + start.offset;
+    const offset = this.getOffset(start.path) + start.offset;
     return offset;
   }
 
@@ -874,7 +885,7 @@ class NodeInterface {
     if (!path.size) return null;
     const parentPath = Path.lift(path);
     const parent = this.getNode(parentPath);
-    return parent;
+    return [parent, parentPath];
   }
 
   // Find the path to a node.
