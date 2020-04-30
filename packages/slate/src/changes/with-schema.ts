@@ -106,8 +106,8 @@ Changes.normalizeNodeByPath = (change, path, options = {}) => {
   const ancestors = document.getAncestors(path);
   if (!ancestors) return;
 
-  ancestors.forEach((ancestor) => {
-    if (change.value.document.getDescendant(ancestor.key)) {
+  ancestors.forEach(([ancestor, ancestorPath]) => {
+    if (change.value.document.getDescendant(ancestorPath)) {
       normalizeNode(change, ancestor, schema);
     }
   });

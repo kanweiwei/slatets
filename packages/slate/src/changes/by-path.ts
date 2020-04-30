@@ -374,14 +374,12 @@ Changes.removeTextByPath = (change, path, offset, length, options) => {
       marks: leaf.marks,
     });
   });
-  console.log(node.getLeaves());
 
   // Apply in reverse order, so subsequent removals don't impact previous ones.
   change.applyOperations(removals.reverse());
-  let block = change.value.document.getClosestBlock(node.key);
+  let [block, blockPath] = change.value.document.getClosestBlock(path);
 
-  // const block = document.getClosestBlock(node.key);
-  change.normalizeNodeByKey(block.key, options);
+  change.normalizeNodeByPath(blockPath, options);
 };
 
 /**

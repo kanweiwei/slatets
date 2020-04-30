@@ -356,10 +356,7 @@ class NodeInterface {
     const ancestors = this.getAncestors(path);
 
     const ancestor = ancestors.findLast(([a]) => schema.isVoid(a));
-    if (ancestor) {
-      return ancestor;
-    }
-    return [null, null];
+    return ancestor;
   }
 
   // Get the common ancestor of nodes `a` and `b`.
@@ -368,7 +365,7 @@ class NodeInterface {
 
     const path = Path.relate(a, b);
     const node = this.getNode(path);
-    return node;
+    return [node, path];
   }
 
   // Get the decorations for the node from a `stack`.
@@ -756,7 +753,7 @@ class NodeInterface {
   getNextText(path: List<number>): [NodeInterface | null, List<number> | null] {
     if (!path) return [null, null];
     if (!path.size) return [null, null];
-    const next = this.getNextNode(path);
+    const [next, nextPath] = this.getNextNode(path);
     if (!next) return [null, null];
     const [text, textPath] = next.getFirstText(path);
     return [text, textPath];
@@ -880,7 +877,6 @@ class NodeInterface {
 
   // Get the parent of a descendant node.
   getParent(path: List<number> | Key): NodeInterface | null {
-    path = this.resolvePath(path);
     if (!path) return null;
     if (!path.size) return null;
     const parentPath = Path.lift(path);
@@ -1003,8 +999,8 @@ class NodeInterface {
 
     // PERF: if the start and end keys are the same, just check for the child
     // that contains that single key.
-    if (isEqual(start.key, end.key)) {
-      const child = this.getFurthestAncestor(start.key);
+    if (start.path.equals(end.path)) {
+      const child = this.getFurthestAncestor(start.path);
 
       const index = child ? this.nodes.indexOf(child) : null;
       return { start: index, end: index + 1 };
@@ -1019,9 +1015,9 @@ class NodeInterface {
         if (startIndex == null && isEqual(child.key, start.key)) startIndex = i;
         if (endIndex == null && isEqual(child.key, end.key)) endIndex = i + 1;
       } else {
-        if (startIndex == null && child.hasDescendant(start.key))
+        if (startIndex == null && child.hasDescendant(start.path))
           startIndex = i;
-        if (endIndex == null && child.hasDescendant(end.key)) endIndex = i + 1;
+        if (endIndex == null && child.hasDescendant(end.path)) endIndex = i + 1;
       }
 
       // PERF: exit early if both start and end have been found.

@@ -131,25 +131,22 @@ Changes.deleteAtRange = (change: Change, range: any, options = {}) => {
       startOffset == 0 &&
       endOffset == 0 &&
       isStartVoid == false &&
-      isEqual(startKey, startBlock.getFirstText().key) &&
-      isEqual(endKey, endBlock.getFirstText().key);
+      isEqual(start.key, startBlock.getFirstText().key) &&
+      isEqual(end.key, endBlock.getFirstText().key);
 
     // If it's a hanging selection, nudge it back to end in the previous text.
     if (isHanging && isEndVoid) {
       const [prevText, prevTextPath] = document.getPreviousText(endPath);
       endPath = prevTextPath;
       endOffset = prevText.text.length;
-      isEndVoid = document.hasVoidParent(endKey, schema);
+      isEndVoid = document.hasVoidParent(endPath, schema);
     }
 
     // If the start node is inside a void node, remove the void node and update
     // the starting point to be right after it, continuously until the start point
     // is not a void, or until the entire range is handled.
     while (isStartVoid) {
-      const [startVoid, startVoidPath] = document.getClosestVoid(
-        startPath,
-        schema
-      );
+      const [, startVoidPath] = document.getClosestVoid(startPath, schema);
       const [nextText, nextTextPath] = document.getNextText(startPath);
       change.removeNodeByPath(startVoidPath, { normalize: false });
 
@@ -170,7 +167,7 @@ Changes.deleteAtRange = (change: Change, range: any, options = {}) => {
     // we don't need any aborting checks because if we've gotten this far there
     // must be a non-void node that will exit the loop.
     while (isEndVoid) {
-      const [endVoid, endVoidPath] = document.getClosestVoid(endPath, schema);
+      const [, endVoidPath] = document.getClosestVoid(endPath, schema);
       const [prevText, prevTextPath] = document.getPreviousText(endPath);
       change.removeNodeByPath(endVoidPath, { normalize: false });
 
@@ -198,18 +195,21 @@ Changes.deleteAtRange = (change: Change, range: any, options = {}) => {
       // block after the start offset and inside the end block before the end
       // offset. Then remove any blocks that are in between the start and end
       // blocks. Then finally merge the start and end nodes.
-      [startBlock, startBlockPath] = document.getClosestBlock(startKey);
+      [startBlock, startBlockPath] = document.getClosestBlock(startPath);
       [endBlock, endBlockPath] = document.getClosestBlock(endPath);
-      const startText = document.getNode(startKey);
-      const endText = document.getNode(endKey);
+      const startText = document.getNode(startPath);
+      const endText = document.getNode(endPath);
       const startLength = startText.text.length - startOffset;
       const endLength = endOffset;
 
-      const ancestor = document.getCommonAncestor(startKey, endKey);
-      const startChild = ancestor.getFurthestAncestor(startKey);
-      const endChild = ancestor.getFurthestAncestor(endKey);
+      const [ancestor, ancestorPath] = document.getCommonAncestor(
+        startPath,
+        endPath
+      );
+      const [startChild] = ancestor.getFurthestAncestor(startPath);
+      const [endChild] = ancestor.getFurthestAncestor(endPath);
 
-      const startParent = document.getParent(startBlock.key);
+      const [startParent] = document.getParent(startBlock.key);
       const startParentIndex = startParent.nodes.indexOf(startBlock);
       const endParentIndex = startParent.nodes.indexOf(endBlock);
 
@@ -223,12 +223,13 @@ Changes.deleteAtRange = (change: Change, range: any, options = {}) => {
         !isEqual(child.key, startChild.key) &&
         !Document.isDocument(child)
       ) {
-        const parent = document.getParent(child.key);
+        const [parent, parentPath] = document.getParent(startPath);
         const index = parent.nodes.indexOf(child);
         const afters = parent.nodes.slice(index + 1);
 
         afters.reverse().forEach((node) => {
-          change.removeNodeByKey(node.key, { normalize: false });
+          const i = parent.nodes.indexOf(node);
+          change.removeNodeByPath(parentPath.concat(i), { normalize: false });
         });
 
         child = parent;
@@ -240,22 +241,21 @@ Changes.deleteAtRange = (change: Change, range: any, options = {}) => {
       const middles = ancestor.nodes.slice(startChildIndex + 1, endChildIndex);
 
       middles.reverse().forEach((node) => {
-        change.removeNodeByKey(node.key, { normalize: false });
+        const i = ancestor.nodes.indexOf(node);
+        change.removeNodeByPath(ancestorPath.concat(i), { normalize: false });
       });
 
       // Remove the nodes before the end text node in the tree.
       child = endText;
 
       while (!isEqual(child.key, endChild.key) && !Document.isDocument(child)) {
-        const parent = document.getParent(child.key);
+        const [parent, parentPath] = document.getParent(endPath);
         const index = parent.nodes.indexOf(child);
         const befores = parent.nodes.slice(0, index);
 
         befores.reverse().forEach((node) => {
-          change.removeNodeByKey(node.key, { normalize: false });
-          let i: number = NODE_TO_INDEX.get(child);
-          i--;
-          NODE_TO_INDEX.set(child, i);
+          const i = parent.nodes.indexOf(node);
+          change.removeNodeByPath(parentPath.concat(i), { normalize: false });
         });
 
         child = parent;
@@ -263,20 +263,22 @@ Changes.deleteAtRange = (change: Change, range: any, options = {}) => {
 
       // Remove any overlapping text content from the leaf text nodes.
       if (startLength != 0) {
-        change.removeTextByKey(startKey, startOffset, startLength, {
+        change.removeTextByPath(startPath, startOffset, startLength, {
           normalize: false,
         });
       }
 
       if (endLength != 0) {
-        change.removeTextByKey(endKey, 0, endOffset, { normalize: false });
+        change.removeTextByPath(endPath, 0, endOffset, { normalize: false });
       }
 
       // If the start and end blocks aren't the same, move and merge the end block
       // into the start block.
       if (!isEqual(startBlock.key, endBlock.key)) {
         document = change.value.document;
-        const lonely = document.getFurthestOnlyChildAncestor(endBlock.key);
+        const [lonely, lonelyPath] = document.getFurthestOnlyChildAncestor(
+          endBlock.key
+        );
 
         // Move the end block to be right after the start block.
         if (endParentIndex != startParentIndex + 1) {
@@ -291,14 +293,14 @@ Changes.deleteAtRange = (change: Change, range: any, options = {}) => {
         // If the selection is hanging, just remove the start block, otherwise
         // merge the end block into it.
         if (isHanging) {
-          change.removeNodeByKey(startBlock.key, { normalize: false });
+          change.removeNodeByPath(startBlockPath, { normalize: false });
         } else {
-          change.mergeNodeByKey(endBlock.key, { normalize: false });
+          change.mergeNodeByPath(endBlockPath, { normalize: false });
         }
 
         // If nested empty blocks are left over above the end block, remove them.
         if (lonely) {
-          change.removeNodeByKey(lonely.key, { normalize: false });
+          change.removeNodeByPath(lonelyPath, { normalize: false });
         }
       }
 
@@ -394,14 +396,11 @@ Changes.deleteBackwardAtRange = (change, range, n = 1, options = {}) => {
     return;
   }
 
-  const [voidParent, voidParentPath] = document.getClosestVoid(
-    start.path,
-    schema
-  );
+  const voidParent = document.getClosestVoid(start.path, schema);
 
   // If there is a void parent, delete it.
-  if (voidParent) {
-    change.removeNodeByPath(voidParentPath, { normalize });
+  if (voidParent && voidParent[0]) {
+    change.removeNodeByPath(voidParent[1], { normalize });
     return;
   }
 
@@ -598,8 +597,8 @@ Changes.deleteForwardAtRange = (change, range, n = 1, options = {}) => {
   const text = document.getDescendant(start.path);
 
   if (start.isAtEndOfNode(text)) {
-    const [next, nextPath] = document.getNextText(start.path);
-    const [nextBlock, nextBlockPath] = document.getClosestBlock(nextPath);
+    const [, nextPath] = document.getNextText(start.path);
+    const [nextBlock] = document.getClosestBlock(nextPath);
     const [nextVoid, nextVoidPath] = document.getClosestVoid(nextPath, schema);
 
     // If the next text node has a void parent, remove it.

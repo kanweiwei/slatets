@@ -138,7 +138,7 @@ class Point extends Record(DEFAULTS) {
     return point;
   }
 
-  moveTo(path: number | Key | List<number> | null, offset = 0): Point {
+  moveTo(path: number | Key | Path | null, offset = 0): Point {
     let key = this.key;
 
     if (typeof path === "number") {
@@ -162,8 +162,8 @@ class Point extends Record(DEFAULTS) {
   }
 
   moveToEndOfNode(node): Point {
-    const last = node.getLastText();
-    const point = this.moveTo(last.key, last.text.length);
+    const [last, p] = node.getLastText();
+    const point = this.moveTo(p, last.text.length);
     return point;
   }
 
