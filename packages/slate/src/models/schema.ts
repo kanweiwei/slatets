@@ -30,6 +30,7 @@ import Text from "./text";
 import SlateError from "../utils/slate-error";
 import { PREVIOUS_SIBLING_OBJECT_INVALID } from "@zykj/slate-schema-violations";
 import { Change } from "..";
+import { Path } from "../interfaces/path";
 
 const debug = Debug("slate: schema");
 
@@ -256,7 +257,7 @@ class Schema extends Record(DEFAULTS) {
   /**
    * 实例方法
    */
-  validateNode(node) {
+  validateNode(node, path) {
     const rules = this.rules.filter((r) => testRules(node, r.match));
     const failure = validateRules(node, rules, this.rules, { every: true });
     if (!failure) return;
@@ -293,12 +294,12 @@ class Schema extends Record(DEFAULTS) {
    * @param {Node} node
    * @return {Function|Void}
    */
-  normalizeNode(node) {
-    const ret = this.stack.$$find("normalizeNode", node);
+  normalizeNode(node, path) {
+    const ret = this.stack.$$find("normalizeNode", node, path);
     if (ret) return ret;
     if (node.object == "text") return;
 
-    const error = this.validateNode(node);
+    const error = this.validateNode(node, path);
     if (!error) return;
 
     return (change) => {
@@ -370,7 +371,19 @@ class Schema extends Record(DEFAULTS) {
  */
 
 function defaultNormalize(change: Change, error: SlateError) {
-  const { code, node, child, key, mark, next, previous } = error;
+  const {
+    code,
+    node,
+    nodePath,
+    child,
+    childPath,
+    key,
+    mark,
+    next,
+    nextPath,
+    previous,
+    prevPath,
+  } = error;
   switch (code) {
     case CHILD_OBJECT_INVALID:
     case CHILD_TYPE_INVALID:
@@ -382,16 +395,16 @@ function defaultNormalize(change: Change, error: SlateError) {
       return child.object === "text" &&
         node.object === "block" &&
         node.nodes.size === 1
-        ? change.removeNodeByKey(node.key, { normalize: false })
-        : change.removeNodeByKey(child.key, { normalize: false });
+        ? change.removeNodeByPath(nodePath, { normalize: false })
+        : change.removeNodeByPath(childPath, { normalize: false });
     }
     case PREVIOUS_SIBLING_OBJECT_INVALID:
     case PREVIOUS_SIBLING_TYPE_INVALID: {
       return previous.object === "text" &&
         node.object === "block" &&
         node.nodes.size === 1
-        ? change.removeNodeByKey(node.key, { normalize: false })
-        : change.removeNodeByKey(previous.key, { normalize: false });
+        ? change.removeNodeByPath(nodePath, { normalize: false })
+        : change.removeNodeByPath(prevPath, { normalize: false });
     }
 
     case NEXT_SIBLING_OBJECT_INVALID:
@@ -399,49 +412,49 @@ function defaultNormalize(change: Change, error: SlateError) {
       return next.object === "text" &&
         node.object === "block" &&
         node.nodes.size === 1
-        ? change.removeNodeByKey(node.key, { normalize: false })
-        : change.removeNodeByKey(next.key, { normalize: false });
+        ? change.removeNodeByPath(nodePath, { normalize: false })
+        : change.removeNodeByPath(nextPath, { normalize: false });
     }
     case CHILD_REQUIRED:
     case NODE_TEXT_INVALID:
     case PARENT_OBJECT_INVALID:
     case PARENT_TYPE_INVALID: {
       return node.object === "document"
-        ? node.nodes.forEach((n) =>
-            change.removeNodeByKey(n.key, { normalize: false })
+        ? node.nodes.forEach((n, i) =>
+            change.removeNodeByPath(nodePath.concat(i), { normalize: false })
           )
-        : change.removeNodeByKey(node.key, { normalize: false });
+        : change.removeNodeByPath(nodePath, { normalize: false });
     }
 
     case NODE_DATA_INVALID: {
       return node.data.get(key) === undefined && node.object !== "document"
-        ? change.removeNodeByKey(node.key, { normalize: false })
-        : change.setNodeByKey(
-            node.key,
+        ? change.removeNodeByPath(nodePath, { normalize: false })
+        : change.setNodeByPath(
+            nodePath,
             { data: node.data.delete(key) },
             { normalize: false }
           );
     }
 
     case NODE_IS_VOID_INVALID: {
-      return change.setNodeByKey(
-        node.key,
+      return change.setNodeByPath(
+        nodePath,
         { isVoid: !node.get("isVoid") },
         { normalize: false }
       );
     }
 
     case NODE_MARK_INVALID: {
-      return node.getTexts().forEach((t) =>
-        change.removeMarkByKey(t.key, 0, t.text.length, mark, {
+      return node.getTexts().forEach(([t, tp]) =>
+        change.removeMarkByPath(tp, 0, t.text.length, mark, {
           normalize: false,
         })
       );
     }
 
     default: {
-      const { node } = error;
-      return change.removeNodeByKey(node.key, { normalize: false });
+      const { nodePath } = error;
+      return change.removeNodeByPath(nodePath, { normalize: false });
     }
   }
 }
@@ -454,8 +467,8 @@ function defaultNormalize(change: Change, error: SlateError) {
  * @return {Boolean}
  */
 
-function testRules(object, rules) {
-  const error = validateRules(object, rules);
+function testRules(object, path, rules) {
+  const error = validateRules(object, path, rules);
   return !error;
 }
 
@@ -468,7 +481,13 @@ function testRules(object, rules) {
  * @return {Error|Void}
  */
 
-function validateRules(object, rule, rules: any[] = [], options: any = {}) {
+function validateRules(
+  object,
+  path,
+  rule,
+  rules: any[] = [],
+  options: any = {}
+) {
   const { every = false } = options;
 
   if (Array.isArray(rule)) {
@@ -486,20 +505,20 @@ function validateRules(object, rule, rules: any[] = [], options: any = {}) {
   }
 
   const error =
-    validateObject(object, rule) ||
-    validateType(object, rule) ||
-    validateIsVoid(object, rule) ||
-    validateData(object, rule) ||
-    validateMarks(object, rule) ||
-    validateText(object, rule) ||
-    validateFirst(object, rule) ||
-    validateLast(object, rule) ||
-    validateNodes(object, rule, rules);
+    validateObject(object, path, rule) ||
+    validateType(object, path, rule) ||
+    validateIsVoid(object, path, rule) ||
+    validateData(object, path, rule) ||
+    validateMarks(object, path, rule) ||
+    validateText(object, path, rule) ||
+    validateFirst(object, path, rule) ||
+    validateLast(object, path, rule) ||
+    validateNodes(object, path, rule, rules);
 
   return error;
 }
 
-function validateObject(node, rule) {
+function validateObject(node, path, rule) {
   if (rule.objects) {
     logger.warn(
       "The `objects` schema validation rule was changed. Please use the new `match` syntax with `object`."
@@ -509,10 +528,10 @@ function validateObject(node, rule) {
   if (rule.object == null) return;
   if (rule.object === node.object) return;
   if (typeof rule.object === "function" && rule.object(node.object)) return;
-  return fail(NODE_OBJECT_INVALID, { rule, node });
+  return fail(NODE_OBJECT_INVALID, { rule, node, nodePath: path });
 }
 
-function validateType(node, rule) {
+function validateType(node, path, rule) {
   if (rule.types) {
     logger.warn(
       "The `types` schema validation rule was changed. Please use the new `match` syntax with `type`."
@@ -521,23 +540,23 @@ function validateType(node, rule) {
 
   if (rule.type == null) return;
   if (rule.type === node.type) return;
-  return fail(NODE_TYPE_INVALID, { rule, node });
+  return fail(NODE_TYPE_INVALID, { rule, node, nodePath: path });
 }
 
-function validateIsVoid(node, rule) {
+function validateIsVoid(node, path, rule) {
   if (rule.isVoid == null) return;
   if (rule.isVoid === node.get("isVoid")) return;
   if (typeof rule.type === "function" && rule.type(node.type)) return;
-  return fail(NODE_IS_VOID_INVALID, { rule, node });
+  return fail(NODE_IS_VOID_INVALID, { rule, node, nodePath: path });
 }
 
-function validateData(node, rule) {
+function validateData(node, path, rule) {
   if (rule.data == null) return;
   if (node.data == null) return;
 
   if (typeof rule.data === "function") {
     if (rule.data(node.data)) return;
-    return fail("node_data_invalid", { rule, node });
+    return fail("node_data_invalid", { rule, node, nodePath: path });
   }
 
   for (const key in rule.data) {
@@ -545,11 +564,11 @@ function validateData(node, rule) {
     const value = node.data && node.data.get(key);
     const valid = typeof fn === "function" ? fn(value) : fn === value;
     if (valid) continue;
-    return fail(NODE_DATA_INVALID, { rule, node, key, value });
+    return fail(NODE_DATA_INVALID, { rule, node, nodePath: path, key, value });
   }
 }
 
-function validateMarks(node, rule) {
+function validateMarks(node, path, rule) {
   if (rule.marks == null) return;
   const marks = node.getMarks().toArray();
 
@@ -560,46 +579,54 @@ function validateMarks(node, rule) {
         : def.type === mark.type
     );
     if (valid) continue;
-    return fail(NODE_MARK_INVALID, { rule, node, mark });
+    return fail(NODE_MARK_INVALID, { rule, node, nodePath: path, mark });
   }
 }
 
-function validateText(node, rule) {
+function validateText(node, path, rule) {
   if (rule.text == null) return;
   const { text } = node;
   const valid =
     typeof rule.text === "function" ? rule.text(text) : rule.text.test(text);
   if (valid) return;
-  return fail(NODE_TEXT_INVALID, { rule, node, text });
+  return fail(NODE_TEXT_INVALID, { rule, node, nodePath: path, text });
 }
 
-function validateFirst(node, rule) {
+function validateFirst(node, path, rule) {
   if (rule.first == null) return;
   const first = node.nodes.first();
   if (!first) return;
-  const error = validateRules(first, rule.first);
+  const error = validateRules(first, path.concat(0), rule.first);
   if (!error) return;
   error.rule = rule;
   error.node = node;
+  error.nodePath = path;
   error.child = first;
+  error.childPath = path.concat(0);
   error.code = error.code.replace("node_", "first_child_");
   return error;
 }
 
-function validateLast(node, rule) {
+function validateLast(node, path, rule) {
   if (rule.last == null) return;
   const last = node.nodes.last();
   if (!last) return;
-  const error = validateRules(last, rule.last);
+  const error = validateRules(
+    last,
+    path.concat(node.nodes.size - 1),
+    rule.last
+  );
   if (!error) return;
   error.rule = rule;
   error.node = node;
+  error.nodePath = path;
   error.child = last;
+  error.childPath = path.concat(node.nodes.size - 1);
   error.code = error.code.replace("node_", "last_child_");
   return error;
 }
 
-function validateNodes(node, rule, rules: any[] = []) {
+function validateNodes(node, path, rule, rules: any[] = []) {
   if (node.nodes == null) return;
 
   const children = node.nodes.toArray();
@@ -610,8 +637,11 @@ function validateNodes(node, rule, rules: any[] = []) {
   let def;
   let max;
   let child;
+  let childPath;
   let previous;
+  let prevPath;
   let next;
+  let nextPath;
 
   function nextDef() {
     offset = offset == null ? null : 0;
@@ -625,8 +655,11 @@ function validateNodes(node, rule, rules: any[] = []) {
     index = index == null ? 0 : index + 1;
     offset = offset == null ? 0 : offset + 1;
     previous = child;
+    prevPath = childPath;
     child = children[index];
+    childPath = path.concat(index);
     next = children[index + 1];
+    nextPath = path.concat(index + 1);
     if (max != null && offset == max) nextDef();
     return !!child;
   }
@@ -642,15 +675,31 @@ function validateNodes(node, rule, rules: any[] = []) {
 
   while (nextChild()) {
     const err =
-      validateParent(node, child, rules) ||
-      validatePrevious(node, child, previous, index, rules) ||
-      validateNext(node, child, next, index, rules);
+      validateParent(node, path, child, childPath, rules) ||
+      validatePrevious(
+        node,
+        path,
+        child,
+        childPath,
+        previous,
+        prevPath,
+        index,
+        rules
+      ) ||
+      validateNext(node, path, child, childPath, next, nextPath, index, rules);
 
     if (err) return err;
 
     if (rule.nodes != null) {
       if (!def) {
-        return fail(CHILD_UNKNOWN, { rule, node, child, index });
+        return fail(CHILD_UNKNOWN, {
+          rule,
+          node,
+          nodePath: path,
+          child,
+          childPath,
+          index,
+        });
       }
 
       if (def) {
@@ -668,7 +717,7 @@ function validateNodes(node, rule, rules: any[] = []) {
       }
 
       if (def.match) {
-        const error = validateRules(child, def.match);
+        const error = validateRules(child, childPath, def.match);
 
         if (error && offset >= min && nextDef()) {
           rewind();
@@ -678,7 +727,9 @@ function validateNodes(node, rule, rules: any[] = []) {
         if (error) {
           error.rule = rule;
           error.node = node;
+          error.nodePath = path;
           error.child = child;
+          error.childPath = childPath;
           error.index = index;
           error.code = error.code.replace("node_", "child_");
           return error;
@@ -690,7 +741,7 @@ function validateNodes(node, rule, rules: any[] = []) {
   if (rule.nodes != null) {
     while (min != null) {
       if (offset < min) {
-        return fail(CHILD_REQUIRED, { rule, node, index });
+        return fail(CHILD_REQUIRED, { rule, node, nodePath: path, index });
       }
 
       nextDef();
@@ -698,57 +749,83 @@ function validateNodes(node, rule, rules: any[] = []) {
   }
 }
 
-function validateParent(node, child, rules) {
+function validateParent(node, path, child, childPath, rules) {
   for (const rule of rules) {
     if (rule.parent == null) continue;
-    if (!testRules(child, rule.match)) continue;
+    if (!testRules(child, childPath, rule.match)) continue;
 
-    const error = validateRules(node, rule.parent);
+    const error = validateRules(node, path, rule.parent);
     if (!error) continue;
 
     error.rule = rule;
     error.parent = node;
+    error.parentPath = path;
     error.node = child;
+    error.nodePath = childPath;
     error.code = error.code.replace("node_", "parent_");
     return error;
   }
 }
 
-function validatePrevious(node, child, previous, index, rules) {
+function validatePrevious(
+  node,
+  path,
+  child,
+  childPath,
+  previous,
+  prevPath,
+  index,
+  rules
+) {
   if (!previous) return;
 
   for (const rule of rules) {
     if (rule.previous == null) continue;
-    if (!testRules(child, rule.match)) continue;
+    if (!testRules(child, childPath, rule.match)) continue;
 
-    const error = validateRules(previous, rule.previous);
+    const error = validateRules(previous, prevPath, rule.previous);
     if (!error) continue;
 
     error.rule = rule;
     error.node = node;
+    error.nodePath = path;
     error.child = child;
+    error.childPath = childPath;
     error.index = index;
     error.previous = previous;
+    error.prevPath = prevPath;
     error.code = error.code.replace("node_", "previous_sibling_");
     return error;
   }
 }
 
-function validateNext(node, child, next, index, rules) {
+function validateNext(
+  node,
+  path,
+  child,
+  childPath,
+  next,
+  nextPath,
+  index,
+  rules
+) {
   if (!next) return;
 
   for (const rule of rules) {
     if (rule.next == null) continue;
-    if (!testRules(child, rule.match)) continue;
+    if (!testRules(child, childPath, rule.match)) continue;
 
-    const error = validateRules(next, rule.next);
+    const error = validateRules(next, nextPath, rule.next);
     if (!error) continue;
 
     error.rule = rule;
     error.node = node;
+    error.nodePath = path;
     error.child = child;
+    error.childPath = childPath;
     error.index = index;
     error.next = next;
+    error.nextPath = nextPath;
     error.code = error.code.replace("node_", "next_sibling_");
     return error;
   }

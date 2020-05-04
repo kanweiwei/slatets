@@ -4,11 +4,19 @@
 class SlateError extends Error {
   code: any;
   node: any;
+  nodePath: any;
+
   child: any;
+  childPath: any;
+
   key: any;
   mark: any;
   next: any;
+  nextPath: any;
+
   previous: any;
+  prevPath: any;
+
   constructor(code, attrs = {}) {
     super(code);
     this.code = code;

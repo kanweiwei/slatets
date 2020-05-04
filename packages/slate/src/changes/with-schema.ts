@@ -100,7 +100,7 @@ Changes.normalizeNodeByPath = (change, path, options = {}) => {
   let { document, schema } = value;
   const node = document.getNode(path);
 
-  normalizeNodeAndChildren(change, node, schema);
+  normalizeNodeAndChildren(change, node, path, schema);
 
   document = change.value.document;
   const ancestors = document.getAncestors(path);
@@ -126,17 +126,16 @@ Changes.normalizeParentByPath = (change, path, options) => {
  * @param {Schema} schema
  */
 
-function normalizeNodeAndChildren(change, node, schema) {
+function normalizeNodeAndChildren(change, node, path, schema) {
   if (node.object == "text") {
     normalizeNode(change, node, schema);
     return;
   }
 
-  let child = node.getFirstInvalidNode(schema);
-  let path = change.value.document.getPath(node.key);
+  let [child, childPath] = node.getFirstInvalidNode(schema, path);
 
   while (node && child) {
-    normalizeNodeAndChildren(change, child, schema);
+    normalizeNodeAndChildren(change, child, childPath, schema);
     node = change.value.document.refindNode(path, node.key);
 
     if (!node) {
@@ -150,7 +149,7 @@ function normalizeNodeAndChildren(change, node, schema) {
 
   // Normalize the node itself if it still exists.
   if (node) {
-    normalizeNode(change, node, schema);
+    normalizeNode(change, node, path, schema);
   }
 }
 
@@ -162,7 +161,7 @@ function normalizeNodeAndChildren(change, node, schema) {
  * @param {Schema} schema
  */
 
-function normalizeNode(change, node, schema) {
+function normalizeNode(change, node, path, schema) {
   const max =
     schema.stack.plugins.length +
     schema.rules.length +
@@ -170,8 +169,8 @@ function normalizeNode(change, node, schema) {
 
   let iterations = 0;
 
-  function iterate(c, n) {
-    const normalize = n.normalize(schema);
+  function iterate(c, n, p) {
+    const normalize = n.normalize(schema, p);
     if (!normalize) return;
 
     // Run the `normalize` function to fix the node.
@@ -201,7 +200,7 @@ function normalizeNode(change, node, schema) {
     iterate(c, n);
   }
 
-  iterate(change, node);
+  iterate(change, node, path);
 }
 
 /**
