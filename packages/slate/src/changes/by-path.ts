@@ -592,19 +592,19 @@ Changes.splitDescendantsByPath = (
   const text = document.getNode(textPath);
   const ancestors = document.getAncestors(textPath);
   const nodes = ancestors
-    .skipUntil((a) => isEqual(a.key, node.key))
+    .skipUntil(([a]) => isEqual(a.key, node.key))
     .reverse()
     .unshift(text);
 
   let previous;
   let index;
 
-  nodes.forEach((n) => {
+  nodes.forEach(([n, p]) => {
     const prevIndex = index == null ? null : index;
     index = previous ? n.nodes.indexOf(previous) + 1 : textOffset;
     previous = n;
 
-    change.splitNodeByKey(n.key, index, {
+    change.splitNodeByPath(p, index, {
       normalize: false,
       target: prevIndex,
     });
@@ -668,7 +668,7 @@ Changes.unwrapNodeByPath = (change, path, options) => {
   const { document } = value;
   document.getNode(path);
 
-  const parentPath = Path.lift(path);
+  const parentPath = Path.lift(path).toList();
   const parent = document.getNode(parentPath);
   const index = path.last();
   const parentIndex = parentPath.last();

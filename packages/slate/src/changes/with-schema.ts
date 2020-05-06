@@ -9,9 +9,6 @@ import { Path } from "../interfaces/path";
 const Changes: {
   normalize;
   normalizeDocument;
-  normalizeNodeByKey;
-  normalizeAncestorsByKey;
-  normalizeParentByKey;
   normalizeNodeByPath;
   normalizeParentByPath;
 } = {} as any;
@@ -42,53 +39,6 @@ Changes.normalizeDocument = (change, options) => {
  * Normalize a `node` and its children with the value's schema.
  *
  * @param {Change} change
- * @param {Node|String} key
- */
-
-Changes.normalizeNodeByKey = (change, key, options = {}) => {
-  const normalize = change.getFlag("normalize", options);
-  if (!normalize) return;
-
-  const { value } = change;
-  const { document, schema } = value;
-  const node = document.getNode(key);
-
-  normalizeNodeAndChildren(change, node, schema);
-
-  change.normalizeAncestorsByKey(key);
-};
-
-/**
- * Normalize a node's ancestors by `key`.
- *
- * @param {Change} change
- * @param {String} key
- */
-
-Changes.normalizeAncestorsByKey = (change, key) => {
-  const { value } = change;
-  const { document, schema } = value;
-  const ancestors = document.getAncestors(key);
-  if (!ancestors) return;
-
-  ancestors.forEach((ancestor) => {
-    if (change.value.document.getDescendant(ancestor.key)) {
-      normalizeNode(change, ancestor, schema);
-    }
-  });
-};
-
-Changes.normalizeParentByKey = (change, key, options) => {
-  const { value } = change;
-  const { document } = value;
-  const parent = document.getParent(key);
-  change.normalizeNodeByKey(parent.key, options);
-};
-
-/**
- * Normalize a `node` and its children with the value's schema.
- *
- * @param {Change} change
  * @param {Array} path
  */
 
@@ -104,11 +54,10 @@ Changes.normalizeNodeByPath = (change, path, options = {}) => {
 
   document = change.value.document;
   const ancestors = document.getAncestors(path);
-  if (!ancestors) return;
 
   ancestors.forEach(([ancestor, ancestorPath]) => {
     if (change.value.document.getDescendant(ancestorPath)) {
-      normalizeNode(change, ancestor, schema);
+      normalizeNode(change, ancestor, ancestorPath, schema);
     }
   });
 };
@@ -128,7 +77,7 @@ Changes.normalizeParentByPath = (change, path, options) => {
 
 function normalizeNodeAndChildren(change, node, path, schema) {
   if (node.object == "text") {
-    normalizeNode(change, node, schema);
+    normalizeNode(change, node, path, schema);
     return;
   }
 
@@ -197,7 +146,7 @@ function normalizeNode(change, node, path, schema) {
     }
 
     // Otherwise, iterate again.
-    iterate(c, n);
+    iterate(c, n, path);
   }
 
   iterate(change, node, path);

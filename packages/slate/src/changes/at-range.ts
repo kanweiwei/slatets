@@ -6,9 +6,9 @@ import Mark from "../models/mark";
 import Node from "../models/node";
 import TextUtils from "../utils/text-utils";
 import { isEqual } from "lodash-es";
-import { NODE_TO_INDEX } from "../utils/weak-maps";
 import Document from "../models/document";
 import Change from "../models/change";
+import { Path } from "..";
 
 /**
  * Changes.
@@ -66,17 +66,16 @@ Changes.addMarkAtRange = (change, range, mark, options = {}) => {
   const { start, end } = range;
   const texts = document.getTextsAtRange(range);
 
-  texts.forEach((node) => {
-    const { key } = node;
+  texts.forEach(([node, p]) => {
     let index = 0;
     let length = node.text.length;
 
-    if (isEqual(key, start.key)) index = start.offset;
-    if (isEqual(key, end.key)) length = end.offset;
-    if (isEqual(key, start.key) && isEqual(key, end.key))
+    if (start.path.equals(p)) index = start.offset;
+    if (end.path.equals(p)) length = end.offset;
+    if (start.path.equals(p) && end.path.equals(p))
       length = end.offset - start.offset;
 
-    change.addMarkByKey(key, index, length, mark, { normalize });
+    change.addMarkByPath(p, index, length, mark, { normalize });
   });
 };
 
@@ -131,8 +130,8 @@ Changes.deleteAtRange = (change: Change, range: any, options = {}) => {
       startOffset == 0 &&
       endOffset == 0 &&
       isStartVoid == false &&
-      isEqual(start.key, startBlock.getFirstText().key) &&
-      isEqual(end.key, endBlock.getFirstText().key);
+      startPath.equals(startBlock.getFirstText(startBlockPath)[1]) &&
+      endPath.equals(endBlock.getFirstText(endBlockPath)[1]);
 
     // If it's a hanging selection, nudge it back to end in the previous text.
     if (isHanging && isEndVoid) {
@@ -206,23 +205,22 @@ Changes.deleteAtRange = (change: Change, range: any, options = {}) => {
         startPath,
         endPath
       );
-      const [startChild] = ancestor.getFurthestAncestor(startPath);
+      const [startChild, startChildPath] = ancestor.getFurthestAncestor(
+        startPath
+      );
       const [endChild] = ancestor.getFurthestAncestor(endPath);
 
-      const [startParent] = document.getParent(startBlock.key);
+      const [startParent] = document.getParent(startBlockPath);
       const startParentIndex = startParent.nodes.indexOf(startBlock);
       const endParentIndex = startParent.nodes.indexOf(endBlock);
 
-      let child;
+      let child = startText;
+      let childPath = startPath;
 
       // Iterate through all of the nodes in the tree after the start text node
       // but inside the end child, and remove them.
-      child = startText;
 
-      while (
-        !isEqual(child.key, startChild.key) &&
-        !Document.isDocument(child)
-      ) {
+      while (!startPath.equals(startChildPath) && !Document.isDocument(child)) {
         const [parent, parentPath] = document.getParent(startPath);
         const index = parent.nodes.indexOf(child);
         const afters = parent.nodes.slice(index + 1);
@@ -233,6 +231,7 @@ Changes.deleteAtRange = (change: Change, range: any, options = {}) => {
         });
 
         child = parent;
+        childPath = parentPath;
       }
 
       // Remove all of the middle children.
@@ -247,8 +246,12 @@ Changes.deleteAtRange = (change: Change, range: any, options = {}) => {
 
       // Remove the nodes before the end text node in the tree.
       child = endText;
+      childPath = endPath;
 
-      while (!isEqual(child.key, endChild.key) && !Document.isDocument(child)) {
+      while (
+        !childPath.equals(ancestorPath.concat(endChildIndex)) &&
+        !Document.isDocument(child)
+      ) {
         const [parent, parentPath] = document.getParent(endPath);
         const index = parent.nodes.indexOf(child);
         const befores = parent.nodes.slice(0, index);
@@ -259,6 +262,7 @@ Changes.deleteAtRange = (change: Change, range: any, options = {}) => {
         });
 
         child = parent;
+        childPath = parentPath;
       }
 
       // Remove any overlapping text content from the leaf text nodes.
@@ -274,17 +278,17 @@ Changes.deleteAtRange = (change: Change, range: any, options = {}) => {
 
       // If the start and end blocks aren't the same, move and merge the end block
       // into the start block.
-      if (!isEqual(startBlock.key, endBlock.key)) {
+      if (!startBlockPath.equals(endBlockPath)) {
         document = change.value.document;
         const [lonely, lonelyPath] = document.getFurthestOnlyChildAncestor(
-          endBlock.key
+          endBlockPath
         );
 
         // Move the end block to be right after the start block.
         if (endParentIndex != startParentIndex + 1) {
-          change.moveNodeByKey(
-            endBlock.key,
-            startParent.key,
+          change.moveNodeByPath(
+            endBlockPath,
+            startBlockPath,
             startParentIndex + 1,
             { normalize: false }
           );
@@ -308,6 +312,9 @@ Changes.deleteAtRange = (change: Change, range: any, options = {}) => {
       // if (normalize) {
       //   change.normalizeNodeByKey(ancestor.key);
       // }
+      if (normalize) {
+        change.normalizeNodeByPath(ancestorPath);
+      }
     }
   });
 };
@@ -428,7 +435,7 @@ Changes.deleteBackwardAtRange = (change, range, n = 1, options = {}) => {
 
   if (start.isAtStartOfNode(text)) {
     const [prev, prevPath] = document.getPreviousText(start.path);
-    const [prevBlock, prevBlockPath] = document.getClosestBlock(prevPath);
+    const [prevBlock] = document.getClosestBlock(prevPath);
     const [prevVoid, prevVoidPath] = document.getClosestVoid(prev.path, schema);
 
     // If the previous text node has a void parent, remove it.
@@ -561,11 +568,11 @@ Changes.deleteForwardAtRange = (change, range, n = 1, options = {}) => {
     return;
   }
 
-  const voidParent = document.getClosestVoid(start.key, schema);
+  const voidParent = document.getClosestVoid(start.path, schema);
 
   // If the node has a void parent, delete it.
-  if (voidParent) {
-    change.removeNodeByKey(voidParent.key, { normalize });
+  if (voidParent && voidParent[1]) {
+    change.removeNodeByPath(voidParent[1], { normalize });
     return;
   }
 
@@ -672,19 +679,19 @@ Changes.insertBlockAtRange = (change, range, block, options = {}) => {
   let startPath = start.path;
   let startOffset = start.offset;
   const [startBlock, startBlockPath] = document.getClosestBlock(startPath);
-  const [startInline, startInlinePath] = document.getClosestInline(startPath);
+  const [startInline] = document.getClosestInline(startPath);
   const [parent, parentPath] = document.getParent(startBlockPath);
   const index = parent.nodes.indexOf(startBlock);
 
   if (schema.isVoid(startBlock)) {
     const extra = start.isAtEndOfNode(startBlock) ? 1 : 0;
-    change.insertNodeByKey(parent.key, index + extra, block, { normalize });
+    change.insertNodeByPath(parentPath, index + extra, block, { normalize });
   } else if (!startInline && startBlock.text === "") {
-    change.insertNodeByKey(parent.key, index + 1, block, { normalize });
+    change.insertNodeByPath(parentPath, index + 1, block, { normalize });
   } else if (start.isAtStartOfNode(startBlock)) {
-    change.insertNodeByKey(parent.key, index, block, { normalize });
+    change.insertNodeByPath(parentPath, index, block, { normalize });
   } else if (start.isAtEndOfNode(startBlock)) {
-    change.insertNodeByKey(parent.key, index + 1, block, { normalize });
+    change.insertNodeByPath(parentPath, index + 1, block, { normalize });
   } else {
     if (startInline && schema.isVoid(startInline)) {
       const atEnd = start.isAtEndOfNode(startInline);
@@ -700,7 +707,7 @@ Changes.insertBlockAtRange = (change, range, block, options = {}) => {
       startOffset = splitRange.start.offset;
     }
 
-    change.splitDescendantsByPath(startBlockPath, startKey, startOffset, {
+    change.splitDescendantsByPath(startBlockPath, startPath, startOffset, {
       normalize: false,
     });
 
@@ -729,10 +736,10 @@ Changes.insertFragmentAtRange = (change, range, fragment, options = {}) => {
   if (range.isExpanded) {
     change.deleteAtRange(range, { normalize: false });
 
-    if (change.value.document.getDescendant(range.start.key)) {
+    if (change.value.document.getDescendant(range.start.path)) {
       range = range.moveToStart();
     } else {
-      range = range.moveTo(range.end.key, 0).normalize(change.value.document);
+      range = range.moveTo(range.end.path, 0).normalize(change.value.document);
     }
   }
 
@@ -750,11 +757,11 @@ Changes.insertFragmentAtRange = (change, range, fragment, options = {}) => {
   const { value } = change;
   const { schema } = value;
   let { document } = value;
-  let startText = document.getDescendant(start.key);
-  let startBlock = document.getClosestBlock(startText.key);
-  let startChild = startBlock.getFurthestAncestor(startText.key);
+  let startText = document.getDescendant(start.path);
+  let [startBlock, startBlockPath] = document.getClosestBlock(start.path);
+  let [startChild, startChildPath] = startBlock.getFurthestAncestor(start.path);
   const isAtStart = start.isAtStartOfNode(startBlock);
-  const parent = document.getParent(startBlock.key);
+  const [parent, parentPath] = document.getParent(startBlockPath);
   const index = parent.nodes.indexOf(startBlock);
   const blocks = fragment.getBlocks();
   const firstChild = fragment.nodes.first();
@@ -798,16 +805,16 @@ Changes.insertFragmentAtRange = (change, range, fragment, options = {}) => {
 
   // Check if we need to split the node.
   if (start.offset != 0) {
-    change.splitDescendantsByKey(startChild.key, start.key, start.offset, {
+    change.splitDescendantsByPath(startChildPath, start.path, start.offset, {
       normalize: false,
     });
   }
 
   // Update our variables with the new value.
   document = change.value.document;
-  startText = document.getDescendant(start.key);
-  startBlock = document.getClosestBlock(start.key);
-  startChild = startBlock.getFurthestAncestor(startText.key);
+  startText = document.getDescendant(start.path);
+  [startBlock, startBlockPath] = document.getClosestBlock(start.path);
+  [startChild, startChildPath] = startBlock.getFurthestAncestor(start.path);
 
   // If the first and last block aren't the same, we need to move any of the
   // starting block's children after the split into the last block of the
@@ -815,7 +822,7 @@ Changes.insertFragmentAtRange = (change, range, fragment, options = {}) => {
   if (firstBlock != lastBlock) {
     const nextChild = isAtStart
       ? startChild
-      : startBlock.getNextSibling(startChild.key);
+      : startBlock.getNextSibling(startChildPath);
     const nextNodes = nextChild
       ? startBlock.nodes.skipUntil((n) => isEqual(n.key, nextChild.key))
       : List();
@@ -823,31 +830,36 @@ Changes.insertFragmentAtRange = (change, range, fragment, options = {}) => {
 
     nextNodes.forEach((node, i) => {
       const newIndex = lastIndex + i;
-
-      change.moveNodeByKey(node.key, lastBlock.key, newIndex, {
-        normalize: false,
-      });
+      const nodeIndex = startBlock.nodes.indexOf(node);
+      change.moveNodeByPath(
+        startBlockPath.concat(nodeIndex),
+        lastBlock.key,
+        newIndex,
+        {
+          normalize: false,
+        }
+      );
     });
   }
 
   // If the starting block is empty, we replace it entirely with the first block
   // of the fragment, since this leads to a more expected behavior for the user.
   if (!schema.isVoid(startBlock) && startBlock.text === "") {
-    change.removeNodeByKey(startBlock.key, { normalize: false });
-    change.insertNodeByKey(parent.key, index, firstBlock, {
+    change.removeNodeByPath(startBlockPath, { normalize: false });
+    change.insertNodeByPath(parentPath, index, firstBlock, {
       normalize: false,
     });
   } else {
     // Otherwise, we maintain the starting block, and insert all of the first
     // block's inline nodes into it at the split point.
-    const inlineChild = startBlock.getFurthestAncestor(startText.key);
+    const [inlineChild] = startBlock.getFurthestAncestor(start.path);
     const inlineIndex = startBlock.nodes.indexOf(inlineChild);
 
     firstBlock.nodes.forEach((inline, i) => {
       const o = start.offset == 0 ? 0 : 1;
       const newIndex = inlineIndex + i + o;
 
-      change.insertNodeByKey(startBlock.key, newIndex, inline, {
+      change.insertNodeByPath(startBlockPath, newIndex, inline, {
         normalize: false,
       });
     });
@@ -855,7 +867,7 @@ Changes.insertFragmentAtRange = (change, range, fragment, options = {}) => {
 
   // Normalize if requested.
   if (normalize) {
-    change.normalizeNodeByKey(parent.key);
+    change.normalizeNodeByPath(parentPath);
   }
 };
 
@@ -881,17 +893,16 @@ Changes.insertInlineAtRange = (change, range, inline, options = {}) => {
   const { value } = change;
   const { document, schema } = value;
   const { start } = range;
-  const parent = document.getParent(start.key);
-  const startText = document.getDescendant(start.key);
-  const index = parent.nodes.indexOf(startText);
+  const [parent, parentPath] = document.getParent(start.path);
+  const index = parent.nodes.indexOf(start.path);
 
   if (schema.isVoid(parent)) return;
 
-  change.splitNodeByKey(start.key, start.offset, { normalize: false });
-  change.insertNodeByKey(parent.key, index + 1, inline, { normalize: false });
+  change.splitNodeByPath(start.path, start.offset, { normalize: false });
+  change.insertNodeByPath(parentPath, index + 1, inline, { normalize: false });
 
   if (normalize) {
-    change.normalizeNodeByKey(parent.key);
+    change.normalizeNodeByPath(parentPath);
   }
 };
 
@@ -911,17 +922,17 @@ Changes.insertTextAtRange = (change, range, text, marks, options: any = {}) => {
   const { value } = change;
   const { document, schema } = value;
   const { start } = range;
-  let key = start.key;
+  let path = start.path;
   let offset = start.offset;
-  const parent = document.getParent(start.key);
+  const [parent] = document.getParent(path);
   if (schema.isVoid(parent)) return;
 
   if (range.isExpanded) {
     change.deleteAtRange(range, { normalize: false });
 
     // Update range start after delete
-    if (!isEqual(change.value.selection.start.key, key)) {
-      key = change.value.selection.start.key;
+    if (!change.value.selection.start.path.equals(path)) {
+      path = change.value.selection.start.path;
       offset = change.value.selection.start.offset;
     }
   }
@@ -931,21 +942,24 @@ Changes.insertTextAtRange = (change, range, text, marks, options: any = {}) => {
     normalize = range.isExpanded && marks && marks.size !== 0;
   }
 
-  change.insertTextByKey(key, offset, text, marks, { normalize: false });
+  change.insertTextByPath(path, offset, text, marks, { normalize: false });
 
   if (normalize) {
     // normalize in the narrowest existing block that originally contains startKey and endKey
-    const commonAncestor = document.getCommonAncestor(start.key, range.end.key);
+    const [commonAncestor, commonAncestorPath] = document.getCommonAncestor(
+      start.path,
+      range.end.path
+    );
     const ancestors = document
-      .getAncestors(commonAncestor.key)
-      .push(commonAncestor);
-    const normalizeAncestor = ancestors.findLast((n) =>
-      change.value.document.getDescendant(n.key)
+      .getAncestors(commonAncestorPath)
+      .push([commonAncestor, commonAncestorPath]);
+    const normalizeAncestor = ancestors.findLast(([n, p]) =>
+      change.value.document.getDescendant(p)
     );
     // it is possible that normalizeAncestor doesn't return any node
     // on that case fallback to startKey to be normalized
-    const normalizeKey = normalizeAncestor ? normalizeAncestor.key : start.key;
-    change.normalizeNodeByKey(normalizeKey);
+    const normalizePath = normalizeAncestor ? normalizeAncestor[1] : start.path;
+    change.normalizeNodeByPath(normalizePath);
   }
 };
 
@@ -968,17 +982,16 @@ Changes.removeMarkAtRange = (change, range, mark, options = {}) => {
   const texts = document.getTextsAtRange(range);
   const { start, end } = range;
 
-  texts.forEach((node) => {
-    const { key } = node;
+  texts.forEach(([node, p]) => {
     let index = 0;
     let length = node.text.length;
 
-    if (isEqual(key, start.key)) index = start.offset;
-    if (isEqual(key, end.key)) length = end.offset;
-    if (isEqual(key, start.key) && isEqual(key, end.key))
+    if (start.path.equals(p)) index = start.offset;
+    if (end.path.equals(p)) length = end.offset;
+    if (start.path.equals(p) && end.path.equals(p))
       length = end.offset - start.offset;
 
-    change.removeMarkByKey(key, index, length, mark, { normalize });
+    change.removeMarkByPath(p, index, length, mark, { normalize });
   });
 };
 
@@ -999,9 +1012,9 @@ Changes.setBlocksAtRange = (change, range, properties, options = {}) => {
   const blocks = document.getBlocksAtRange(range);
 
   const { start, end, isCollapsed } = range;
-  const isStartVoid = document.hasVoidParent(start.key, schema);
-  const startBlock = document.getClosestBlock(start.key);
-  const endBlock = document.getClosestBlock(end.key);
+  const isStartVoid = document.hasVoidParent(start.path, schema);
+  const [startBlock] = document.getClosestBlock(start.path);
+  const [endBlock] = document.getClosestBlock(end.path);
 
   // Check if we have a "hanging" selection case where the even though the
   // selection extends into the start of the end node, we actually want to
@@ -1016,8 +1029,8 @@ Changes.setBlocksAtRange = (change, range, properties, options = {}) => {
   // If it's a hanging selection, ignore the last block.
   const sets = isHanging ? blocks.slice(0, -1) : blocks;
 
-  sets.forEach((block) => {
-    change.setNodeByKey(block.key, properties, { normalize });
+  sets.forEach(([block, p]) => {
+    change.setNodeByPath(p, properties, { normalize });
   });
 };
 
@@ -1046,8 +1059,8 @@ Changes.setInlinesAtRange = (change, range, properties, options = {}) => {
   const { document } = value;
   const inlines = document.getInlinesAtRange(range);
 
-  inlines.forEach((inline) => {
-    change.setNodeByKey(inline.key, properties, { normalize });
+  inlines.forEach(([inline, p]) => {
+    change.setNodeByPath(p, properties, { normalize });
   });
 };
 
@@ -1076,27 +1089,29 @@ Changes.splitBlockAtRange = (change, range, height = 1, options = {}) => {
   const { start, end } = range;
   const { value } = change;
   const { document } = value;
-  let node = document.getDescendant(start.key);
-  let parent = document.getClosestBlock(node.key);
+  let node = document.getDescendant(start.path);
+  let nodePath = start.path;
+  let [parent, parentPath] = document.getClosestBlock(start.path);
   let h = 0;
 
   while (parent && parent.object == "block" && h < height) {
     node = parent;
-    parent = document.getClosestBlock(parent.key);
+    nodePath = parentPath;
+    [parent, parentPath] = document.getClosestBlock(parentPath);
     h++;
   }
 
-  change.splitDescendantsByKey(node.key, start.key, start.offset, {
+  change.splitDescendantsByPath(nodePath, start.path, start.offset, {
     normalize: normalize && range.isCollapsed,
   });
 
   if (range.isExpanded) {
     if (range.isBackward) range = range.flip();
-    const nextBlock = change.value.document.getNextBlock(node.key);
+    const [nextBlock] = change.value.document.getNextBlock(nodePath);
     range = range.moveAnchorToStartOfNode(nextBlock);
 
-    if (isEqual(start.key, end.key)) {
-      range = range.moveFocusTo(range.anchor.key, end.offset - start.offset);
+    if (start.path.equals(end.path)) {
+      range = range.moveFocusTo(range.anchor.path, end.offset - start.offset);
     }
 
     change.deleteAtRange(range, { normalize });
@@ -1129,17 +1144,19 @@ Changes.splitInlineAtRange = (
   const { start } = range;
   const { value } = change;
   const { document } = value;
-  let node = document.getDescendant(start.key);
-  let parent = document.getClosestInline(node.key);
+  let node = document.getDescendant(start.path);
+  let nodePath = start.path;
+  let [parent, parentPath] = document.getClosestInline(nodePath);
   let h = 0;
 
   while (parent && parent.object == "inline" && h < height) {
     node = parent;
-    parent = document.getClosestInline(parent.key);
+    nodePath = parentPath;
+    [parent, parentPath] = document.getClosestInline(parentPath);
     h++;
   }
 
-  change.splitDescendantsByKey(node.key, start.key, start.offset, {
+  change.splitDescendantsByPath(nodePath, start.path, start.offset, {
     normalize,
   });
 };
@@ -1190,8 +1207,8 @@ Changes.unwrapBlockAtRange = (change, range, properties, options = {}) => {
   let { document, schema } = value;
   const blocks = document.getBlocksAtRange(range);
   const wrappers = blocks
-    .map((block) => {
-      return document.getClosest(block.key, (parent) => {
+    .map(([block, p]) => {
+      return document.getClosest(p, (parent) => {
         if (parent.object != "block") return false;
         if (properties.type != null && parent.type != properties.type)
           return false;
@@ -1209,14 +1226,16 @@ Changes.unwrapBlockAtRange = (change, range, properties, options = {}) => {
     .toOrderedSet()
     .toList();
 
-  wrappers.forEach((block) => {
+  wrappers.forEach(([block, p]) => {
     const first = block.nodes.first();
     const last = block.nodes.last();
-    const parent = document.getParent(block.key);
+    const [parent, parentPath] = document.getParent(p);
     const index = parent.nodes.indexOf(block);
 
     const children = block.nodes.filter((child) => {
-      return blocks.some((b) => child == b || child.hasDescendant(b.key));
+      return blocks.some(
+        ([b, path]) => child == b || child.hasDescendant(path)
+      );
     });
 
     const firstMatch = children.first();
@@ -1224,17 +1243,17 @@ Changes.unwrapBlockAtRange = (change, range, properties, options = {}) => {
 
     if (first == firstMatch && last == lastMatch) {
       block.nodes.forEach((child, i) => {
-        change.moveNodeByKey(child.key, parent.key, index + i, {
+        change.moveNodeByPath(p.concat(i), parentPath, index + i, {
           normalize: false,
         });
       });
 
-      change.removeNodeByKey(block.key, { normalize: false });
+      change.removeNodeByPath(p, { normalize: false });
     } else if (last == lastMatch) {
       block.nodes
         .skipUntil((n) => n == firstMatch)
         .forEach((child, i) => {
-          change.moveNodeByKey(child.key, parent.key, index + 1 + i, {
+          change.moveNodeByPath(p.concat(i), parentPath, index + 1 + i, {
             normalize: false,
           });
         });
@@ -1243,27 +1262,30 @@ Changes.unwrapBlockAtRange = (change, range, properties, options = {}) => {
         .takeUntil((n) => n == lastMatch)
         .push(lastMatch)
         .forEach((child, i) => {
-          change.moveNodeByKey(child.key, parent.key, index + i, {
+          change.moveNodeByPath(p.concat(i), parentPath, index + i, {
             normalize: false,
           });
         });
     } else {
-      const firstText = firstMatch.getFirstText();
+      const firstMatchPath = p.concat(blocks.nodes.indexOf(firstMatch));
+      const [, firstTextPath] = firstMatch.getFirstText(firstMatchPath);
 
-      change.splitDescendantsByKey(block.key, firstText.key, 0, {
+      change.splitDescendantsByPath(p, firstTextPath, 0, {
         normalize: false,
       });
 
       document = change.value.document;
 
       children.forEach((child, i) => {
+        let childPath = p.concat(block.nodes.indexOf(child));
         if (i == 0) {
-          const extra = child;
-          child = document.getNextBlock(child.key);
-          change.removeNodeByKey(extra.key, { normalize: false });
+          // const extra = child;
+          const extraPath = childPath;
+          [child, childPath] = document.getNextBlock(childPath);
+          change.removeNodeByPath(extraPath, { normalize: false });
         }
 
-        change.moveNodeByKey(child.key, parent.key, index + 1 + i, {
+        change.moveNodeByPath(childPath, parentPath, index + 1 + i, {
           normalize: false,
         });
       });
@@ -1288,8 +1310,8 @@ Changes.unwrapInlineAtRange = (change, range, properties, options = {}) => {
   const { document, schema } = value;
   const texts = document.getTextsAtRange(range);
   const inlines = texts
-    .map((text) => {
-      return document.getClosest(text.key, (parent) => {
+    .map(([text, p]) => {
+      return document.getClosest(p, (parent) => {
         if (parent.object != "inline") return false;
         if (properties.type != null && parent.type != properties.type)
           return false;
@@ -1303,16 +1325,16 @@ Changes.unwrapInlineAtRange = (change, range, properties, options = {}) => {
         return true;
       });
     })
-    .filter((exists) => exists)
+    .filter((exists) => exists && exists[0] && exists[1])
     .toOrderedSet()
     .toList();
 
-  inlines.forEach((inline) => {
-    const parent = change.value.document.getParent(inline.key);
+  inlines.forEach(([inline, p]) => {
+    const [parent, parentPath] = change.value.document.getParent(p);
     const index = parent.nodes.indexOf(inline);
 
     inline.nodes.forEach((child, i) => {
-      change.moveNodeByKey(child.key, parent.key, index + i, {
+      change.moveNodeByPath(p.concat(i), parentPath, index + i, {
         normalize: false,
       });
     });
@@ -1337,49 +1359,52 @@ Changes.wrapBlockAtRange = (change, range, block, options = {}) => {
   const { document } = value;
 
   const blocks = document.getBlocksAtRange(range);
-  const firstblock = blocks.first();
-  const lastblock = blocks.last();
+  const [firstblock, firstblockPath] = blocks.first();
+  const [lastblock, lastblockPath] = blocks.last();
   let parent, siblings, index;
 
   // If there is only one block in the selection then we know the parent and
   // siblings.
   if (blocks.size === 1) {
-    parent = document.getParent(firstblock.key);
+    parent = document.getParent(firstblockPath);
     siblings = blocks;
   } else {
     // Determine closest shared parent to all blocks in selection.
-    parent = document.getClosest(firstblock.key, (p1) => {
-      return !!document.getClosest(lastblock.key, (p2) => p1 == p2);
+    parent = document.getClosest(firstblockPath, (p1) => {
+      return !!document.getClosest(lastblockPath, (p2) => p1 == p2);
     });
   }
 
   // If no shared parent could be found then the parent is the document.
-  if (parent == null) parent = document;
+  if (parent == null) parent = [document, List()];
 
   // Create a list of direct children siblings of parent that fall in the
   // selection.
   if (siblings == null) {
-    const indexes = parent.nodes.reduce((ind, node, i) => {
-      if (node == firstblock || node.hasDescendant(firstblock.key)) ind[0] = i;
-      if (node == lastblock || node.hasDescendant(lastblock.key)) ind[1] = i;
+    const indexes = parent[0].nodes.reduce((ind, node, i) => {
+      if (node == firstblock || node.hasDescendant(firstblockPath)) ind[0] = i;
+      if (node == lastblock || node.hasDescendant(lastblockPath)) ind[1] = i;
       return ind;
     }, []);
 
     index = indexes[0];
-    siblings = parent.nodes.slice(indexes[0], indexes[1] + 1);
+    siblings = parent[0].nodes.slice(indexes[0], indexes[1] + 1);
   }
 
   // Get the index to place the new wrapped node at.
   if (index == null) {
-    index = parent.nodes.indexOf(siblings.first());
+    index = parent[0].nodes.indexOf(siblings.first());
   }
 
   // Inject the new block node into the parent.
-  change.insertNodeByKey(parent.key, index, block, { normalize: false });
+  change.insertNodeByPath(parent[1], index, block, { normalize: false });
+  const blockPath = parent[1].concat(index);
 
   // Move the sibling nodes into the new block node.
   siblings.forEach((node, i) => {
-    change.moveNodeByKey(node.key, block.key, i, { normalize: false });
+    const index = parent[0].nodes.indexOf(node);
+    const p = parent[1].concat(index);
+    change.moveNodeByPath(p, blockPath, i, { normalize: false });
   });
 };
 
@@ -1401,46 +1426,48 @@ Changes.wrapInlineAtRange = (change, range, inline, options = {}) => {
 
   if (range.isCollapsed) {
     // Wrapping an inline void
-    const inlineParent = document.getClosestInline(start.key);
+    const inlineParent = document.getClosestInline(start.path);
 
-    if (!schema.isVoid(inlineParent)) {
+    if (!schema.isVoid(inlineParent[0])) {
       return;
     }
 
-    return change.wrapInlineByKey(inlineParent.key, inline, options);
+    return change.wrapInlineByPath(inlineParent[1], inline, options);
   }
 
   inline = Inline.create(inline);
   inline = inline.set("nodes", inline.nodes.clear());
 
   const blocks = document.getBlocksAtRange(range);
-  let startBlock = document.getClosestBlock(start.key);
-  let endBlock = document.getClosestBlock(end.key);
-  const startInline = document.getClosestInline(start.key);
-  const endInline = document.getClosestInline(end.key);
-  let startChild = startBlock.getFurthestAncestor(start.key);
-  let endChild = endBlock.getFurthestAncestor(end.key);
+  let startBlock = document.getClosestBlock(start.path);
+  let endBlock = document.getClosestBlock(end.path);
+  const startInline = document.getClosestInline(start.path);
+  const endInline = document.getClosestInline(end.path);
+  let startChild = startBlock[0].getFurthestAncestor(
+    Path.relative(start.path, startBlock[1])
+  );
+  let endChild = endBlock.getFurthestAncestor(end.path);
 
   if (!startInline || startInline != endInline) {
-    change.splitDescendantsByKey(endChild.key, end.key, end.offset, {
+    change.splitDescendantsByPath(endChild[1], end.path, end.offset, {
       normalize: false,
     });
 
-    change.splitDescendantsByKey(startChild.key, start.key, start.offset, {
+    change.splitDescendantsByPath(startChild[1], start.path, start.offset, {
       normalize: false,
     });
   }
 
   document = change.value.document;
-  startBlock = document.getDescendant(startBlock.key);
-  endBlock = document.getDescendant(endBlock.key);
-  startChild = startBlock.getFurthestAncestor(start.key);
-  endChild = endBlock.getFurthestAncestor(end.key);
+  startBlock = document.getDescendant(startBlock[1]);
+  endBlock = document.getDescendant(endBlock[1]);
+  startChild = startBlock.getFurthestAncestor(start.path);
+  endChild = endBlock.getFurthestAncestor(end.path);
   const startIndex = startBlock.nodes.indexOf(startChild);
   const endIndex = endBlock.nodes.indexOf(endChild);
 
   if (startInline && startInline == endInline) {
-    const text = startBlock
+    const text = startBlock[0]
       .getTextsAtRange(range)
       .get(0)
       .splitText(start.offset)[1]
@@ -1464,7 +1491,7 @@ Changes.wrapInlineAtRange = (change, range, inline, options = {}) => {
     change.select(rng);
   } else if (startBlock == endBlock) {
     document = change.value.document;
-    startBlock = document.getClosestBlock(start.key);
+    startBlock = document.getClosestBlock(start.path);
     startChild = startBlock.getFurthestAncestor(start.key);
 
     const startInner = document.getNextSibling(startChild.key);
