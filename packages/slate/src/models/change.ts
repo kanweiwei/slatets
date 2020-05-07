@@ -130,8 +130,6 @@ class Change {
   unwrapInline;
   wrapBlock;
   wrapInline;
-  setBlock;
-  setInline;
   addMark;
   addMarks;
   "delete";
@@ -356,9 +354,6 @@ class Change {
   // with-schema
   normalize;
   normalizeDocument;
-  normalizeNodeByKey;
-  normalizeAncestorsByKey;
-  normalizeParentByKey;
   normalizeNodeByPath;
   normalizeParentByPath;
 }

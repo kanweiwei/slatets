@@ -1,6 +1,5 @@
 import { is } from "immutable";
 // import isEmpty from "is-empty";
-import logger from "slate-dev-logger";
 import pick from "lodash/pick";
 
 import Selection from "../models/selection";
@@ -857,18 +856,5 @@ function pointForward(change, point, n = 1) {
     change.select(range);
   }
 }
-
-/**
- * Deprecated.
- */
-
-Changes.moveOffsetsTo = (change, start, end = start) => {
-  logger.deprecate(
-    "0.37.0",
-    "The `Change.moveOffsetsTo` method is deprecated, please use `Change.moveAnchorTo` and `Change.moveFocusTo` instead."
-  );
-
-  change.moveAnchorTo(start).moveFocusTo(end);
-};
 
 export default Changes;

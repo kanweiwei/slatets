@@ -226,7 +226,7 @@ Changes.moveNodeByPath = (change, path, newPath, newIndex, options) => {
   });
 
   const ancestorPath = Path.relate(path, newPath);
-  // change.normalizeNodeByPath(ancestorPath, options);
+  change.normalizeNodeByPath(ancestorPath, options);
 };
 
 /**
@@ -377,7 +377,7 @@ Changes.removeTextByPath = (change, path, offset, length, options) => {
 
   // Apply in reverse order, so subsequent removals don't impact previous ones.
   change.applyOperations(removals.reverse());
-  let [block, blockPath] = change.value.document.getClosestBlock(path);
+  let [, blockPath] = change.value.document.getClosestBlock(path);
 
   change.normalizeNodeByPath(blockPath, options);
 };
@@ -760,66 +760,5 @@ Changes.wrapNodeByPath = (change, path, node) => {
     return;
   }
 };
-
-/**
- * Mix in `*ByKey` variants.
- */
-
-const CHANGES = [
-  "addMark",
-  "insertFragment",
-  "insertNode",
-  "insertText",
-  "mergeNode",
-  "removeMark",
-  "removeAllMarks",
-  "removeNode",
-  "setText",
-  "replaceText",
-  "removeText",
-  "replaceNode",
-  "setMark",
-  "setNode",
-  "splitNode",
-  "unwrapInline",
-  "unwrapBlock",
-  "unwrapNode",
-  "wrapBlock",
-  "wrapInline",
-  "wrapNode",
-];
-
-for (const method of CHANGES) {
-  Changes[`${method}ByKey`] = (change, key, ...args) => {
-    const { value } = change;
-    const { document } = value;
-    const path = document.getPath(key);
-    change[`${method}ByPath`](path, ...args);
-  };
-}
-
-// Moving nodes takes two keys, so it's slightly different.
-Changes.moveNodeByKey = (change, key, newKey, ...args) => {
-  const { value } = change;
-  const { document } = value;
-  const path = document.getPath(key);
-  const newPath = document.getPath(newKey);
-  change.moveNodeByPath(path, newPath, ...args);
-};
-
-// Splitting descendants takes two keys, so it's slightly different.
-Changes.splitDescendantsByKey = (change, key, textKey, ...args) => {
-  const { value } = change;
-  const { document } = value;
-  const path = document.getPath(key);
-  const textPath = document.getPath(textKey);
-  change.splitDescendantsByPath(path, textPath, ...args);
-};
-
-/**
- * Export.
- *
- * @type {Object}
- */
 
 export default Changes;
