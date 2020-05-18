@@ -3,16 +3,17 @@ import { List, Record } from "immutable";
 
 import MODEL_TYPES from "../constants/model-types";
 
-import Decoration from "./decoration";
 import Point from "./point";
-import Selection from "./selection";
+import RangeInterface from "../interfaces/range";
+import { Path, Key } from "..";
+import NodeInterface from "../interfaces/node";
 
 const DEFAULTS: any = {
   anchor: Point.create(),
   focus: Point.create(),
 };
 
-class Range extends Record(DEFAULTS) {
+class Range extends Record(DEFAULTS) implements RangeInterface {
   /**
    * 属性
    */
@@ -86,8 +87,8 @@ class Range extends Record(DEFAULTS) {
   static isRange(obj: any) {
     return (
       !!(obj && obj[MODEL_TYPES.RANGE]) ||
-      Decoration.isDecoration(obj) ||
-      Selection.isSelection(obj)
+      !!(obj && obj[MODEL_TYPES.DECORATION]) ||
+      !!(obj && obj[MODEL_TYPES.SELECTION])
     );
   }
 
@@ -98,6 +99,114 @@ class Range extends Record(DEFAULTS) {
   get object(): "range" {
     return "range";
   }
+
+  // 通用
+  isCollapsed: boolean;
+  isExpanded: boolean;
+  isBackward: boolean;
+  isForward: boolean;
+  isSet: boolean;
+  start: Point;
+  end: Point;
+  flip(): RangeInterface;
+  moveForward(n: number): RangeInterface;
+  moveBackward(n: number): RangeInterface;
+  moveAnchorBackward(n: number): RangeInterface;
+  moveAnchorForward(n: number): RangeInterface;
+  moveAnchorTo(path: Path | Key | number, offset?: number): RangeInterface;
+  moveAnchorToStartOfNode(node: NodeInterface): RangeInterface;
+  moveAnchorToEndOfNode(node: NodeInterface): RangeInterface;
+  moveEndBackward(n: number): RangeInterface;
+  moveEndForward(n: number): RangeInterface;
+  moveEndTo(path: Path | Key | number, offset?: number): RangeInterface;
+  moveEndToStartOfNode(node: NodeInterface): RangeInterface;
+  moveEndToEndOfNode(node: NodeInterface): RangeInterface;
+  moveFocusBackward(n: number): RangeInterface;
+  moveFocusForward(n: number): RangeInterface;
+  moveFocusTo(path: Path | Key | number, offset?: number): RangeInterface;
+  moveFocusToStartOfNode(node: NodeInterface): RangeInterface;
+  moveFocusToEndOfNode(node: NodeInterface): RangeInterface;
+  moveStartBackward(n: number): RangeInterface;
+  moveStartForward(n: number): RangeInterface;
+  moveStartTo(path: Path | Key | number, offset: number): RangeInterface;
+  moveStartToStartOfNode(node: NodeInterface): RangeInterface;
+  moveStartToEndOfNode(node: NodeInterface): RangeInterface;
+  moveTo(path: Path | Key | number, offset: number): RangeInterface;
+  moveToAnchor(): RangeInterface;
+  moveToEnd(): RangeInterface;
+  moveToEndOfNode(node: NodeInterface): RangeInterface;
+  moveToFocus(): RangeInterface;
+  moveToRangeOfNode(start: NodeInterface, end: NodeInterface): RangeInterface;
+  moveToStart(): RangeInterface;
+  moveToStartOfNode(node: NodeInterface): RangeInterface;
+  normalize(node: NodeInterface): RangeInterface;
+  setAnchor(anchor: Point): RangeInterface;
+  setEnd(point: Point): RangeInterface;
+  setFocus(focus: Point): RangeInterface;
+  setPoints(values: [Point, Point]): RangeInterface;
+  updatePoints(updater: Function): RangeInterface;
+  setStart(point: Point): RangeInterface;
+  setProperties(properties: any): RangeInterface;
+  toJSON(options?: any): any;
+  toRange(): Range;
+  unset(): RangeInterface;
+  anchorKey: Key;
+  anchorOffset: Number;
+  anchorPath: Path;
+  focusKey: Key;
+  focusOffset: number;
+  focusPath: Path;
+  startKey: Key;
+  startOffset: number;
+  startPath: Path;
+  endKey: Key;
+  endOffset: number;
+  endPath: Path;
+  hasAnchorAtStartOf(node: NodeInterface): boolean;
+  hasAnchorAtEndOf(node: NodeInterface): boolean;
+  hasAnchorBetween(node: NodeInterface, start: number, end: number): boolean;
+  hasAnchorIn(node: NodeInterface): boolean;
+  hasEdgeAtStartOf(node: NodeInterface): boolean;
+  hasEdgeAtEndOf(node: NodeInterface): boolean;
+  hasEdgeBetween(node: NodeInterface, start: number, end: number): boolean;
+  hasEdgeIn(node: NodeInterface): boolean;
+  hasEndAtStartOf(node: NodeInterface): boolean;
+  hasEndAtEndOf(node: NodeInterface): boolean;
+  hasEndBetween(node: NodeInterface): boolean;
+  hasEndIn(node: NodeInterface): boolean;
+  hasFocusAtEndOf(node: NodeInterface): boolean;
+  hasFocusAtStartOf(node: NodeInterface): boolean;
+  hasFocusBetween(node: NodeInterface, start: number, end: number): boolean;
+  hasFocusIn(node: NodeInterface): boolean;
+  hasStartAtStartOf(node: NodeInterface): boolean;
+  hasStartAtEndOf(node: NodeInterface): boolean;
+  hasStartBetween(node: NodeInterface, start: number, end: number): boolean;
+  hasStartIn(node: NodeInterface): RangeInterface;
+  isAtStartOf(node: NodeInterface): RangeInterface;
+  isAtEndOf(node: NodeInterface): RangeInterface;
+  blur(): RangeInterface;
+  deselect(): Range;
+  moveAnchorOffsetTo(o: number): RangeInterface;
+  moveFocusOffsetTo(o: number): RangeInterface;
+  moveStartOffsetTo(o: number): RangeInterface;
+  moveEndOffsetTo(o: number): RangeInterface;
+  moveOffsetsTo(ao: number, fo?: number): RangeInterface;
+  moveAnchorToStartOf(node: NodeInterface): RangeInterface;
+  moveAnchorToEndOf(node: NodeInterface): RangeInterface;
+  moveFocusToStartOf(node: NodeInterface): RangeInterface;
+  moveFocusToEndOf(node: NodeInterface): RangeInterface;
+  moveToStartOf(node: NodeInterface): RangeInterface;
+  moveToEndOf(node: NodeInterface): RangeInterface;
+  moveToRangeOf(...args: any[]): RangeInterface;
+  collapseToAnchor(): RangeInterface;
+  collapseToEnd(): RangeInterface;
+  collapseToFocus(): RangeInterface;
+  collapseToStart(): RangeInterface;
+  move(n?: number): RangeInterface;
+  moveAnchor(n?: number): RangeInterface;
+  moveEnd(n?: number): RangeInterface;
+  moveFocus(n?: number): RangeInterface;
+  moveStart(n?: number): RangeInterface;
 }
 
 Range.prototype[MODEL_TYPES.RANGE] = true;

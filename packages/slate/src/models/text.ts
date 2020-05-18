@@ -162,7 +162,7 @@ class Text extends Record(DEFAULTS) {
 
   addMark(index, length, mark) {
     const marks = Set.of(mark);
-    return this.addMarks(index, length, marks);
+    return this.addMarks(index, length, marks) as Text;
   }
 
   addMarks(index, length, set) {

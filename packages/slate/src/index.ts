@@ -36,9 +36,7 @@ import {
 } from "./utils/weak-maps";
 
 import "./interfaces/common";
-import "./interfaces/node";
 import "./interfaces/range";
-
 /**
  * Export.
  *

@@ -13,7 +13,7 @@ import Data from "./data";
 
 const DEFAULTS = {
   data: Map(),
-  type: undefined
+  type: undefined,
 };
 
 /**
@@ -34,7 +34,7 @@ class Mark extends Record(DEFAULTS) {
    */
   static create(attrs: any = {}) {
     if (Mark.isMark(attrs)) {
-      return attrs;
+      return attrs as Mark;
     }
 
     if (typeof attrs == "string") {
@@ -72,7 +72,7 @@ class Mark extends Record(DEFAULTS) {
     if (Mark.isMark(attrs)) {
       return {
         data: attrs.data,
-        type: attrs.type
+        type: attrs.type,
       };
     }
 
@@ -101,7 +101,7 @@ class Mark extends Record(DEFAULTS) {
 
     const mark = new Mark({
       type,
-      data: Map(data)
+      data: Map(data),
     });
 
     return mark;
@@ -110,7 +110,7 @@ class Mark extends Record(DEFAULTS) {
   static isMark = isType.bind(null, "MARK");
 
   static isMarkSet(any: any): boolean {
-    return Set.isSet(any) && any.every(item => Mark.isMark(item));
+    return Set.isSet(any) && any.every((item) => Mark.isMark(item));
   }
 
   get object() {
@@ -124,7 +124,7 @@ class Mark extends Record(DEFAULTS) {
     const object: any = {
       object: this.object,
       type: this.type,
-      data: (this.data as any).toJSON()
+      data: (this.data as any).toJSON(),
     };
 
     return object;

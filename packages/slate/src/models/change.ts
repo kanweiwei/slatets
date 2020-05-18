@@ -8,6 +8,7 @@ import Changes from "../changes";
 import Operation from "./operation";
 import apply from "../operations/apply";
 import Value from "./value";
+import Mark from "./mark";
 
 const debug = Debug("slate:change");
 
@@ -130,7 +131,23 @@ class Change {
   unwrapInline;
   wrapBlock;
   wrapInline;
-  addMark;
+  addMark(mark: Mark | any) {
+    mark = Mark.create(mark);
+    const { value } = this;
+    const { document, selection } = value;
+
+    if (selection.isExpanded) {
+      this.addMarkAtRange(selection, mark);
+    } else if (selection.marks) {
+      const marks = selection.marks.add(mark);
+      const sel = selection.set("marks", marks);
+      this.select(sel);
+    } else {
+      const marks = document.getActiveMarksAtRange(selection).add(mark);
+      const sel = selection.set("marks", marks);
+      this.select(sel);
+    }
+  }
   addMarks;
   "delete";
   insertBlock;

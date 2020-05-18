@@ -49,19 +49,19 @@ const Changes: {
  * @param {Mark} mark
  */
 
-Changes.addMark = (change, mark) => {
-  mark = Mark.create(mark);
+Changes.addMark = (change: Change, mark: any | Mark) => {
+  const m = Mark.create(mark);
   const { value } = change;
   const { document, selection } = value;
 
   if (selection.isExpanded) {
-    change.addMarkAtRange(selection, mark);
+    change.addMarkAtRange(selection, m);
   } else if (selection.marks) {
-    const marks = selection.marks.add(mark);
+    const marks = selection.marks.add(m);
     const sel = selection.set("marks", marks);
     change.select(sel);
   } else {
-    const marks = document.getActiveMarksAtRange(selection).add(mark);
+    const marks = document.getActiveMarksAtRange(selection).add(m);
     const sel = selection.set("marks", marks);
     change.select(sel);
   }
