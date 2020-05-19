@@ -415,11 +415,10 @@ class NodeInterface {
       (node: { object: string; getFirstText: () => null }, i: number) => {
         path = path.concat(i);
         if (node.object === "text") {
-          descendantPath = path.concat(i);
+          descendantPath = path;
           return true;
         }
-        [descendant, descendantPath] = node.getFirstText(path.concat(i));
-        let r = node.getFirstText(path.concat(i));
+        let r = node.getFirstText(path);
         if (r) {
           [descendant, descendantPath] = r;
         }
@@ -591,7 +590,7 @@ class NodeInterface {
       path = path.concat(i);
 
       if (node.object == "text") {
-        descendantPath = path.concat(i);
+        descendantPath = path;
         return true;
       }
       let r = node.getLastText(path);
@@ -859,9 +858,9 @@ class NodeInterface {
     let child = node;
 
     while (true) {
-      if (isEqual(child.key, this.key)) {
-        return List(path);
-      }
+      // if (isEqual(child.key, this.key)) {
+      //   return List(path);
+      // }
       const parent = NODE_TO_PARENT.get(child);
       if (!parent) {
         if (!!(child && child[MODEL_TYPES.DOCUMENT])) {
@@ -948,7 +947,11 @@ class NodeInterface {
    * @return {Object|Null}
    */
 
-  getSelectionIndexes(range: Range, isSelected: boolean = true): any | null {
+  getSelectionIndexes(
+    range: Range,
+    path: Path = List(),
+    isSelected: boolean = true
+  ): any | null {
     const { start, end } = range;
 
     // PERF: if we're not selected, we can exit early.
@@ -979,9 +982,10 @@ class NodeInterface {
         if (startIndex == null && isEqual(child.key, start.key)) startIndex = i;
         if (endIndex == null && isEqual(child.key, end.key)) endIndex = i + 1;
       } else {
-        if (startIndex == null && child.hasDescendant(start.path))
+        if (startIndex == null && Path.isAbove(path.concat(i), start.path))
           startIndex = i;
-        if (endIndex == null && child.hasDescendant(end.path)) endIndex = i + 1;
+        if (endIndex == null && Path.isAbove(path.concat(i), end.path))
+          endIndex = i + 1;
       }
 
       // PERF: exit early if both start and end have been found.
@@ -1353,7 +1357,7 @@ class NodeInterface {
 
   resolveSelection(selection: Selection | any): Selection {
     selection = Selection.create(selection);
-    selection = selection.normalize(this);
+    selection = selection.normalize([this, List()]);
     return selection;
   }
 

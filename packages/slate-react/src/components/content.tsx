@@ -1,6 +1,6 @@
 import Debug from "debug";
 import React from "react";
-import Types, { node } from "prop-types";
+import Types from "prop-types";
 import getWindow from "get-window";
 import {
   IS_FIREFOX,

@@ -6,6 +6,7 @@ import Key from "../utils/key-utils";
 import { Path } from "../interfaces/path";
 import MODEL_TYPES from "../constants/model-types";
 import { isEqual } from "lodash-es";
+import NodeInterface from "../interfaces/node";
 
 /**
  * default properties
@@ -155,26 +156,32 @@ class Point extends Record(DEFAULTS) {
     return point;
   }
 
-  moveToStartOfNode(node): Point {
-    const first = node.getFirstText();
-    const point = this.moveTo(first.key, 0);
+  moveToRangeOfNode([node, p]): Point {
+    const first = node.getFirstText(p);
+    const point = this.moveTo(first[1], 0);
     return point;
   }
 
-  moveToEndOfNode(node): Point {
-    const [last, p] = node.getLastText();
-    const point = this.moveTo(p, last.text.length);
+  moveToStartOfNode([node, p]): Point {
+    const first = node.getFirstText(p)!;
+    const point = this.moveTo(first[1], 0);
     return point;
   }
 
-  normalize(node): Point {
+  moveToEndOfNode([node, p]: [NodeInterface, Path]): Point {
+    const last = node.getLastText(p)!;
+    const point = this.moveTo(last[1], last[0].text.length);
+    return point;
+  }
+
+  normalize([node, path]): Point {
     // If both the key and path are null, there's no reference to a node, so
     // make sure it is entirely unset.
-    if (this.key == null) {
+    if (this.key == null && path == null) {
       return this.setOffset(null) as Point;
     }
 
-    const { key, offset, path } = this;
+    const { key, offset } = this;
     // PERF: this function gets called a lot.
     // to avoid creating the key -> path lookup table, we attempt to look up by path first.
     let target;
