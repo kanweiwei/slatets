@@ -3,6 +3,7 @@ node_modules
 dist
 lib
 es
+.idea
 
 # misc
 .DS_Store
