@@ -1,5 +1,4 @@
-import isPlainObject from "is-plain-object";
-import { isArray, isEqual, unionWith } from "lodash-es";
+import { isArray, isEqual, unionWith, isPlainObject } from "lodash-es";
 import MODEL_TYPES, { isType } from "../constants/model-types";
 import Data from "./data";
 
@@ -113,22 +112,6 @@ class Mark {
   }
 }
 
-/**
- * Attach a pseudo-symbol for type checking.
- */
-
 Mark.prototype[MODEL_TYPES.MARK] = true;
-
-/**
- * Memoize read methods.
- */
-
-// memoize(Mark.prototype, ["getComponent"]);
-
-/**
- * Export.
- *
- * @type {Mark}
- */
 
 export default Mark;

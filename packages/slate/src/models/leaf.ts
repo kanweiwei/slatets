@@ -1,19 +1,14 @@
 import isPlainObject from "is-plain-object";
-import { List, Record, Set } from "immutable";
+import { List, Set } from "immutable";
 
 import MODEL_TYPES from "../constants/model-types";
 import Mark from "./mark";
 
-const DEFAULTS: any = {
-  marks: Set(),
-  text: "",
-};
-
-class Leaf extends Record(DEFAULTS) {
+class Leaf {
   /**
    * 属性
    */
-  public marks: Set<Mark>;
+  public marks: Mark[];
   public text: string;
 
   /**
