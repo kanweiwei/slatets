@@ -31,6 +31,14 @@ class Data {
   static fromJSON(object: any): Data {
     return new Data(object);
   }
+
+  toJSON() {
+    const obj = {};
+    keys(this).map((key) => {
+      obj[key] = this[key];
+    });
+    return obj;
+  }
 }
 
 Data.prototype[MODEL_TYPES.DATA] = true;

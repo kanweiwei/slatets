@@ -4,7 +4,7 @@ import { keys } from "lodash-es";
 describe("test Data model", () => {
   test("constructor", () => {
     let obj = {
-      name: "cc",
+      name: "xx",
     };
     let data = new Data(obj);
     expect(data).toEqual(obj);
@@ -27,5 +27,16 @@ describe("test Data model", () => {
   test("fromJSON", () => {
     expect(Data.fromJSON({})).toBeInstanceOf(Data);
     expect(Data.fromJSON({ name: "xx" })).toEqual({ name: "xx" });
+  });
+
+  test("toJSON", () => {
+    const data = new Data({
+      name: "xx",
+    });
+    expect(data.toJSON()).toEqual({ name: "xx" });
+    expect(data.toJSON()).not.toEqual({
+      name: "xx",
+      DATA: "@@__SLATE_DATA__@@",
+    });
   });
 });

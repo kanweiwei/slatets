@@ -1,40 +1,29 @@
 import isPlainObject from "is-plain-object";
-import { Map, Record, Set } from "immutable";
-
+import { isArray, isEqual, unionWith } from "lodash-es";
 import MODEL_TYPES, { isType } from "../constants/model-types";
 import Data from "./data";
-// import memoize from "../utils/memoize";
 
-/**
- * Default properties.
- *
- * @type {Object}
- */
+class Mark {
+  type: string;
+  data: Data;
 
-const DEFAULTS = {
-  data: Map(),
-  type: undefined,
-};
-
-/**
- * Mark.
- *
- * @type {Mark}
- */
-
-class Mark extends Record(DEFAULTS) {
-  /**
-   * 属性
-   */
-  public type: undefined | string;
-  public data: Map<any, any>;
+  constructor(obj?: any) {
+    if (!obj) {
+      throw new Error(
+        `new Error(obj) accpets obj with type and marks, but get ${obj}`
+      );
+    }
+    const { type, data = {} } = obj;
+    this.type = type;
+    this.data = Data.create(data);
+  }
 
   /**
    * 静态方法
    */
   static create(attrs: any = {}) {
-    if (Mark.isMark(attrs)) {
-      return attrs as Mark;
+    if (attrs instanceof Mark) {
+      return attrs;
     }
 
     if (typeof attrs == "string") {
@@ -50,17 +39,14 @@ class Mark extends Record(DEFAULTS) {
     );
   }
 
-  static createSet(elements: Array<any> | Set<any> = []): Set<Mark> {
-    if (Array.isArray(elements)) {
-      elements = Set(elements);
-    }
-    if (Set.isSet(elements)) {
-      const marks: Set<Mark> = Set(elements.map(Mark.create));
+  static createSet(elements: any[] = []): Mark[] {
+    if (isArray(elements)) {
+      const marks = unionWith(elements.map(Mark.create), isEqual);
       return marks;
     }
 
     if (elements == null) {
-      return Set();
+      return [];
     }
 
     throw new Error(
@@ -101,17 +87,13 @@ class Mark extends Record(DEFAULTS) {
 
     const mark = new Mark({
       type,
-      data: Map(data),
+      data,
     });
 
     return mark;
   }
 
   static isMark = isType.bind(null, "MARK");
-
-  static isMarkSet(any: any): boolean {
-    return Set.isSet(any) && any.every((item) => Mark.isMark(item));
-  }
 
   get object() {
     return "mark";
@@ -124,7 +106,7 @@ class Mark extends Record(DEFAULTS) {
     const object: any = {
       object: this.object,
       type: this.type,
-      data: (this.data as any).toJSON(),
+      data: this.data.toJSON(),
     };
 
     return object;
