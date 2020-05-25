@@ -1,33 +1,38 @@
-import isPlainObject from "is-plain-object";
-import { Map } from "immutable";
-import MODEL_TYPES from "../constants/model-types"
+import MODEL_TYPES from "../constants/model-types";
+import { keys, isPlainObject } from "lodash-es";
 
 class Data {
-    static create(attrs: any = {}): Map<any, any> {
-        if (Map.isMap(attrs)) {
-            return attrs;
-        }
+  constructor(object: any = {}) {
+    if (object) {
+      keys(object).forEach((key) => {
+        this[key] = object[key];
+      });
+    }
+  }
 
-        if (isPlainObject(attrs)) {
-            return Data.fromJSON(attrs);
-        }
-
-        throw new Error(
-            `\`Data.create\` only accepts objects or maps, but you passed it: ${attrs}`
-        );
+  static create(attrs: Data | any = {}): Data {
+    if (attrs instanceof Data) {
+      return attrs;
     }
 
-    static isData(obj) {
-        return !!(obj && obj[MODEL_TYPES.DATA]);
+    if (isPlainObject(attrs)) {
+      return Data.fromJSON(attrs);
     }
 
-    static fromJSON(object): Map<any, any> {
-        return Map(object);
-    }
-    // alias 'fromJSON'
-    static fromJS = Data.fromJSON;
+    throw new Error(
+      `\`Data.create\` only accepts objects or Data, but you passed it: ${attrs}`
+    );
+  }
+
+  static isData(obj?: any) {
+    return !!(obj && obj[MODEL_TYPES.DATA]);
+  }
+
+  static fromJSON(object: any): Data {
+    return new Data(object);
+  }
 }
 
-Data.prototype[MODEL_TYPES.CHANGE] = true;
+Data.prototype[MODEL_TYPES.DATA] = true;
 
 export default Data;

@@ -4,7 +4,7 @@
  * @type {Object}
  */
 
-const MODEL_TYPES: any = {
+const MODEL_TYPES = {
   BLOCK: "@@__SLATE_BLOCK__@@",
   CHANGE: "@@__SLATE_CHANGE__@@",
   CHARACTER: "@@__SLATE_CHARACTER__@@",
@@ -21,7 +21,7 @@ const MODEL_TYPES: any = {
   TEXT: "@@__SLATE_TEXT__@@",
   VALUE: "@@__SLATE_VALUE__@@",
   DECORATION: "@@__SLATE_DECORATION__@@",
-  SELECTION: "@@__SLATE_SELECTION__@@"
+  SELECTION: "@@__SLATE_SELECTION__@@",
 };
 
 /**
