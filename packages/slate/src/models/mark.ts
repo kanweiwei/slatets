@@ -6,7 +6,7 @@ class Mark {
   type: string;
   data: Data;
 
-  constructor(obj?: any) {
+  constructor(obj: { type: string; data?: any }) {
     if (!obj) {
       throw new Error(
         `new Error(obj) accpets obj with type and marks, but get ${obj}`
@@ -20,7 +20,7 @@ class Mark {
   /**
    * 静态方法
    */
-  static create(attrs: any = {}) {
+  static create(attrs: Mark | { type?: string; data?: any } | string = {}) {
     if (attrs instanceof Mark) {
       return attrs;
     }
@@ -77,7 +77,7 @@ class Mark {
     );
   }
 
-  static fromJSON(object: { data?: any; type: string }): Mark {
+  static fromJSON(object: { data?: any; type?: string }): Mark {
     const { data = {}, type } = object;
 
     if (typeof type != "string") {

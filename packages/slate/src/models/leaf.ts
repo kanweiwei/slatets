@@ -1,6 +1,15 @@
-import isPlainObject from "is-plain-object";
-import { List, Set } from "immutable";
-
+import {
+  cloneDeep,
+  drop,
+  findLast,
+  first,
+  isArray,
+  isEqual,
+  isPlainObject,
+  remove,
+  take,
+  uniqWith,
+} from "lodash-es";
 import MODEL_TYPES from "../constants/model-types";
 import Mark from "./mark";
 
@@ -11,11 +20,19 @@ class Leaf {
   public marks: Mark[];
   public text: string;
 
+  constructor(obj: { marks: any[]; text: string }) {
+    const { marks = [], text = "" } = obj;
+    this.marks = Mark.createSet(marks.map(Mark.create));
+    this.text = text;
+  }
+
   /**
    * 静态方法
    */
-  static create(attrs: any = {}): Leaf {
-    if (Leaf.isLeaf(attrs)) {
+  static create(
+    attrs: Leaf | { text?: string; marks?: any } | string = {}
+  ): Leaf {
+    if (attrs instanceof Leaf) {
       return attrs;
     }
 
@@ -33,57 +50,45 @@ class Leaf {
   }
 
   // 重新处理一遍叶节点，相邻的 `Leaf` 有相同的 marks 则合并这两个 `Leaf` 节点
-  static createLeaves(leaves: List<Leaf>): List<Leaf> {
-    if (leaves.size <= 1) return leaves;
+  static createLeaves(leaves: Leaf[]): Leaf[] {
+    if (leaves.length <= 1) return leaves;
 
     let invalid = false;
 
     // TODO: we can make this faster with [List] and then flatten
-    const result = List().withMutations((cache) => {
-      // Search from the leaves left end to find invalid node;
-      leaves.findLast((leaf: Leaf): any => {
-        const firstLeaf = cache.first() as Leaf;
-
-        // If the first leaf of cache exist, check whether the first leaf is connectable with the current leaf
-        if (firstLeaf) {
-          // If marks equals, then the two leaves can be connected
-          if (firstLeaf.marks.equals(leaf.marks)) {
-            invalid = true;
-            cache.set(
-              0,
-              firstLeaf.set("text", `${leaf.text}${firstLeaf.text}`)
-            );
-            return;
-          }
-
-          // If the cached leaf is empty, drop the empty leaf with the upcoming leaf
-          if (firstLeaf.text === "") {
-            invalid = true;
-            cache.set(0, leaf);
-            return;
-          }
-
-          // If the current leaf is empty, drop the leaf
-          if (leaf.text === "") {
-            invalid = true;
-            return;
-          }
+    const tmpLeaves: Leaf[] = [];
+    findLast(leaves, (leaf: Leaf) => {
+      const firstLeaf = first(tmpLeaves);
+      if (firstLeaf) {
+        if (isEqual(firstLeaf.marks, leaf.marks)) {
+          invalid = true;
+          firstLeaf.text = `${leaf.text}${firstLeaf.text}`;
+          return;
         }
+        if (firstLeaf.text === "") {
+          invalid = true;
+          tmpLeaves[0] = leaf;
+          return;
+        }
+        if (leaf.text === "") {
+          invalid = true;
+          return;
+        }
+      }
 
-        cache.unshift(leaf);
-      });
+      tmpLeaves.unshift(leaf);
     });
 
     if (!invalid) return leaves;
-    return result as List<Leaf>;
+    return tmpLeaves;
   }
 
   // 从指定的文字位置分割
-  static splitLeaves(leaves: List<Leaf>, offset: number): Array<List<Leaf>> {
-    if (offset < 0) return [List(), leaves];
+  static splitLeaves(leaves: Leaf[], offset: number): Leaf[][] {
+    if (offset < 0) return [[], leaves];
 
-    if (leaves.size === 0) {
-      return [List(), List()];
+    if (leaves.length === 0) {
+      return [[], []];
     }
 
     let endOffset = 0;
@@ -100,42 +105,42 @@ class Leaf {
       if (startOffset > offset) return false;
 
       const length = offset - startOffset;
-      left = leaf.set("text", text.slice(0, length)) as Leaf;
-      right = leaf.set("text", text.slice(length)) as Leaf;
+      left = new Leaf(cloneDeep(leaf));
+      right = new Leaf(cloneDeep(leaf));
+      left.text = text.slice(0, length);
+      right.text = text.slice(length);
       return true;
     });
 
-    if (!left) return [leaves, List()];
+    if (!left) return [leaves, []];
 
     if (left.text === "") {
       if (index === 0) {
-        return [List.of(left), leaves];
+        return [[left], leaves];
       }
 
-      return [List(leaves.take(index)), List(leaves.skip(index))];
+      return [take(leaves, index), drop(leaves, index)];
     }
 
     if (right.text === "") {
-      if (index === leaves.size - 1) {
-        return [leaves, List.of(right)];
+      if (index === leaves.length - 1) {
+        return [leaves, [right]];
       }
 
-      return [List(leaves.take(index + 1)), List(leaves.skip(index + 1))];
+      return [take(leaves, index + 1), drop(leaves, index + 1)];
     }
+    const leftLeaves: Array<Leaf> = take(leaves, index);
+    leftLeaves.push(left);
 
-    return [
-      List(leaves.take(index)).push(left) as List<Leaf>,
-      List(leaves.skip(index + 1)).unshift(right) as List<Leaf>,
-    ];
+    const rightLeaves: Array<Leaf> = drop(leaves, index + 1);
+    rightLeaves.unshift(right);
+
+    return [leftLeaves, rightLeaves];
   }
 
-  static createList(elements: Array<any> | List<any> = List()): List<Leaf> {
+  static createList(elements: any[] = []): Leaf[] {
     if (Array.isArray(elements)) {
-      elements = List(elements);
-    }
-    if (List.isList(elements)) {
-      const list: List<Leaf> = List(elements.map(Leaf.create));
-      return list;
+      return elements.map(Leaf.create);
     }
 
     throw new Error(
@@ -143,12 +148,12 @@ class Leaf {
     );
   }
 
-  static fromJSON(object: { text: string; marks: any[] }): Leaf {
+  static fromJSON(object: { text?: string; marks?: any[] }): Leaf {
     const { text = "", marks = [] } = object;
 
     const leaf = new Leaf({
       text,
-      marks: Set(marks.map(Mark.fromJSON)),
+      marks,
     });
 
     return leaf;
@@ -159,7 +164,7 @@ class Leaf {
   }
 
   static isLeafList(any): boolean {
-    return List.isList(any) && any.every((item) => Leaf.isLeaf(item));
+    return isArray(any) && any.every((item) => Leaf.isLeaf(item));
   }
 
   get object() {
@@ -167,36 +172,51 @@ class Leaf {
   }
 
   updateMark(mark: Mark, newMark: Mark): this {
-    const { marks } = this;
-    if (newMark.equals(mark)) return this;
-    if (!marks.has(mark)) return this;
-    const newMarks = marks.withMutations((collection) => {
-      collection.remove(mark).add(newMark);
+    const marks = this.marks.slice();
+    if (isEqual(mark, newMark)) return this;
+    if (!marks.some((m) => isEqual(m, mark))) return this;
+    remove(marks, (m: Mark) => {
+      if (isEqual(m, mark)) return true;
+      return false;
     });
-    return this.set("marks", newMarks) as this;
+    marks.push(newMark);
+    this.marks = marks;
+
+    return this;
   }
 
   addMark(mark: Mark) {
-    const { marks } = this;
-    return this.set("marks", marks.add(mark));
+    const marks = this.marks.slice();
+    marks.push(mark);
+    this.marks = uniqWith(marks, isEqual);
+    return this;
   }
 
   // Add a `set` of marks to the leaf.
-  addMarks(set: Set<Mark>): this {
-    const { marks } = this;
-    return this.set("marks", marks.union(set)) as this;
+  addMarks(set: Mark[]) {
+    let marks = this.marks.slice();
+    marks = marks.concat(set);
+    this.marks = uniqWith(marks, isEqual);
+    return this;
   }
 
-  removeMark(mark: Mark): this {
-    const { marks } = this;
-    return this.set("marks", marks.remove(mark)) as this;
+  removeMark(mark: Mark) {
+    const marks = this.marks.slice();
+    remove(marks, (m) => {
+      if (isEqual(m, mark)) {
+        return true;
+      }
+      return false;
+    });
+    this.marks = marks;
+    return this;
   }
 
   toJSON() {
     const object = {
       object: this.object,
       text: this.text,
-      marks: this.marks.toArray().map((m) => m.toJSON()),
+      marks: this.marks.map((m) => m.toJSON()),
     };
 
     return object;

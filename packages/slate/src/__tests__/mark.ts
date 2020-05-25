@@ -94,6 +94,7 @@ describe("test Mark model", () => {
     });
     expect(obj.toJSON()).not.toBeInstanceOf(Mark);
     expect(obj.toJSON().type).toBe("bold");
+    expect(obj.toJSON().object).toBe("mark");
     expect(obj.toJSON().data).not.toBeInstanceOf(Data);
   });
 });
