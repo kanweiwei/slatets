@@ -32,12 +32,17 @@
     "slate-dev-logger": "^0.1.39"
   },
   "devDependencies": {
+    "@babel/core": "^7.9.6",
+    "@babel/preset-env": "^7.9.6",
+    "@babel/preset-typescript": "^7.9.0",
     "@types/immutable": "^3.8.7",
+    "@types/jest": "^25.2.3",
     "@types/lodash-es": "^4.17.3",
     "@types/react-dom": "16.0.4",
     "@zykj/slate-dev-environment": "^0.1.4",
     "babel": "^6.23.0",
     "babel-core": "^6.26.3",
+    "babel-jest": "^26.0.1",
     "babel-plugin-add-module-exports": "^0.2.1",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-plugin-transform-es3-member-expression-literals": "^6.22.0",
