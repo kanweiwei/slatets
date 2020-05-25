@@ -175,7 +175,7 @@ function AfterPlugin() {
       // an inline node will be automatically replaced to be at the last offset
       // of a previous inline node, which screws us up, so we always want to set
       // it to the end of the node. (2016/11/29)
-      change.focus().moveToEndOfNode(node);
+      change.focus().moveToEndOfNode([node, node.getPath(node.key)]);
     }
 
     debug("onClick", { event });

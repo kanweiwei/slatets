@@ -346,8 +346,8 @@ class RangeInterface {
    * Move the range's points to the end of a `node`.
    * @paramnode
    */
-  moveToEndOfNode(node: NodeInterface) {
-    return this.updatePoints((point) => point.moveToEndOfNode(node));
+  moveToEndOfNode([node, path]) {
+    return this.updatePoints((point) => point.moveToEndOfNode([node, path]));
   }
 
   /**
@@ -385,8 +385,8 @@ class RangeInterface {
    * Move the range's points to the start of a `node`.
    * @param node
    */
-  moveToStartOfNode(node: NodeInterface) {
-    return this.updatePoints((point) => point.moveToStartOfNode(node));
+  moveToStartOfNode([node, path]: [NodeInterface, Path]) {
+    return this.updatePoints((point) => point.moveToStartOfNode([node, path]));
   }
 
   /**

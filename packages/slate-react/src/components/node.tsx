@@ -103,7 +103,11 @@ const Node = (props: NodeProps) => {
   const { value } = editor;
   const { selection, schema } = value;
   const { stack } = editor;
-  const indexes = node.getSelectionIndexes(selection, isSelected);
+  const indexes = node.getSelectionIndexes(
+    selection,
+    node.getPath(node.key),
+    isSelected
+  );
   const decs = decorations.concat(node.getDecorations(stack));
   const childrenDecorations = getChildrenDecorations(node, decs);
 
