@@ -1,33 +1,46 @@
-import isPlainObject from "is-plain-object";
-import logger from "slate-dev-logger";
-import { List, OrderedSet, Record, Set } from "immutable";
-
-import Leaf from "./leaf";
+import { Set } from "immutable";
+import {
+  first,
+  flatten,
+  intersectionWith,
+  isArray,
+  isEqual,
+  isEqualWith,
+  isPlainObject,
+  keys,
+  uniqWith,
+} from "lodash-es";
 import MODEL_TYPES from "../constants/model-types";
 import Key from "../utils/key-utils";
 import memoize from "../utils/memoize";
+import Data from "./data";
+import Leaf from "./leaf";
 import Mark from "./mark";
-import { isEqual } from "lodash-es";
 import Schema from "./schema";
 
-const DEFAULTS = {
-  leaves: List(),
-  key: void 0,
-};
+class Text {
+  leaves: Leaf[];
+  key: Key;
 
-class Text extends Record(DEFAULTS) {
-  /**
-   * 属性
-   */
-
-  public leaves: List<Leaf>;
-  public key: Key;
-
+  constructor(obj: { key?: Key; leaves?: any[] }) {
+    this.key = obj.key ?? Key.create();
+    this.leaves = (obj?.leaves ?? []).map(Leaf.create);
+  }
   /**
    * 静态方法
    */
-  static create(attrs: any = ""): Text {
-    if (Text.isText(attrs)) {
+  static create(
+    attrs:
+      | Text
+      | {
+          text?: string;
+          key?: Key;
+          marks?: any[];
+          leaves?: { text?: string; marks?: any[] }[];
+        }
+      | string = ""
+  ): Text {
+    if (attrs instanceof Text) {
       return attrs;
     }
 
@@ -50,47 +63,21 @@ class Text extends Record(DEFAULTS) {
   }
 
   static createList(elements = []) {
-    if (List.isList(elements) || Array.isArray(elements)) {
-      const list = List(elements.map(Text.create));
-      return list;
+    if (Array.isArray(elements)) {
+      return elements.map(Text.create);
     }
 
     throw new Error(
-      `\`Text.createList\` only accepts arrays or lists, but you passed it: ${elements}`
+      `\`Text.createList\` only accepts arrays, but you passed it: ${elements}`
     );
   }
 
   static fromJSON(object): Text {
-    if (Text.isText(object)) {
-      return object;
-    }
-
     const { key = Key.create() } = object;
-    let { leaves } = object;
-
-    if (!leaves) {
-      if (object.ranges) {
-        logger.deprecate(
-          "slate@0.27.0",
-          "The `ranges` property of Slate objects has been renamed to `leaves`."
-        );
-
-        leaves = object.ranges;
-      } else {
-        leaves = List();
-      }
-    }
-
-    if (Array.isArray(leaves)) {
-      leaves = List(leaves.map((x) => Leaf.create(x)));
-    } else if (List.isList(leaves)) {
-      leaves = leaves.map((x) => Leaf.create(x));
-    } else {
-      throw new Error("leaves must be either Array or Immutable.List");
-    }
+    let { leaves = [] } = object;
 
     const node = new Text({
-      leaves: Leaf.createLeaves(leaves),
+      leaves,
       key,
     });
 
@@ -103,7 +90,7 @@ class Text extends Record(DEFAULTS) {
 
   // 判断是否是多个 `Text` 节点组成的 `List`
   static isTextList(any) {
-    return List.isList(any) && any.every((item) => Text.isText(item));
+    return isArray(any) && any.every((item) => Text.isText(item));
   }
 
   // 计算属性
@@ -125,22 +112,13 @@ class Text extends Record(DEFAULTS) {
     );
   }
 
-  getString() {
-    logger.deprecate(
-      "0.39.0",
-      "The `Text.getString` property is deprecated, please use `Text.getText` instead."
-    );
-
-    return this.getText();
-  }
-
   // 当前节点的文本内容是否为空
   isEmpty() {
     return this.text === "";
   }
 
   // 根据文字的位置获取所在 `leaf` 节点信息
-  searchLeafAtOffset(offset) {
+  searchLeafAtOffset(offset: number) {
     let endOffset = 0;
     let startOffset = 0;
     let index = -1;
@@ -160,26 +138,25 @@ class Text extends Record(DEFAULTS) {
     };
   }
 
-  addMark(index, length, mark) {
-    const marks = Set.of(mark);
-    return this.addMarks(index, length, marks) as Text;
+  addMark(index: number, length: number, mark: Mark) {
+    const marks = [mark];
+    return this.addMarks(index, length, marks);
   }
 
-  addMarks(index, length, set) {
+  addMarks(index: number, length: number, set: Mark[]) {
     if (this.text === "" && length === 0 && index === 0) {
       const { leaves } = this;
-      const first = leaves.first();
+      const f = first(leaves);
 
-      if (!first) {
-        return this.set(
-          "leaves",
-          List.of(Leaf.fromJSON({ text: "", marks: set }))
-        );
+      if (!f) {
+        this.leaves = [Leaf.fromJSON({ text: "", marks: set })];
+        return this;
       }
 
-      const newFirst = first.addMarks(set);
-      if (newFirst === first) return this;
-      return this.set("leaves", List.of(newFirst));
+      const newFirst = f.addMarks(set);
+      if (newFirst === f) return this;
+      this.leaves = [newFirst];
+      return this;
     }
 
     if (this.text === "") return this;
@@ -188,18 +165,17 @@ class Text extends Record(DEFAULTS) {
 
     const [before, bundle] = Leaf.splitLeaves(this.leaves, index);
     const [middle, after] = Leaf.splitLeaves(bundle, length);
-    const leaves = before
-      .concat(
-        middle.map((x: Leaf) => x.addMarks(set)),
-        after
-      )
-      .toList();
-    return this.setLeaves(leaves);
+    const leaves = before.concat(
+      middle.map((x: Leaf) => x.addMarks(set)),
+      after
+    );
+    this.leaves = leaves;
+    return this;
   }
 
   getLeaves(decorations = []) {
     let { leaves } = this;
-    if (leaves.size === 0) return List.of(Leaf.create({}));
+    if (leaves.length === 0) return [Leaf.create({})];
     if (!decorations || decorations.length === 0) return leaves;
     if (this.text.length === 0) return leaves;
     const { key } = this;
@@ -222,12 +198,12 @@ class Text extends Record(DEFAULTS) {
           leaves = before.concat(
             middle.map((x: Leaf) => x.addMark(mark)),
             after
-          ) as List<Leaf>;
+          );
           return;
         }
       }
 
-      leaves = leaves.map((x: Leaf) => x.addMark(mark)) as List<Leaf>;
+      leaves = leaves.map((x: Leaf) => x.addMark(mark));
     });
 
     if (leaves === this.leaves) return leaves;
@@ -239,7 +215,7 @@ class Text extends Record(DEFAULTS) {
       return this.getActiveMarks();
     }
 
-    if (startOffset >= endOffset) return Set();
+    if (startOffset >= endOffset) return [];
     // For empty text in a paragraph, use getActiveMarks;
     if (this.text === "") return this.getActiveMarks();
 
@@ -258,8 +234,8 @@ class Text extends Record(DEFAULTS) {
         return;
       }
 
-      result = result.intersect(leaf.marks);
-      if (result && result.size === 0) return false;
+      result = intersectionWith(result, leaf.marks, isEqual);
+      if (result && result.length === 0) return false;
       return false;
     });
 
@@ -267,17 +243,27 @@ class Text extends Record(DEFAULTS) {
   }
 
   getActiveMarks() {
-    if (this.leaves.size === 0) return Set();
+    if (this.leaves.length === 0) return [];
 
-    const result = this.leaves.first().marks;
-    if (result.size === 0) return result;
+    const firstLeaf = first(this.leaves);
+    if (!firstLeaf) {
+      return [];
+    }
 
-    return result.withMutations((x) => {
-      this.leaves.forEach((c: Leaf): any => {
-        x.intersect(c.marks);
-        if (x.size === 0) return false;
-      });
+    const result = firstLeaf.marks;
+    if (result.length === 0) return result;
+    let tmp = result;
+    const res = this.leaves.find((l) => {
+      tmp = intersectionWith(tmp, l.marks, isEqual);
+      if (tmp.length === 0) {
+        return true;
+      }
+      return false;
     });
+    if (res) {
+      return [];
+    }
+    return tmp;
   }
 
   getFirstText() {
@@ -288,110 +274,53 @@ class Text extends Record(DEFAULTS) {
     return this;
   }
 
-  /**
-   * Get all of the marks on between two offsets
-   * Corner Cases:
-   *   1. if startOffset is equal or bigger than endOffset, then return Set();
-   *   2. If no text is selected between start and end, then return Set()
-   *
-   * @return {OrderedSet<Mark>}
-   */
   getMarksBetweenOffsets(startOffset: number, endOffset: number) {
     if (startOffset <= 0 && endOffset >= this.text.length) {
       return this.getMarks();
     }
 
     if (startOffset >= endOffset) return Set();
-    // For empty text in a paragraph, use getActiveMarks;
     if (this.text === "") return this.getActiveMarks();
 
     let result: any = null;
     let leafEnd = 0;
 
-    this.leaves.forEach((leaf: Leaf): any => {
+    this.leaves.find((leaf: Leaf): any => {
       const leafStart = leafEnd;
       leafEnd = leafStart + leaf.text.length;
 
       if (leafEnd <= startOffset) return;
-      if (leafStart >= endOffset) return false;
+      if (leafStart >= endOffset) return true;
 
       if (!result) {
         result = leaf.marks;
         return;
       }
 
-      result = result.union(leaf.marks);
+      result = uniqWith(result.concat(leaf.marks), isEqual);
     });
 
-    return result || Set();
+    return result || [];
   }
-
-  /**
-   * Get all of the marks on the text.
-   *
-   * @return {OrderedSet<Mark>}
-   */
 
   getMarks() {
     const array = this.getMarksAsArray();
-    return OrderedSet(array);
+    return uniqWith(array, isEqual);
   }
-
-  /**
-   * Get all of the marks on the text as an array
-   *
-   * @return {Array}
-   */
 
   getMarksAsArray() {
-    if (this.leaves.size === 0) return [];
-    const first = this.leaves.first().marks;
-    if (this.leaves.size === 1) return first.toArray();
-
-    const result: any = [];
-
-    this.leaves.forEach((leaf: Leaf) => {
-      result.push(leaf.marks.toArray());
-    });
-
-    return Array.prototype.concat.apply(first.toArray(), result);
+    return flatten(this.leaves.map((l) => l.marks));
   }
-
-  /**
-   * Get the marks on the text at `index`.
-   * Corner Cases:
-   *   1. if no text is before the index, and index !== 0, then return Set()
-   *   2. (for insert after split node or mark at range) if index === 0, and text === '', then return the leaf.marks
-   *   3. if index === 0, text !== '', return Set()
-   *
-   *
-   * @param {Number} index
-   * @return {Set<Mark>}
-   */
 
   getMarksAtIndex(index: number) {
     const { leaf } = this.searchLeafAtOffset(index);
-    if (!leaf) return Set();
-    return leaf.marks as Set<Mark>;
+    if (!leaf) return [];
+    return leaf.marks;
   }
-
-  /**
-   * Get a node by `key`, to parallel other nodes.
-   *
-   * @param {Key} key
-   * @return {Node|Null}
-   */
 
   getNode(key: Key) {
     return isEqual(this.key, key) ? this : null;
   }
-
-  /**
-   * Check if the node has a node by `key`, to parallel other nodes.
-   *
-   * @param {Key} key
-   * @return {Boolean}
-   */
 
   hasNode(key: Key) {
     return !!this.getNode(key);
@@ -408,74 +337,70 @@ class Text extends Record(DEFAULTS) {
 
   insertText(offset: number, text: string, marks: Set<Mark>): Text {
     if (this.text === "") {
-      return this.set("leaves", List.of(Leaf.create({ text, marks }))) as Text;
+      this.leaves = [Leaf.create({ text, marks })];
+      return this;
     }
 
     if (text.length === 0) return this;
     if (!marks) marks = Set();
 
     const { startOffset, leaf, index } = this.searchLeafAtOffset(offset);
+    if (!leaf) return this;
     const delta = offset - startOffset;
     const beforeText = leaf.text.slice(0, delta);
     const afterText = leaf.text.slice(delta);
     const { leaves } = this;
 
-    if (leaf.marks.equals(marks)) {
-      return this.set(
-        "leaves",
-        leaves.set(
-          index,
-          leaf.set("text", beforeText + text + afterText) as Leaf
-        )
-      ) as Text;
+    if (isEqualWith(leaf.marks, marks, isEqual)) {
+      this.leaves[index].text = beforeText + text + afterText;
+      return this;
     }
 
-    const nextLeaves = leaves
-      .splice(
-        index,
-        1,
-        leaf.set("text", beforeText),
-        Leaf.create({ text, marks }),
-        leaf.set("text", afterText)
-      )
-      .toList();
+    const leafObj = leaf.toJSON();
+    const left = Leaf.create(leafObj);
+    const right = Leaf.create(leafObj);
+    left.text = beforeText;
+    right.text = afterText;
 
-    return this.setLeaves(nextLeaves);
+    const nextLeaves = leaves.splice(
+      index,
+      1,
+      left,
+      Leaf.create({ text, marks }),
+      right
+    );
+    this.leaves = nextLeaves;
+    return this;
   }
 
-  /**
-   * Regenerate the node's key.
-   */
-
   regenerateKey(): Text {
-    const key = Key.create();
-    return this.set("key", key) as Text;
+    this.key = Key.create();
+    return this;
   }
 
   /**
    * Remove a `mark` at `index` and `length`.
    */
-
   removeMark(index: number, length: number, mark: Mark): Text {
     if (this.text === "" && index === 0 && length === 0) {
-      const first = this.leaves.first();
-      if (!first) return this;
-      const newFirst = first.removeMark(mark);
-      if (newFirst === first) return this;
-      return this.set("leaves", List.of(newFirst)) as Text;
+      const f = first(this.leaves);
+      if (!f) return this;
+      const newFirst = f.removeMark(mark);
+      if (newFirst === f) return this;
+      this.leaves = [newFirst];
+      return this;
     }
 
     if (length <= 0) return this;
     if (index >= this.text.length) return this;
     const [before, bundle] = Leaf.splitLeaves(this.leaves, index);
     const [middle, after] = Leaf.splitLeaves(bundle, length);
-    const leaves = before
-      .concat(
-        middle.map((x: Leaf) => x.removeMark(mark)),
-        after
-      )
-      .toList();
-    return this.setLeaves(leaves);
+    const leaves = before.concat(
+      middle.map((x: Leaf) => x.removeMark(mark)),
+      after
+    );
+    this.leaves = leaves;
+    return this;
   }
 
   /**
@@ -492,8 +417,8 @@ class Text extends Record(DEFAULTS) {
 
       if (leaf) {
         if (leaf.text.length === 1) {
-          const leaves = this.leaves.remove(index);
-          return this.setLeaves(leaves);
+          this.leaves.splice(index, 1);
+          return this;
         }
 
         const beforeText = leaf.text.slice(0, offset);
@@ -501,30 +426,27 @@ class Text extends Record(DEFAULTS) {
         const text = beforeText + afterText;
 
         if (text.length > 0) {
-          return this.set(
-            "leaves",
-            this.leaves.set(index, leaf.set("text", text) as Leaf)
-          ) as Text;
+          this.leaves[index].text = text;
+          return this;
         }
       }
     }
 
     const [before, bundle] = Leaf.splitLeaves(this.leaves, start);
     const after = Leaf.splitLeaves(bundle, length)[1];
-    const leaves = Leaf.createLeaves(before.concat(after) as List<Leaf>);
+    const leaves = Leaf.createLeaves(before.concat(after));
 
-    if (leaves.size === 1) {
-      const first = leaves.first();
+    if (leaves.length === 1) {
+      const f = first(leaves)!;
 
-      if (first.text === "") {
-        return this.set(
-          "leaves",
-          List.of(first.set("marks", this.getActiveMarks()))
-        ) as Text;
+      if (f.text === "") {
+        f.marks = this.getActiveMarks();
+        this.leaves = [f];
+        return this;
       }
     }
-
-    return this.set("leaves", leaves) as Text;
+    this.leaves = leaves;
+    return this;
   }
 
   // Return a JSON representation of the text.
@@ -536,9 +458,7 @@ class Text extends Record(DEFAULTS) {
   } {
     const object: any = {
       object: this.object,
-      leaves: this.getLeaves()
-        .toArray()
-        .map((r) => r.toJSON()),
+      leaves: this.getLeaves().map((r) => r.toJSON()),
     };
 
     if (options.preserveKeys) {
@@ -549,16 +469,24 @@ class Text extends Record(DEFAULTS) {
   }
 
   // Update a `mark` at `index` and `length` with `properties`.
-  updateMark(index: number, length: number, mark: Mark, properties: any): Text {
-    const newMark = mark.merge(properties) as Mark;
+  updateMark(
+    index: number,
+    length: number,
+    mark: Mark,
+    properties: Mark | { type?: string; data?: Data }
+  ): Text {
+    const newMark = Mark.create(mark.toJSON());
+    keys(properties).map((key) => {
+      newMark[key] = properties[key];
+    });
 
     if (this.text === "" && length === 0 && index === 0) {
       const { leaves } = this;
-      const first = leaves.first();
-      if (!first) return this;
-      const newFirst = first.updateMark(mark, newMark);
-      if (newFirst === first) return this;
-      return this.set("leaves", List.of(newFirst)) as Text;
+      const f = first(leaves);
+      if (!f) return this;
+      const newFirst = f.updateMark(mark, newMark);
+      this.leaves = [newFirst];
+      return this;
     }
 
     if (length <= 0) return this;
@@ -567,31 +495,30 @@ class Text extends Record(DEFAULTS) {
     const [before, bundle] = Leaf.splitLeaves(this.leaves, index);
     const [middle, after] = Leaf.splitLeaves(bundle, length);
 
-    const leaves = before
-      .concat(
-        middle.map((x: Leaf) => x.updateMark(mark, newMark)),
-        after
-      )
-      .toList();
-
-    return this.setLeaves(leaves);
+    const leaves = before.concat(
+      middle.map((x: Leaf) => x.updateMark(mark, newMark)),
+      after
+    );
+    this.leaves = leaves;
+    return this;
   }
 
   // Split this text and return two different texts
   splitText(offset: number): Text[] {
     const splitted = Leaf.splitLeaves(this.leaves, offset);
-    const one = this.set("leaves", splitted[0]) as Text;
-    const two = (this.set(
-      "leaves",
-      splitted[1]
-    ) as Text).regenerateKey() as Text;
+    const textObj = this.toJSON();
+    const one = Text.create(textObj);
+    const two = Text.create(textObj);
+    one.leaves = splitted[0];
+    two.leaves = splitted[1];
     return [one, two];
   }
 
   // merge this text and another text at the end
   mergeText(text: Text): Text {
-    const leaves = this.leaves.concat(text.leaves).toList();
-    return this.setLeaves(leaves);
+    const leaves = this.leaves.concat(text.leaves);
+    this.leaves = leaves;
+    return this;
   }
 
   // Normalize the text node with a `schema`.
@@ -610,20 +537,21 @@ class Text extends Record(DEFAULTS) {
   }
 
   // Set leaves with normalized `leaves`
-  setLeaves(leaves: List<Leaf>): Text {
+  setLeaves(leaves: Leaf[]): Text {
     const result = Leaf.createLeaves(leaves);
 
-    if (result.size === 1) {
-      const first = result.first();
+    if (result.length === 1) {
+      const f = first(result)!;
 
-      if (!first.marks || first.marks.size === 0) {
-        if (first.text === "") {
-          return this.set("leaves", List()) as Text;
+      if (!f.marks || f.marks.length === 0) {
+        if (f.text === "") {
+          this.leaves = [];
+          return this;
         }
       }
     }
-
-    return this.set("leaves", Leaf.createLeaves(leaves)) as Text;
+    this.leaves = Leaf.createLeaves(leaves);
+    return this;
   }
 }
 

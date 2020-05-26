@@ -257,7 +257,7 @@ class Schema extends Record(DEFAULTS) {
   /**
    * 实例方法
    */
-  validateNode(node, path) {
+  validateNode(node) {
     const rules = this.rules.filter((r) => testRules(node, r.match));
     const failure = validateRules(node, rules, this.rules, { every: true });
     if (!failure) return;
@@ -294,12 +294,12 @@ class Schema extends Record(DEFAULTS) {
    * @param {Node} node
    * @return {Function|Void}
    */
-  normalizeNode(node, path) {
-    const ret = this.stack.$$find("normalizeNode", node, path);
+  normalizeNode(node) {
+    const ret = this.stack.$$find("normalizeNode", node);
     if (ret) return ret;
     if (node.object == "text") return;
 
-    const error = this.validateNode(node, path);
+    const error = this.validateNode(node);
     if (!error) return;
 
     return (change) => {
