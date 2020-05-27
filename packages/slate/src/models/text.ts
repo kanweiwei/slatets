@@ -62,7 +62,7 @@ class Text {
     );
   }
 
-  static createList(elements = []) {
+  static createList(elements: any[] = []) {
     if (Array.isArray(elements)) {
       return elements.map(Text.create);
     }
@@ -164,6 +164,7 @@ class Text {
     if (index >= this.text.length) return this;
 
     const [before, bundle] = Leaf.splitLeaves(this.leaves, index);
+
     const [middle, after] = Leaf.splitLeaves(bundle, length);
     const leaves = before.concat(
       middle.map((x: Leaf) => x.addMarks(set)),

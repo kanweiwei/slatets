@@ -1,0 +1,132 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`test Text addMark 1`] = `
+Object {
+  "leaves": Array [
+    Object {
+      "marks": Array [],
+      "object": "leaf",
+      "text": "hel",
+    },
+    Object {
+      "marks": Array [
+        Object {
+          "data": Object {},
+          "object": "mark",
+          "type": "bold",
+        },
+      ],
+      "object": "leaf",
+      "text": "lo",
+    },
+    Object {
+      "marks": Array [],
+      "object": "leaf",
+      "text": "world",
+    },
+  ],
+  "object": "text",
+}
+`;
+
+exports[`test Text create 1`] = `
+Object {
+  "leaves": Array [
+    Object {
+      "marks": Array [
+        Object {
+          "data": Object {},
+          "object": "mark",
+          "type": "bold",
+        },
+      ],
+      "object": "leaf",
+      "text": "abc",
+    },
+  ],
+  "object": "text",
+}
+`;
+
+exports[`test Text createList 1`] = `
+Array [
+  Object {
+    "leaves": Array [
+      Object {
+        "marks": Array [],
+        "object": "leaf",
+        "text": "hello",
+      },
+    ],
+    "object": "text",
+  },
+  Object {
+    "leaves": Array [
+      Object {
+        "marks": Array [],
+        "object": "leaf",
+        "text": "world",
+      },
+    ],
+    "object": "text",
+  },
+]
+`;
+
+exports[`test Text fromJSON 1`] = `
+Object {
+  "leaves": Array [
+    Object {
+      "marks": Array [
+        Object {
+          "data": Object {},
+          "object": "mark",
+          "type": "bold",
+        },
+      ],
+      "object": "leaf",
+      "text": "abc",
+    },
+  ],
+  "object": "text",
+}
+`;
+
+exports[`test Text isText 1`] = `
+Object {
+  "leaves": Array [
+    Object {
+      "marks": Array [],
+      "object": "leaf",
+      "text": "abc",
+    },
+  ],
+  "object": "text",
+}
+`;
+
+exports[`test Text search leaf at offset 1`] = `
+Object {
+  "endOffset": 5,
+  "index": 0,
+  "leaf": Object {
+    "marks": Array [],
+    "object": "leaf",
+    "text": "hello",
+  },
+  "startOffset": 0,
+}
+`;
+
+exports[`test Text search leaf at offset 2`] = `
+Object {
+  "endOffset": 10,
+  "index": 1,
+  "leaf": Object {
+    "marks": Array [],
+    "object": "leaf",
+    "text": "world",
+  },
+  "startOffset": 5,
+}
+`;

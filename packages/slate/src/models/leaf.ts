@@ -1,5 +1,4 @@
 import {
-  cloneDeep,
   drop,
   findLast,
   first,
@@ -105,8 +104,8 @@ class Leaf {
       if (startOffset > offset) return false;
 
       const length = offset - startOffset;
-      left = new Leaf(cloneDeep(leaf));
-      right = new Leaf(cloneDeep(leaf));
+      left = new Leaf(leaf.toJSON());
+      right = new Leaf(leaf.toJSON());
       left.text = text.slice(0, length);
       right.text = text.slice(length);
       return true;
