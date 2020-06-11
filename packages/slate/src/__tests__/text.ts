@@ -169,4 +169,74 @@ describe("test Text", () => {
     });
     expect(t).toMatchSnapshot();
   });
+
+  test("addMarks", () => {
+    let t = Text.create({
+      leaves: [
+        {
+          text: "hello",
+        },
+        {
+          text: "world",
+        },
+      ],
+    });
+    t = t.addMarks(3, 2, [Mark.create("bold"), Mark.create("underline")]);
+    expect(t).toMatchObject({
+      object: "text",
+      leaves: [
+        {
+          text: "hel",
+          marks: [],
+          object: "leaf",
+        },
+        {
+          text: "lo",
+          object: "leaf",
+          marks: [
+            {
+              type: "bold",
+              object: "mark",
+              data: {},
+            },
+            {
+              type: "underline",
+              object: "mark",
+              data: {},
+            },
+          ],
+        },
+        {
+          text: "world",
+          object: "leaf",
+          marks: [],
+        },
+      ],
+    });
+    expect(t).toMatchSnapshot();
+  });
+
+  test("getLeaves without decorations", () => {
+    const t = Text.create({
+      leaves: [
+        {
+          text: "hello",
+        },
+        {
+          text: " world",
+        },
+      ],
+    });
+    const leaves = t.getLeaves();
+    expect(leaves).toMatchObject([
+      {
+        text: "hello",
+      },
+      {
+        text: " world",
+      },
+    ]);
+  });
+
+  test("getLeaves with decorations", () => {});
 });

@@ -29,6 +29,40 @@ Object {
 }
 `;
 
+exports[`test Text addMarks 1`] = `
+Object {
+  "leaves": Array [
+    Object {
+      "marks": Array [],
+      "object": "leaf",
+      "text": "hel",
+    },
+    Object {
+      "marks": Array [
+        Object {
+          "data": Object {},
+          "object": "mark",
+          "type": "bold",
+        },
+        Object {
+          "data": Object {},
+          "object": "mark",
+          "type": "underline",
+        },
+      ],
+      "object": "leaf",
+      "text": "lo",
+    },
+    Object {
+      "marks": Array [],
+      "object": "leaf",
+      "text": "world",
+    },
+  ],
+  "object": "text",
+}
+`;
+
 exports[`test Text create 1`] = `
 Object {
   "leaves": Array [
