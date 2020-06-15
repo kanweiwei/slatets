@@ -174,6 +174,11 @@ class Text {
     return this;
   }
 
+  /**
+   *
+   * @param decorations
+   * @todo
+   */
   getLeaves(decorations = []) {
     let { leaves } = this;
     if (leaves.length === 0) return [Leaf.create({})];
