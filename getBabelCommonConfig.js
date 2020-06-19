@@ -1,34 +1,15 @@
-'use strict';
+"use strict";
 
 module.exports = function (modules) {
   const plugins = [
     // require.resolve('babel-plugin-add-module-exports'),
-    require.resolve('babel-plugin-transform-es3-member-expression-literals'),
-    require.resolve('babel-plugin-transform-es3-property-literals'),
-    require.resolve('babel-plugin-transform-object-assign'),
-    require.resolve('babel-plugin-transform-class-properties'),
-    require.resolve('babel-plugin-transform-object-rest-spread'),
+    "@babel/plugin-proposal-class-properties",
+    "@babel/plugin-proposal-object-rest-spread",
+    "@babel/plugin-syntax-object-rest-spread",
+    ["@babel/plugin-transform-runtime", { builtins: "usage", corejs: 3 }],
   ];
-  plugins.push([require.resolve('babel-plugin-transform-runtime'), {
-    polyfill: false,
-  }]);
   return {
-    presets: [
-      require.resolve('babel-preset-react'),
-      [require.resolve('babel-preset-env'), {
-        modules,
-        targets: {
-          browsers: [
-            'last 2 versions',
-            'Firefox ESR',
-            '> 1%',
-            'ie >= 9',
-            'iOS >= 8',
-            'Android >= 4',
-          ],
-        },
-      }],
-    ],
+    presets: ["@babel/preset-react", "@babel/preset-typescript"],
     plugins,
   };
 };
