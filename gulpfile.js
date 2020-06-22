@@ -135,7 +135,6 @@ function compile(modules) {
 
     tsResult.on("finish", check);
     tsResult.on("end", check);
-    console.log(tsResult.dts);
     return merge2([
       babelify(tsResult.js, modules, entry),
       tsResult.dts.pipe(

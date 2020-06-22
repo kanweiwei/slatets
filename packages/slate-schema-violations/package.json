@@ -34,5 +34,8 @@
     "rimraf": "^2.6.2",
     "through2": "^2.0.3",
     "typescript": "^2.6.2"
+  },
+  "dependencies": {
+    "@babel/runtime-corejs3": "^7.10.3"
   }
 }

@@ -6,3 +6,4 @@ declare module "esrever";
 
 declare module "is-plain-object";
 
+declare module "@zykj/slate";

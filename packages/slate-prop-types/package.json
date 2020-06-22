@@ -13,15 +13,16 @@
         "es/"
     ],
     "dependencies": {
+        "@babel/runtime-corejs3": "^7.10.3",
         "slate-dev-logger": "^0.1.42"
     },
     "peerDependencies": {
-        "immutable": ">=3.8.1",
-        "@zykj/slate": ">=0.32.0"
+        "@zykj/slate": ">=0.32.0",
+        "immutable": ">=3.8.1"
     },
     "devDependencies": {
-        "mocha": "^2.5.3",
-        "@zykj/slate": "^0.37.1"
+        "@zykj/slate": "^0.37.1",
+        "mocha": "^2.5.3"
     },
     "scripts": {
         "clean": "rm -rf ./dist ./lib ./node_modules"

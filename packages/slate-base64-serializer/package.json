@@ -16,10 +16,11 @@
         "@zykj/slate": ">=0.32.0"
     },
     "devDependencies": {
-        "mocha": "^2.5.3",
-        "@zykj/slate": "^0.37.1"
+        "@zykj/slate": "^0.37.1",
+        "mocha": "^2.5.3"
     },
     "dependencies": {
+        "@babel/runtime-corejs3": "^7.10.3",
         "isomorphic-base64": "^1.0.2"
     },
     "scripts": {
