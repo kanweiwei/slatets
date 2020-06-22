@@ -12,7 +12,7 @@ import { Record } from "immutable";
 
 const String = Record({
   object: "string",
-  text: ""
+  text: "",
 });
 
 /**
@@ -30,9 +30,9 @@ const TEXT_RULE = {
         leaves: [
           {
             object: "leaf",
-            text: "\n"
-          }
-        ]
+            text: "\n",
+          },
+        ],
       };
     }
 
@@ -44,9 +44,9 @@ const TEXT_RULE = {
         leaves: [
           {
             object: "leaf",
-            text: el.nodeValue
-          }
-        ]
+            text: el.nodeValue,
+          },
+        ],
       };
     }
   },
@@ -59,7 +59,7 @@ const TEXT_RULE = {
         return array;
       }, []);
     }
-  }
+  },
 };
 
 /**
@@ -105,7 +105,7 @@ class Html {
     let {
       defaultBlock = "paragraph",
       parseHtml = defaultParseHtml,
-      rules = []
+      rules = [],
     } = options;
 
     defaultBlock = Node.createProperties(defaultBlock);
@@ -149,7 +149,7 @@ class Html {
         data: {},
         isVoid: false,
         ...defaultBlock,
-        nodes: [node]
+        nodes: [node],
       };
 
       memo.push(block);
@@ -171,12 +171,12 @@ class Html {
                 {
                   object: "leaf",
                   text: "",
-                  marks: []
-                }
-              ]
-            }
-          ]
-        }
+                  marks: [],
+                },
+              ],
+            },
+          ],
+        },
       ];
     }
 
@@ -185,8 +185,8 @@ class Html {
       document: {
         object: "document",
         data: {},
-        nodes
-      }
+        nodes,
+      },
     };
 
     const ret = toJSON ? json : Value.fromJSON(json);
@@ -203,7 +203,7 @@ class Html {
   deserializeElements = (elements: any[] = []) => {
     let nodes: any[] = [];
 
-    elements.filter(this.cruftNewline).forEach(element => {
+    elements.filter(this.cruftNewline).forEach((element) => {
       const node = this.deserializeElement(element);
 
       switch (typeOf(node)) {
@@ -226,14 +226,14 @@ class Html {
    * @return {Any}
    */
 
-  deserializeElement = element => {
+  deserializeElement = (element) => {
     let node;
 
     if (!element.tagName) {
       element.tagName = "";
     }
 
-    const next = elements => {
+    const next = (elements) => {
       if (Object.prototype.toString.call(elements) == "[object NodeList]") {
         elements = Array.from(elements);
       }
@@ -292,14 +292,14 @@ class Html {
    * @return {Array}
    */
 
-  deserializeMark = mark => {
+  deserializeMark = (mark) => {
     const { type, data } = mark;
 
-    const applyMark = node => {
+    const applyMark = (node) => {
       if (node.object == "mark") {
         return this.deserializeMark(node);
       } else if (node.object == "text") {
-        node.leaves = node.leaves.map(leaf => {
+        node.leaves = node.leaves.map((leaf) => {
           leaf.marks = leaf.marks || [];
           leaf.marks.push({ type, data });
           return leaf;
@@ -330,7 +330,7 @@ class Html {
 
   serialize = (value, options: any = {}) => {
     const { document } = value;
-    const elements = document.nodes.map(this.serializeNode).filter(el => el);
+    const elements = document.nodes.map(this.serializeNode).filter((el) => el);
     if (options.render === false) return elements;
 
     const html = renderToStaticMarkup(<body>{elements}</body>);
@@ -345,7 +345,7 @@ class Html {
    * @return {String}
    */
 
-  serializeNode = node => {
+  serializeNode = (node) => {
     if (node.object === "text") {
       const leaves = node.getLeaves();
       return leaves.map(this.serializeLeaf);
@@ -370,7 +370,7 @@ class Html {
    * @return {String}
    */
 
-  serializeLeaf = leaf => {
+  serializeLeaf = (leaf) => {
     const string = new String({ text: leaf.text });
     const text = this.serializeString(string);
 
@@ -393,7 +393,7 @@ class Html {
    * @return {String}
    */
 
-  serializeString = string => {
+  serializeString = (string) => {
     for (const rule of this.rules) {
       if (!rule.serialize) continue;
       const ret = rule.serialize(string, string.text);
@@ -408,7 +408,7 @@ class Html {
    * @return {Boolean}
    */
 
-  cruftNewline = element => {
+  cruftNewline = (element) => {
     return !(element.nodeName === "#text" && element.nodeValue == "\n");
   };
 }

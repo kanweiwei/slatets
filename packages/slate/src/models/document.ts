@@ -1,5 +1,4 @@
 import isPlainObject from "is-plain-object";
-import logger from "slate-dev-logger";
 import { List, Map, Record } from "immutable";
 
 import MODEL_TYPES from "../constants/model-types";
@@ -13,7 +12,7 @@ import Node from "./node";
 const DEFAULTS: any = {
   data: Map(),
   key: void 0,
-  nodes: List()
+  nodes: List(),
 };
 
 /**
@@ -54,7 +53,7 @@ class Document extends Record(DEFAULTS) {
     const document = new Document({
       key,
       data: Map(data),
-      nodes: Node.createList(nodes)
+      nodes: Node.createList(nodes),
     });
 
     return document;
@@ -75,7 +74,7 @@ class Document extends Record(DEFAULTS) {
     const object: any = {
       object: this.object,
       data: (this.data as any).toJSON(),
-      nodes: this.nodes.toArray().map(n => n.toJSON(options))
+      nodes: this.nodes.toArray().map((n: any) => n.toJSON(options)),
     };
 
     if (options.preserveKeys) {

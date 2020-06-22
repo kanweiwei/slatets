@@ -13,6 +13,7 @@ const tsDefaultReporter = ts.reporter.defaultReporter();
 const cwd = process.cwd();
 
 const stripCode = require("gulp-strip-code");
+const { series, parallel } = require("gulp");
 
 const rootDir = "packages";
 
@@ -25,12 +26,12 @@ const entrys = [
   "slate-html-serializer",
   "slate-plain-serializer",
   "slate-prop-types",
-  "slate-dev-environment"
+  "slate-dev-environment",
 ];
 
 function compileTs(stream) {
   return stream.pipe(ts(tsConfig)).js.pipe(
-    through2.obj(function(file, encoding, next) {
+    through2.obj(function (file, encoding, next) {
       // console.log(file.path, file.base);
       file.path = file.path.replace(/\.[jt]sx$/, ".js");
       this.push(file);
@@ -39,41 +40,47 @@ function compileTs(stream) {
   );
 }
 
-gulp.task("clean", () => {
+function clean(cb) {
   rimraf.sync(path.join(cwd, "dist"));
-});
+  cb();
+}
 
-gulp.task("copyOtherFiles", ["clean"], () => {
-  let streams = entrys.map(entry => {
+exports.clean = clean;
+
+function copyOtherFiles() {
+  let streams = entrys.map((entry) => {
     let source = [
       `${rootDir}/${entry}/package.json`,
       `${rootDir}/${entry}/README.md`,
-      `${rootDir}/${entry}/LICENSE`
+      `${rootDir}/${entry}/LICENSE`,
     ];
     return gulp
-      .src(source)
+      .src(source, { allowEmpty: true })
       .pipe(gulp.dest(`dist/${entry}`))
       .pipe(gulp.dest(`dist/${entry}`))
       .pipe(gulp.dest(`dist/${entry}`));
   });
   return merge2(streams);
-});
+}
+exports.copyOtherFiles = series(clean, copyOtherFiles);
 
-gulp.task("tsc", ["copyOtherFiles", "clean"], () => {
-  let streams = entrys.map(entry => {
+function tsc() {
+  let streams = entrys.map((entry) => {
     let source = [
       `${rootDir}/${entry}/src/**/*.ts`,
       `${rootDir}/${entry}/src/**/*.tsx`,
       "!node_modules/**/*.*",
       `!${rootDir}/${entry}/node_modules/**/*.*`,
-      "typings/**/*.d.ts"
+      "typings/**/*.d.ts",
     ];
     return merge2(
       compileTs(gulp.src(source)).pipe(gulp.dest(`dist/${entry}/dist`))
     );
   });
   return merge2(streams);
-});
+}
+
+exports.tsc = series(clean, copyOtherFiles, tsc);
 
 function babelify(js, modules, entry) {
   const babelConfig = getBabelCommonConfig(modules);
@@ -82,7 +89,7 @@ function babelify(js, modules, entry) {
     babelConfig.plugins.push(replaceLib);
   } else {
     babelConfig.plugins.push(
-      require.resolve("babel-plugin-add-module-exports")
+      require.resolve("@babel/plugin-transform-modules-commonjs")
     );
   }
   let stream = js.pipe(babel(babelConfig));
@@ -90,7 +97,7 @@ function babelify(js, modules, entry) {
     stream = stream.pipe(
       stripCode({
         start_comment: "@remove-on-es-build-begin",
-        end_comment: "@remove-on-es-build-end"
+        end_comment: "@remove-on-es-build-end",
       })
     );
   }
@@ -108,13 +115,13 @@ function compile(modules) {
     }
   }
 
-  let newStreams = entrys.map(entry => {
+  let newStreams = entrys.map((entry) => {
     let source = [
       `${rootDir}/${entry}/src/**/*.ts`,
       `${rootDir}/${entry}/src/**/*.tsx`,
       "!node_modules/**/*.*",
       `!${rootDir}/${entry}/node_modules/**/*.*`,
-      "typings/**/*.d.ts"
+      "typings/**/*.d.ts",
     ];
     const tsResult = gulp.src(source).pipe(
       ts(tsConfig, {
@@ -122,7 +129,7 @@ function compile(modules) {
           tsDefaultReporter.error(e);
           error = 1;
         },
-        finish: tsDefaultReporter.finish
+        finish: tsDefaultReporter.finish,
       })
     );
 
@@ -132,17 +139,17 @@ function compile(modules) {
       babelify(tsResult.js, modules, entry),
       tsResult.dts.pipe(
         gulp.dest(modules === false ? `dist/${entry}/es` : `dist/${entry}/lib`)
-      )
+      ),
     ]);
   });
 
   return merge2(newStreams);
 }
 
-gulp.task("compile", ["compile-with-es"], () => {
-  return compile();
-});
+function compileWithEs() {
+  return compile(false);
+}
 
-gulp.task("compile-with-es", ["tsc"], () => {
-  compile(false);
-});
+exports.compile = series(clean, copyOtherFiles, tsc, compileWithEs, () =>
+  compile()
+);

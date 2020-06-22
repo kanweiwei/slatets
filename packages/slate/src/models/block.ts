@@ -16,7 +16,7 @@ const DEFAULTS = {
   isVoid: false,
   key: void 0,
   nodes: List(),
-  type: void 0
+  type: void 0,
 };
 
 /**
@@ -75,7 +75,7 @@ class Block extends Record(DEFAULTS) {
       isVoid = false,
       key = KeyUtils.create(),
       nodes = [],
-      type
+      type,
     } = obj;
 
     if (typeof type !== "string") {
@@ -87,7 +87,7 @@ class Block extends Record(DEFAULTS) {
       type,
       isVoid: !!isVoid,
       data: Map(data),
-      nodes: Node.createList(nodes)
+      nodes: Node.createList(nodes),
     });
     return block;
   }
@@ -119,7 +119,7 @@ class Block extends Record(DEFAULTS) {
       type: this.type,
       isVoid: this.get("isVoid"),
       data: (this.data as any).toJSON(),
-      nodes: this.nodes.toArray().map(n => n.toJSON(options))
+      nodes: this.nodes.toArray().map((n: any) => n.toJSON(options)),
     };
 
     if (options.preserveKeys) {
@@ -131,8 +131,7 @@ class Block extends Record(DEFAULTS) {
 
   isEmpty() {
     return (
-      !this.get("isVoid") &&
-      !this.nodes.some((child: Block & Text & Inline) => !child.isEmpty)
+      !this.get("isVoid") && !this.nodes.some((child: any) => !child.isEmpty)
     );
   }
 

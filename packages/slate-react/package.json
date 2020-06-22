@@ -1,7 +1,7 @@
 {
   "name": "@zykj/slate-react",
   "description": "A set of React components for building completely customizable rich-text editors.",
-  "version": "0.15.2",
+  "version": "0.16.0",
   "license": "MIT",
   "repository": "git://github.com/kanweiwei/slate.git",
   "main": "lib/index.js",
@@ -13,8 +13,9 @@
     "es/"
   ],
   "dependencies": {
+    "@babel/runtime-corejs3": "^7.10.3",
     "@zykj/slate-base64-serializer": "^0.2.47",
-    "@zykj/slate-dev-environment": "^0.1.4",
+    "@zykj/slate-dev-environment": "^0.2.0",
     "@zykj/slate-hotkeys": "^0.1.4",
     "@zykj/slate-plain-serializer": "^0.5.28",
     "@zykj/slate-prop-types": "^0.4.45",
