@@ -6,7 +6,7 @@ import {
   IS_FIREFOX,
   IS_IE,
   IS_IOS,
-  HAS_INPUT_EVENTS_LEVEL_2
+  HAS_INPUT_EVENTS_LEVEL_2,
 } from "@zykj/slate-dev-environment";
 
 import findNode from "../utils/find-node";
@@ -160,18 +160,37 @@ function BeforePlugin() {
    */
 
   function onCompositionStart(event, change, editor) {
-    isComposing = true;
-    compositionCount++;
+    if (change.value.selection.isExpanded) {
+      change.delete();
+    }
 
-    // HACK: we need to re-render the editor here so that it will update its
+    debug("onCompositionStart", {
+      event: event,
+    });
+  }
+
+  /**
+   * on composition update
+   * @param event
+   * @param change
+   * @param editor
+   */
+  function onCompositionUpdate(event, change, editor) {
+    isComposing = true;
+    compositionCount++; // HACK: we need to re-render the editor here so that it will update its
     // placeholder in case one is currently rendered. This should be handled
     // differently ideally, in a less invasive way?
     // (apply force re-render if isComposing changes)
+
     if (!editor.state.isComposing) {
-      editor.setState({ isComposing: true });
+      editor.setState({
+        isComposing: true,
+      });
     }
 
-    debug("onCompositionStart", { event });
+    debug("onCompositionUpdate", {
+      event: event,
+    });
   }
 
   /**
@@ -464,6 +483,7 @@ function BeforePlugin() {
     onChange,
     onCompositionEnd,
     onCompositionStart,
+    onCompositionUpdate,
     onCopy,
     onCut,
     onDragEnd,
@@ -477,7 +497,7 @@ function BeforePlugin() {
     onInput,
     onKeyDown,
     onPaste,
-    onSelect
+    onSelect,
   };
 }
 
