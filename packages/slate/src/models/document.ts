@@ -1,35 +1,30 @@
-import { List, Map } from "immutable";
 import isPlainObject from "is-plain-object";
 import { Path } from "..";
 import MODEL_TYPES from "../constants/model-types";
+import BaseNode from "../interfaces/baseNode";
 import NodeInterface from "../interfaces/baseNode";
 import Key from "../utils/key-utils";
 import mixin from "../utils/mixin";
 import Data from "./data";
 import Node from "./node";
 import Range from "./range";
+import Text from './text'
 
 /**
  * 文档节点
  */
-class Document extends Node implements NodeInterface {
-  constructor(obj) {
-    super();
-    this.key = obj.key;
-    this.nodes = obj.nodes;
-    this.data = obj.data;
-  }
-
-  public key: Key;
-
-  public data: Data = new Data();
-
-  public nodes: Array<Node> = [];
-
-  public parent = null;
-
+class Document extends BaseNode {
   get object(): "document" {
     return "document";
+  }
+
+  constructor(data: { key: Key; type: string; isVoid: boolean; nodes: Array<BaseNode | Text>; data: Data; parent?: BaseNode }) {
+    super(data);
+    this.key = data.key;
+    this.type = data.type;
+    this.nodes = data.nodes;
+    this.isVoid = data.isVoid;
+    this.parent = data.parent;
   }
 
   /**
@@ -41,7 +36,7 @@ class Document extends Node implements NodeInterface {
       return attrs;
     }
 
-    if (List.isList(attrs) || Array.isArray(attrs)) {
+    if (Array.isArray(attrs)) {
       attrs = { nodes: attrs };
     }
 
@@ -49,9 +44,7 @@ class Document extends Node implements NodeInterface {
       return Document.fromJSON(attrs);
     }
 
-    throw new Error(
-      `\`Document.create\` only accepts objects, arrays, lists or documents, but you passed it: ${attrs}`
-    );
+    throw new Error(`\`Document.create\` only accepts objects, arrays, lists or documents, but you passed it: ${attrs}`);
   }
 
   /**
@@ -66,8 +59,10 @@ class Document extends Node implements NodeInterface {
     const { data = {}, key = Key.create(), nodes = [] } = object;
 
     const document = new Document({
+      type: 'document',
+      isVoid: false,
       key,
-      data: Map(data),
+      data: Data.create(data),
       nodes: Node.createList(nodes),
     });
 

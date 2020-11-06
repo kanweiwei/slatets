@@ -14,14 +14,7 @@ import Selection from "../models/selection";
 import Key from "../utils/key-utils";
 import { isEqual } from "lodash-es";
 import Node from "../models/node";
-import {
-  NODE_TO_PARENT,
-  NODE_TO_INDEX,
-  KEY_TO_ELEMENT,
-  ELEMENT_TO_NODE,
-  KEY_TO_NODE,
-  NODE_TO_KEY,
-} from "../utils/weak-maps";
+import { NODE_TO_PARENT, NODE_TO_INDEX, KEY_TO_ELEMENT, ELEMENT_TO_NODE, KEY_TO_NODE, NODE_TO_KEY } from "../utils/weak-maps";
 import Mark from "../models/mark";
 import Schema from "../models/schema";
 import Change from "../models/change";
@@ -34,13 +27,29 @@ import BaseCommon from "./baseCommon";
  * 节点
  */
 abstract class BaseNode extends BaseCommon {
-  public abstract key: Key;
+  public key: Key;
 
-  public abstract nodes: BaseNode[];
+  public type: string;
 
-  public abstract data: Data;
+  /**
+   * 是否是闭合标签，是否不包含子元素
+   */
+  public isVoid: boolean;
 
-  public abstract parent?: BaseNode;
+  public nodes: Array<BaseNode | Text>;
+
+  public data: Data;
+
+  public parent?: BaseNode;
+
+  constructor(data: { key: Key; type: string; isVoid: boolean; nodes: Array<BaseNode | Text>; data: Data; parent?: BaseNode }) {
+    this.key = data.key;
+    this.type = data.type;
+    this.isVoid = data.isVoid;
+    this.nodes = data.nodes;
+    this.data = data.data;
+    this.parent = data.parent;
+  }
 
   // Get the concatenated text of all the block's children.
   get text(): string {
@@ -80,10 +89,7 @@ abstract class BaseNode extends BaseCommon {
   }
 
   // Recursively filter all descendant nodes with `iterator`.
-  filterDescendants(
-    iterator: Function,
-    path: Path = List()
-  ): List<[NodeInterface, Path]> {
+  filterDescendants(iterator: Function, path: Path = List()): List<[NodeInterface, Path]> {
     const matches: any[] = [];
 
     this.forEachDescendant((node: any, i: any, nodes: any, p: Path) => {
@@ -94,10 +100,7 @@ abstract class BaseNode extends BaseCommon {
   }
 
   // Recursively find all descendant nodes by `iterator`.
-  findDescendant(
-    iterator: Function,
-    path: Path = List()
-  ): NodeInterface | null {
+  findDescendant(iterator: Function, path: Path = List()): NodeInterface | null {
     let found = null;
     let foundPath = [];
 
@@ -115,22 +118,17 @@ abstract class BaseNode extends BaseCommon {
   forEachDescendant(iterator: Function, path: Path = List()) {
     let ret: boolean;
 
-    this.nodes.forEach(
-      (child: NodeInterface | Text, i: number, nodes: List<any>) => {
-        if (iterator(child, i, nodes, path.concat(i)) === false) {
-          ret = false;
-          return false;
-        }
-
-        if (child.object != "text") {
-          ret = (child as NodeInterface).forEachDescendant(
-            iterator,
-            path.concat(i)
-          );
-          return ret;
-        }
+    this.nodes.forEach((child: NodeInterface | Text, i: number, nodes: List<any>) => {
+      if (iterator(child, i, nodes, path.concat(i)) === false) {
+        ret = false;
+        return false;
       }
-    );
+
+      if (child.object != "text") {
+        ret = (child as NodeInterface).forEachDescendant(iterator, path.concat(i));
+        return ret;
+      }
+    });
 
     return ret;
   }
@@ -158,10 +156,7 @@ abstract class BaseNode extends BaseCommon {
         endOffset = endText.text.length;
       }
 
-      while (
-        !startPath.equals(endPath) &&
-        startOffset === startText.text.length
-      ) {
+      while (!startPath.equals(endPath) && startOffset === startText.text.length) {
         [startText, startPath] = this.getNextText(startPath);
         startOffset = 0;
       }
@@ -171,10 +166,7 @@ abstract class BaseNode extends BaseCommon {
       return startText.getActiveMarksBetweenOffsets(startOffset, endOffset);
     }
 
-    const startMarks = startText.getActiveMarksBetweenOffsets(
-      startOffset,
-      startText.text.length
-    );
+    const startMarks = startText.getActiveMarksBetweenOffsets(startOffset, startText.text.length);
     if (startMarks.size === 0) return Set();
     const endText = this.getDescendant(endPath);
     const endMarks = endText.getActiveMarksBetweenOffsets(0, endOffset);
@@ -220,24 +212,12 @@ abstract class BaseNode extends BaseCommon {
 
   // Get the leaf block descendants of the node.
   getBlocksAsArray(path: Path = List()): [NodeInterface, Path][] {
-    return this.nodes.reduce(
-      (
-        array: any[],
-        child: {
-          object: string;
-          isLeafBlock: () => any;
-          getBlocksAsArray: () => any;
-        },
-        index: number
-      ) => {
-        if (child.object != "block") return array;
-        if (!child.isLeafBlock())
-          return array.concat(child.getBlocksAsArray(path.concat(index)));
-        array.push([child, path.concat(index)]);
-        return array;
-      },
-      []
-    );
+    return this.nodes.reduce((array: any[], child: { object: string; isLeafBlock: () => any; getBlocksAsArray: () => any }, index: number) => {
+      if (child.object != "block") return array;
+      if (!child.isLeafBlock()) return array.concat(child.getBlocksAsArray(path.concat(index)));
+      array.push([child, path.concat(index)]);
+      return array;
+    }, []);
   }
 
   // Get the leaf block descendants in a `range`.
@@ -272,10 +252,7 @@ abstract class BaseNode extends BaseCommon {
   }
 
   // Get all of the leaf blocks that match a `type` as an array
-  getBlocksByTypeAsArray(
-    type: string,
-    path: Path = List()
-  ): [NodeInterface, Path][] {
+  getBlocksByTypeAsArray(type: string, path: Path = List()): [NodeInterface, Path][] {
     return this.nodes.reduce(
       (
         array: any[],
@@ -293,9 +270,7 @@ abstract class BaseNode extends BaseCommon {
           array.push([node, path.concat(index)]);
           return array;
         } else {
-          return array.concat(
-            node.getBlocksByTypeAsArray(type, path.concat(index))
-          );
+          return array.concat(node.getBlocksByTypeAsArray(type, path.concat(index)));
         }
       },
       []
@@ -326,29 +301,20 @@ abstract class BaseNode extends BaseCommon {
 
   // Get the closest block parent of a node.
   getClosestBlock(path: Path): [NodeInterface, Path] | null {
-    const closest = this.getClosest(
-      path,
-      (n: { object: string }) => n.object === "block"
-    );
+    const closest = this.getClosest(path, (n: { object: string }) => n.object === "block");
     return closest;
   }
 
   // Get the closest inline parent of a node by `path`.
   getClosestInline(path: Path | Key): [NodeInterface, Path] | null {
-    const closest = this.getClosest(
-      path,
-      (n: { object: string }) => n.object === "inline"
-    );
+    const closest = this.getClosest(path, (n: { object: string }) => n.object === "inline");
     return closest;
   }
 
   // Get the closest void parent of a node by `path`.
   getClosestVoid(path: Path, schema: Schema): [NodeInterface, Path] | null {
     if (!schema) {
-      logger.deprecate(
-        "0.38.0",
-        "Calling the `Node.getClosestVoid` method without passing a second `schema` argument is deprecated."
-      );
+      logger.deprecate("0.38.0", "Calling the `Node.getClosestVoid` method without passing a second `schema` argument is deprecated.");
 
       const closest = this.getClosest(path, (p: any) => schema.isVoid(p));
       return closest;
@@ -395,10 +361,7 @@ abstract class BaseNode extends BaseCommon {
   }
 
   // Get the first invalid descendant
-  getFirstInvalidNode(
-    schema: Schema,
-    path: Path = List()
-  ): NodeInterface | Text | null {
+  getFirstInvalidNode(schema: Schema, path: Path = List()): NodeInterface | Text | null {
     let result = null;
 
     this.nodes.find(
@@ -409,9 +372,7 @@ abstract class BaseNode extends BaseCommon {
         } | null,
         i: number
       ) => {
-        result = n.validate(schema)
-          ? [n, path.concat(i)]
-          : n.getFirstInvalidNode(schema, path.concat(i));
+        result = n.validate(schema) ? [n, path.concat(i)] : n.getFirstInvalidNode(schema, path.concat(i));
         return result;
       }
     );
@@ -424,20 +385,18 @@ abstract class BaseNode extends BaseCommon {
     let descendant = null;
     let descendantPath = null;
 
-    const found = this.nodes.find(
-      (node: { object: string; getFirstText: () => null }, i: number) => {
-        path = path.concat(i);
-        if (node.object === "text") {
-          descendantPath = path;
-          return true;
-        }
-        let r = node.getFirstText(path);
-        if (r) {
-          [descendant, descendantPath] = r;
-        }
-        return !!r;
+    const found = this.nodes.find((node: { object: string; getFirstText: () => null }, i: number) => {
+      path = path.concat(i);
+      if (node.object === "text") {
+        descendantPath = path;
+        return true;
       }
-    );
+      let r = node.getFirstText(path);
+      if (r) {
+        [descendant, descendantPath] = r;
+      }
+      return !!r;
+    });
     if (found) {
       return [found, descendantPath];
     }
@@ -468,19 +427,13 @@ abstract class BaseNode extends BaseCommon {
 
   // Get the furthest block parent of a node.
   getFurthestBlock(path: Path): NodeInterface | null {
-    const furthest = this.getFurthest(
-      path,
-      (n: { object: string }) => n.object === "block"
-    );
+    const furthest = this.getFurthest(path, (n: { object: string }) => n.object === "block");
     return furthest;
   }
 
   // Get the furthest inline parent of a node.
   getFurthestInline(path: Path): NodeInterface | null {
-    const furthest = this.getFurthest(
-      path,
-      (n: { object: string }) => n.object === "inline"
-    );
+    const furthest = this.getFurthest(path, (n: { object: string }) => n.object === "inline");
     return furthest;
   }
 
@@ -736,9 +689,9 @@ abstract class BaseNode extends BaseCommon {
   }
 
   // Get a node in the tree.
-  getNode(path: Path): NodeInterface | null {
+  getNode(path: Path | null): NodeInterface | null {
     if (!path) return null;
-    const node = path.size ? this.getDescendant(path) : this;
+    const node = path.length ? this.getDescendant(path) : this;
     return node;
   }
 
@@ -754,20 +707,12 @@ abstract class BaseNode extends BaseCommon {
 
     const offset = this.nodes
       .takeUntil((n: NodeInterface | null) => n == child)
-      .reduce(
-        (memo: any, n: { text: string | any[] }) => memo + n.text.length,
-        0
-      );
+      .reduce((memo: any, n: { text: string | any[] }) => memo + n.text.length, 0);
 
     // Recurse if need be.
     const ret = this.nodes.some((n) => n === targetChild)
       ? offset
-      : offset +
-        child.getOffset(
-          change,
-          path.concat(relativePath.slice(0, 1)),
-          targetPath
-        );
+      : offset + child.getOffset(change, path.concat(relativePath.slice(0, 1)), targetPath);
     return ret;
   }
 
@@ -806,23 +751,13 @@ abstract class BaseNode extends BaseCommon {
       return this.getMarksAtPosition(start.key, start.offset).toOrderedSet();
     }
 
-    const marks = this.getOrderedMarksBetweenPositions(
-      start.key,
-      start.offset,
-      end.key,
-      end.offset
-    );
+    const marks = this.getOrderedMarksBetweenPositions(start.key, start.offset, end.key, end.offset);
 
     return marks;
   }
 
   // Get a set of the marks in a `range`. PERF: arguments use key and offset for utilizing cache
-  getOrderedMarksBetweenPositions(
-    startPath: Path,
-    startOffset: number,
-    endPath: Path,
-    endOffset: number
-  ): OrderedSet<Mark> {
+  getOrderedMarksBetweenPositions(startPath: Path, startOffset: number, endPath: Path, endOffset: number): OrderedSet<Mark> {
     if (startPath.equals(endPath)) {
       const startText = this.getDescendant(startPath);
       return startText.getMarksBetweenOffsets(startOffset, endOffset);
@@ -833,9 +768,7 @@ abstract class BaseNode extends BaseCommon {
     return OrderedSet().withMutations((result) => {
       texts.forEach(([text, p]) => {
         if (p.equals(startPath)) {
-          result.union(
-            text.getMarksBetweenOffsets(startOffset, text.text.length)
-          );
+          result.union(text.getMarksBetweenOffsets(startOffset, text.text.length));
         } else if (p.equals(endPath)) {
           result.union(text.getMarksBetweenOffsets(0, endOffset));
         } else {
@@ -864,7 +797,7 @@ abstract class BaseNode extends BaseCommon {
   getPath(key: Key | Path): Path {
     // Handle the case of passing in a path directly, to match other methods.
 
-    if (List.isList(key)) return key;
+    if (Array.isArray(key)) return key;
     let node = KEY_TO_NODE.get(key);
 
     let path: number[] = [];
@@ -960,11 +893,7 @@ abstract class BaseNode extends BaseCommon {
    * @return {Object|Null}
    */
 
-  getSelectionIndexes(
-    range: Range,
-    path: Path = List(),
-    isSelected: boolean = true
-  ): any | null {
+  getSelectionIndexes(range: Range, path: Path = List(), isSelected: boolean = true): any | null {
     const { start, end } = range;
 
     // PERF: if we're not selected, we can exit early.
@@ -995,10 +924,8 @@ abstract class BaseNode extends BaseCommon {
         if (startIndex == null && isEqual(child.key, start.key)) startIndex = i;
         if (endIndex == null && isEqual(child.key, end.key)) endIndex = i + 1;
       } else {
-        if (startIndex == null && Path.isAbove(path.concat(i), start.path))
-          startIndex = i;
-        if (endIndex == null && Path.isAbove(path.concat(i), end.path))
-          endIndex = i + 1;
+        if (startIndex == null && Path.isAbove(path.concat(i), start.path)) startIndex = i;
+        if (endIndex == null && Path.isAbove(path.concat(i), end.path)) endIndex = i + 1;
       }
 
       // PERF: exit early if both start and end have been found.
@@ -1079,10 +1006,7 @@ abstract class BaseNode extends BaseCommon {
     return texts;
   }
 
-  getTextsBetweenPositionsAsArray(
-    startPath: Path,
-    endPath: Path
-  ): [Text, Path][] {
+  getTextsBetweenPositionsAsArray(startPath: Path, endPath: Path): [Text, Path][] {
     const startText = this.getDescendant(startPath);
 
     // PERF: the most common case is when the range is in a single text node,
@@ -1101,10 +1025,7 @@ abstract class BaseNode extends BaseCommon {
 
   // Check if the node has block children.
   hasBlockChildren() {
-    return !!(
-      this.nodes &&
-      this.nodes.find((n: { object: string }) => n.object === "block")
-    );
+    return !!(this.nodes && this.nodes.find((n: { object: string }) => n.object === "block"));
   }
 
   hasChild(path: Path): boolean {
@@ -1114,12 +1035,7 @@ abstract class BaseNode extends BaseCommon {
 
   // Check if a node has inline children.
   hasInlineChildren() {
-    return !!(
-      this.nodes &&
-      this.nodes.find(
-        (n: { object: string }) => n.object === "inline" || n.object === "text"
-      )
-    );
+    return !!(this.nodes && this.nodes.find((n: { object: string }) => n.object === "inline" || n.object === "text"));
   }
 
   // Recursively check if a child node exists.
@@ -1137,10 +1053,7 @@ abstract class BaseNode extends BaseCommon {
   // Check if a node has a void parent.
   hasVoidParent(path: Path, schema: Schema) {
     if (!schema) {
-      logger.deprecate(
-        "0.38.0",
-        "Calling the `Node.hasVoidParent` method without the second `schema` argument is deprecated."
-      );
+      logger.deprecate("0.38.0", "Calling the `Node.hasVoidParent` method without the second `schema` argument is deprecated.");
 
       const closest = this.getClosestVoid(path);
       return !!closest;
@@ -1173,20 +1086,14 @@ abstract class BaseNode extends BaseCommon {
    * Check whether the node is a leaf block.
    */
   isLeafBlock() {
-    return (
-      this.object === "block" &&
-      this.nodes.every((n: { object: string }) => n.object !== "block")
-    );
+    return this.object === "block" && this.nodes.every((n: { object: string }) => n.object !== "block");
   }
 
   /**
    * Check whether the node is a leaf inline.
    */
   isLeafInline() {
-    return (
-      this.object === "inline" &&
-      this.nodes.every((n: { object: string }) => n.object !== "inline")
-    );
+    return this.object === "inline" && this.nodes.every((n: { object: string }) => n.object !== "inline");
   }
 
   mapChildren(iterator: Function): List<NodeInterface> {
@@ -1226,24 +1133,17 @@ abstract class BaseNode extends BaseCommon {
     const b = this.getNode(path);
 
     if (path.last() === 0) {
-      throw new Error(
-        `Unable to merge node because it has no previous sibling: ${b}`
-      );
+      throw new Error(`Unable to merge node because it has no previous sibling: ${b}`);
     }
 
     const withPath = Path.decrement(path);
     const a = this.getNode(withPath);
 
     if (a.object !== b.object) {
-      throw new Error(
-        `Unable to merge two different kinds of nodes: ${a} and ${b}`
-      );
+      throw new Error(`Unable to merge two different kinds of nodes: ${a} and ${b}`);
     }
 
-    const newNode =
-      a.object === "text"
-        ? a.mergeText(b)
-        : a.set("nodes", a.nodes.concat(b.nodes));
+    const newNode = a.object === "text" ? a.mergeText(b) : a.set("nodes", a.nodes.concat(b.nodes));
 
     let ret = this;
     ret = ret.removeNode(path);
@@ -1283,8 +1183,7 @@ abstract class BaseNode extends BaseCommon {
   // Attempt to "refind" a node by a previous `path`, falling back to looking it up by `key` again.
   refindNode(path: Path, key: Key) {
     const node = this.getDescendant(path);
-    const found =
-      node && isEqual(node.key, key) ? node : this.getDescendant(path);
+    const found = node && isEqual(node.key, key) ? node : this.getDescendant(path);
     return found;
   }
 
@@ -1332,9 +1231,7 @@ abstract class BaseNode extends BaseCommon {
   // Replace a `node` in the tree.
   replaceNode(path: Path, node: NodeInterface): this {
     if (!path) {
-      throw new Error(
-        `Unable to replace a node because it could not be found in the first place: ${path}`
-      );
+      throw new Error(`Unable to replace a node because it could not be found in the first place: ${path}`);
     }
 
     if (!path.size) return node;
@@ -1382,13 +1279,7 @@ abstract class BaseNode extends BaseCommon {
   }
 
   // Set `properties` on `mark` on text at `offset` and `length` in node.
-  setMark(
-    path: Path,
-    offset: number,
-    length: number,
-    mark: Mark,
-    properties: any
-  ) {
+  setMark(path: Path, offset: number, length: number, mark: Mark, properties: any) {
     let node = this.getNode(path);
     node = node.updateMark(offset, length, mark, properties);
     const ret = this.replaceNode(path, node);
@@ -1425,10 +1316,7 @@ abstract class BaseNode extends BaseCommon {
   }
 
   get isEmpty() {
-    return (
-      !this.get("isVoid") &&
-      !this.nodes.some((child: { isEmpty: any }) => !child.isEmpty)
-    );
+    return !this.get("isVoid") && !this.nodes.some((child: { isEmpty: any }) => !child.isEmpty);
   }
 }
 

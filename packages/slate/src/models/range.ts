@@ -1,7 +1,7 @@
 import isPlainObject from "is-plain-object";
 
 import MODEL_TYPES from "../constants/model-types";
-import RangeInterface from "../interfaces/baseRange";
+import BaseRange from "../interfaces/baseRange";
 
 import Point from "./point";
 
@@ -9,7 +9,7 @@ import Point from "./point";
  * 实体类 基类
  * 范围
  */
-class Range extends RangeInterface {
+class Range extends BaseRange {
   constructor(attrs: any) {
     super();
     this.anchor = Point.create(attrs.anchor);

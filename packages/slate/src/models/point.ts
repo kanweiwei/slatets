@@ -1,26 +1,23 @@
 import isPlainObject from "is-plain-object";
 import logger from "slate-dev-logger";
-import { Record, List } from "immutable";
 
 import Key from "../utils/key-utils";
 import { Path } from "../interfaces/path";
 import MODEL_TYPES from "../constants/model-types";
 import { isEqual } from "lodash-es";
 import NodeInterface from "../interfaces/baseNode";
+import BaseNode from "../interfaces/baseNode";
 
-/**
- * default properties
- */
-const DEFAULTS: any = {
-  key: null,
-  offset: null,
-  path: null,
-};
-
-class Point extends Record(DEFAULTS) {
+class Point {
   public key: Key | null;
   public offset: number | null;
-  public path: List<number> | null;
+  public path: Path | null;
+
+  constructor(data: { key: Key; offset: number; path: Path }) {
+    this.key = data.key;
+    this.offset = data.offset;
+    this.path = data.path;
+  }
 
   get object(): "point" {
     return "point";
@@ -43,14 +40,10 @@ class Point extends Record(DEFAULTS) {
       return Point.fromJSON(attrs);
     }
 
-    throw new Error(
-      `\`Point.create\` only accepts objects or points, but you passed it: ${attrs}`
-    );
+    throw new Error(`\`Point.create\` only accepts objects or points, but you passed it: ${attrs}`);
   }
 
-  static createProperties(
-    a: any = {}
-  ): { key: any; offset: string; path: any } {
+  static createProperties(a: any = {}): { key: any; offset: string; path: any } {
     if (Point.isPoint(a)) {
       return {
         key: a.key,
@@ -74,9 +67,7 @@ class Point extends Record(DEFAULTS) {
       return p;
     }
 
-    throw new Error(
-      `\`Point.createProperties\` only accepts objects or points, but you passed it: ${a}`
-    );
+    throw new Error(`\`Point.createProperties\` only accepts objects or points, but you passed it: ${a}`);
   }
 
   static fromJSON(object): Point {
@@ -149,11 +140,13 @@ class Point extends Record(DEFAULTS) {
       key = path;
       path = isEqual(key, this.key) ? this.path : null;
     } else {
-      key = this.path && path && path.equals(this.path) ? this.key : null;
+      key = this.path && path && Path.equals(path, this.path) ? this.key : null;
     }
 
-    const point = this.merge({ key, path, offset }) as Point;
-    return point;
+    this.key = key;
+    this.path = path;
+    this.offset = offset;
+    return this;
   }
 
   moveToRangeOfNode([node, p]): Point {
@@ -174,7 +167,7 @@ class Point extends Record(DEFAULTS) {
     return point;
   }
 
-  normalize([node, path]): Point {
+  normalize([node, path]: [BaseNode, Path]): Point {
     // If both the key and path are null, there's no reference to a node, so
     // make sure it is entirely unset.
     if (this.key == null && path == null) {
@@ -185,7 +178,7 @@ class Point extends Record(DEFAULTS) {
     // PERF: this function gets called a lot.
     // to avoid creating the key -> path lookup table, we attempt to look up by path first.
     let target;
-    if (path && path.size > 0) {
+    if (path && path.length > 0) {
       target = node.getNode(path);
     }
 
@@ -194,11 +187,8 @@ class Point extends Record(DEFAULTS) {
 
       if (target) {
         // There is a misalignment of path and key
-        const point = this.merge({
-          path: node.getPath(key),
-        });
-
-        return point as Point;
+        this.path = node.getPath(key);
+        return this;
       }
     }
 
@@ -208,13 +198,10 @@ class Point extends Record(DEFAULTS) {
       const text = node.getFirstText();
       if (!text) return Point.create();
 
-      const point: Point = this.merge({
-        key: text.key,
-        offset: 0,
-        path: node.getPath(text.key),
-      }) as Point;
-
-      return point;
+      this.key = text[0].key;
+      this.offset = 0;
+      this.path = text[1];
+      return this;
     }
 
     if (target.object !== "text") {

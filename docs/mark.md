@@ -17,16 +17,26 @@
 
 ## 静态方法
 
-### create(Mark | { type: string; data?: any } | string): Mark;
+### create
 
-### createSet(elements: any[] = []): Mark[];
+`create(Mark | { type: string; data?: any } | string): Mark`
 
-### createProperties(attrs: any = {}): { type: string, data?: any};
+### createSet
 
-### fromJSON(attrs: any): Mark;
+`createSet(elements: any[] = []): Mark[];`
+
+### createProperties
+
+`createProperties(attrs: any = {}): { type: string, data?: any}`
+
+### fromJSON
+
+`fromJSON(attrs: any): Mark`
 
 <br>
 
-## 方法
+## 实例方法
 
-### toJSON(): {type: string, data: any};
+### toJSON
+
+`toJSON(): {type: string, data: any}`

@@ -20,7 +20,7 @@ class Mark {
   /**
    * 静态方法
    */
-  static create(attrs: Mark | { type?: string; data?: any } | string = {}) {
+  static create(attrs: Mark | { type: string; data?: any } | string) {
     if (attrs instanceof Mark) {
       return attrs;
     }
@@ -101,7 +101,7 @@ class Mark {
   /**
    * 实例方法
    */
-  toJSON(options: any = {}) {
+  toJSON() {
     const object: any = {
       object: this.object,
       type: this.type,

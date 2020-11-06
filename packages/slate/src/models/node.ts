@@ -9,6 +9,7 @@ import Document from "./document";
 import { isType } from "../constants/model-types";
 import Text from "./text";
 import Key from "../utils/key-utils";
+import BaseNode from "../interfaces/baseNode";
 
 /**
  * 节点抽象类
@@ -83,12 +84,9 @@ abstract class Node {
    * 创建一个节点列表
    * @param elements
    */
-  static createList(elements: List<any> | Array<any> = []): List<any> {
+  static createList(elements: List<any> | Array<any> = []): Array<BaseNode> {
     if (Array.isArray(elements)) {
-      elements = List(elements);
-    }
-    if (List.isList(elements)) {
-      const list = List(elements.map(Node.create));
+      const list = elements.map(Node.create);
       return list;
     }
 

@@ -5,16 +5,7 @@
  */
 
 abstract class BaseCommon {
-  abstract fromJSON;
-
-  abstract toJSON;
-
-  /**
-   * Alias `fromJS`.
-   */
-  fromJS(...args: any[]) {
-    return this.fromJSON(...args);
-  }
+  abstract toJSON(options?: any): any;
 
   toJS(...args: any[]) {
     return this.toJSON(...args);
