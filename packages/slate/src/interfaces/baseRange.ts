@@ -10,13 +10,14 @@ import Selection from "../models/selection";
 import { isEqual } from "lodash-es";
 import { List } from "immutable";
 import { Key } from "..";
-import NodeInterface from "./node";
+import NodeInterface from "./baseNode";
+import BaseCommon from "./baseCommon";
 
 /**
  * @abstract 抽象类
  * 范围、选区
  */
-abstract class BaseRange {
+abstract class BaseRange extends BaseCommon {
   /**
    * 锚点
    */

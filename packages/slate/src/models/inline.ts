@@ -6,7 +6,7 @@ import Key from "../utils/key-utils";
 import Node from "./node";
 import Text from "./text";
 import mixin from "../utils/mixin";
-import NodeInterface from "../interfaces/node";
+import NodeInterface from "../interfaces/baseNode";
 import { Path, Mark, Decoration, Point, Schema, Change } from "..";
 /**
  * 默认属性

@@ -1,5 +1,4 @@
 import isPlainObject from "is-plain-object";
-import logger from "slate-dev-logger";
 
 import { List } from "immutable";
 
@@ -12,17 +11,43 @@ import Text from "./text";
 import Key from "../utils/key-utils";
 
 /**
- * A pseudo-model that is used for its static methods only.
+ * 节点抽象类
  */
-class Node {
-  public key: Key;
-  public nodes: List<any>;
-  public text: string;
-
-  public object: "document" | "block" | "inline" | "text";
+abstract class Node {
+  constructor() {}
 
   /**
-   * craete a new Node width attrs
+   * 节点id
+   */
+  public abstract key: Key;
+
+  /**
+   * 子节点
+   */
+  public abstract nodes: Array<Node>;
+
+  /**
+   * 文本
+   */
+  public abstract text: string;
+
+  /**
+   * 节点类型
+   */
+  public abstract object: "document" | "block" | "inline" | "text";
+
+  /**
+   * 节点附加属性
+   */
+  public data?: Data;
+
+  /**
+   * 父节点
+   */
+  public abstract parent: Node | null;
+
+  /**
+   * 创建一个节点
    * @param attrs
    */
   static create(attrs: any = {}) {
@@ -31,16 +56,7 @@ class Node {
     }
 
     if (isPlainObject(attrs)) {
-      let { object, kind } = attrs;
-
-      if (!object && kind) {
-        logger.deprecate(
-          "slate@0.32.0",
-          "The `kind` property of Slate objects has been renamed to `object`."
-        );
-
-        object = kind;
-      }
+      let { object } = attrs;
 
       switch (object) {
         case "block":
@@ -64,7 +80,7 @@ class Node {
   }
 
   /**
-   * create a list of Nodes from an Array or a List
+   * 创建一个节点列表
    * @param elements
    */
   static createList(elements: List<any> | Array<any> = []): List<any> {
@@ -114,20 +130,11 @@ class Node {
   }
 
   /**
-   * create a Node from a JSON value
+   * json对象创建节点
    * @param value
    */
   static fromJSON(value: any): Block | Inline | Document | Text {
-    let { object, kind } = value;
-
-    if (!object && kind) {
-      logger.deprecate(
-        "slate@0.32.0",
-        "The `kind` property of Slate objects has been renamed to `object`."
-      );
-
-      object = kind;
-    }
+    let { object } = value;
 
     switch (object) {
       case "block":
@@ -148,7 +155,7 @@ class Node {
   }
 
   /**
-   * check if any is a Node
+   * 判断是否是节点
    * @param any
    */
   static isNode(any: any) {
@@ -158,12 +165,18 @@ class Node {
   }
 
   /**
-   * check if any is a list of nodes
+   * 判断是否是节点列表
    * @param any
    */
   static isNodeList(any: any): boolean {
     return List.isList(any) && any.every((item) => Node.isNode(item));
   }
+
+  /**
+   * 转成普通对象
+   * @param options
+   */
+  public abstract toJSON(options: any): any;
 }
 
 export default Node;

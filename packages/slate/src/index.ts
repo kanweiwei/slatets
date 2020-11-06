@@ -35,8 +35,8 @@ import {
   KEY_TO_NODE,
 } from "./utils/weak-maps";
 
-import "./interfaces/common";
-import "./interfaces/range";
+import "./interfaces/baseCommon";
+import "./interfaces/baseRange";
 /**
  * Export.
  *

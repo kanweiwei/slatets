@@ -22,6 +22,7 @@ const MODEL_TYPES = {
   VALUE: "@@__SLATE_VALUE__@@",
   DECORATION: "@@__SLATE_DECORATION__@@",
   SELECTION: "@@__SLATE_SELECTION__@@",
+  POINT: "@@__SLATE_POINT__@@",
 };
 
 /**

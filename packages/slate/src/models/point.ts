@@ -6,7 +6,7 @@ import Key from "../utils/key-utils";
 import { Path } from "../interfaces/path";
 import MODEL_TYPES from "../constants/model-types";
 import { isEqual } from "lodash-es";
-import NodeInterface from "../interfaces/node";
+import NodeInterface from "../interfaces/baseNode";
 
 /**
  * default properties
@@ -289,12 +289,14 @@ class Point extends Record(DEFAULTS) {
     return object;
   }
 
+  /**
+   * 清空
+   */
   unset() {
-    return this.merge({
-      key: null,
-      offset: null,
-      path: null,
-    });
+    this.key = null;
+    this.offset = null;
+    this.path = null;
+    return this;
   }
 }
 

@@ -11,7 +11,7 @@ import Range from "./range";
 import Mark from "./mark";
 import Decoration from "./decoration";
 import Point from "./point";
-import NodeInterface from "../interfaces/node";
+import NodeInterface from "../interfaces/baseNode";
 import Schema from "./schema";
 import { Stack } from "..";
 import Change from "./change";

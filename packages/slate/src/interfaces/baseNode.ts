@@ -27,8 +27,21 @@ import Schema from "../models/schema";
 import Change from "../models/change";
 import { Text } from "..";
 import MODEL_TYPES from "../constants/model-types";
+import Data from "../models/data";
+import BaseCommon from "./baseCommon";
 
-class NodeInterface {
+/**
+ * 节点
+ */
+abstract class BaseNode extends BaseCommon {
+  public abstract key: Key;
+
+  public abstract nodes: BaseNode[];
+
+  public abstract data: Data;
+
+  public abstract parent?: BaseNode;
+
   // Get the concatenated text of all the block's children.
   get text(): string {
     return this.getText();
@@ -1000,7 +1013,7 @@ class NodeInterface {
 
   // Get the concatenated text string of all child nodes.
   getText(): string {
-    const text = this.nodes.reduce((string: any, node: { text: any }) => {
+    const text = this.nodes.reduce((string: string, node) => {
       return string + node.text;
     }, "");
 
@@ -1411,13 +1424,6 @@ class NodeInterface {
     return schema.validateNode(this);
   }
 
-  /**
-   * Deprecated.
-   */
-  get isVoid() {
-    return this.get("isVoid");
-  }
-
   get isEmpty() {
     return (
       !this.get("isVoid") &&
@@ -1426,39 +1432,4 @@ class NodeInterface {
   }
 }
 
-/**
- * Memoize read methods.
- */
-
-memoize(NodeInterface.prototype, [
-  "getBlocksAsArray",
-  "getBlocksAtRangeAsArray",
-  "getBlocksByTypeAsArray",
-  "getDecorations",
-  "getFirstInvalidNode",
-  "getFirstText",
-  "getInlinesAsArray",
-  "getInlinesAtRangeAsArray",
-  "getInlinesByTypeAsArray",
-  "getMarksAsArray",
-  "getMarksAtPosition",
-  "getOrderedMarksBetweenPositions",
-  "getInsertMarksAtRange",
-  "getLastText",
-  "getMarksByTypeAsArray",
-  "getNextBlock",
-  "getOffset",
-  "getOffsetAtRange",
-  "getPreviousBlock",
-  "getText",
-  "getTextAtOffset",
-  "getTextDirection",
-  "getTextsAsArray",
-  "getTextsBetweenPositionsAsArray",
-  "isLeafBlock",
-  "isLeafInline",
-  "normalize",
-  "validate",
-]);
-
-export default NodeInterface;
+export default BaseNode;

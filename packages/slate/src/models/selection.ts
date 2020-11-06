@@ -5,9 +5,9 @@ import MODEL_TYPES from "../constants/model-types";
 import Mark from "./mark";
 import Point from "./point";
 import Range from "./range";
-import RangeInterface from "../interfaces/range";
+import RangeInterface from "../interfaces/baseRange";
 import { Path } from "../interfaces/path";
-import NodeInterface from "../interfaces/node";
+import NodeInterface from "../interfaces/baseNode";
 import { Key } from "..";
 import mixin from "../utils/mixin";
 
